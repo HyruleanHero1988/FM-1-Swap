@@ -1,0 +1,67 @@
+name: FMSwitch
+options:
+  bundleIdPrefix: com.drewrobinson
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+packages:
+  FM1Kit:
+    path: ../code/FM1Kit
+targets:
+  FMSwitch:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+    dependencies:
+      - package: FM1Kit
+        product: FM1Kit
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: FM-SWITCH
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        UIAppFonts:
+          - VT323-Regular.ttf
+          - Silkscreen-Regular.ttf
+          - Silkscreen-Bold.ttf
+          - DepartureMono-Regular.otf
+        UILaunchScreen:
+          UIColorName: ""
+        UIUserInterfaceStyle: Dark
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.drewrobinson.fmswitch
+        SWIFT_VERSION: "6.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_PREVIEWS: YES
+  FMSwitchTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: AppTests
+    dependencies:
+      - target: FMSwitch
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "6.0"
+        PRODUCT_BUNDLE_IDENTIFIER: com.drewrobinson.fmswitch.tests
+schemes:
+  FMSwitch:
+    build:
+      targets:
+        FMSwitch: all
+    test:
+      targets:
+        - FMSwitchTests

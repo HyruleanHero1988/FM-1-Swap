@@ -6,7 +6,7 @@ options:
   createIntermediateGroups: true
 packages:
   FM1Kit:
-    path: ../code/FM1Kit
+    path: ../FM1Kit
 targets:
   FMSwitch:
     type: application

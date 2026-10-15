@@ -22,7 +22,7 @@ AppTests/                firmware list tests (Swift Testing)
 
 Talking to the FM-1 (the update protocol, `.fwsc` packages, CoreMIDI and a simulated FM-1)
 is [FM1Kit](https://github.com/ocean/FM1Kit), an open-source Swift package. `project.yml`
-uses a local checkout at `../code/FM1Kit`; switch it to the GitHub URL and a version once
+uses a local checkout at `../FM1Kit` (that is, `~/code/FM1Kit`); switch it to the GitHub URL and a version once
 it's published.
 
 ## Running it
@@ -47,7 +47,7 @@ personal installs.
 ## Phase 0 with real hardware
 
 1. **Mac, no risk:** plug the FM-1 into the Mac and run
-   `swift run --package-path ../code/FM1Kit fm1probe ports`, then `... fm1probe identify`.
+   `swift run --package-path ../FM1Kit fm1probe ports`, then `... fm1probe identify`.
    It should print something like `FM-1_916`. `fm1probe inspect file.fwsc` shows a package's
    identity and hash.
 2. **iPhone, no risk:** on the DEVICE tab, check that the FM-1 appears and reports its

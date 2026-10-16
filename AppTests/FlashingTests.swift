@@ -32,11 +32,12 @@ struct FlashingTests {
         let history: FlashHistory
     }
 
-    static func setUp(cablePull: Bool = false) async throws -> Setup {
+    static func setUp(cablePull: Bool = false, configure: (AppSettings) -> Void = { _ in }) async throws -> Setup {
         let directory = URL.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
         let defaults = try #require(UserDefaults(suiteName: UUID().uuidString))
         let settings = AppSettings(defaults: defaults)
         settings.simulatedCablePull = cablePull
+        configure(settings)
         let library = FirmwareLibrary(directory: directory)
         let history = FlashHistory(defaults: defaults)
         let controller = DeviceController(library: library, history: history)
@@ -74,6 +75,24 @@ struct FlashingTests {
         #expect(setup.controller.identity?.text == "FM-1_916")
         #expect(setup.controller.log.last == "✓ Finished.")
         #expect(setup.history.last?.product == "FM-1_916")
+    }
+
+    @Test func flashesThroughALoaderThatReadsBackwardsAndVerifies() async throws {
+        let setup = try await Self.setUp { settings in
+            settings.simulatedReadsBackwards = true
+            settings.simulatedVerifies = true
+        }
+        let item = try Self.save("FM-1_916", in: setup.library)
+
+        setup.controller.flash([item])
+        try await Self.waitUntil(seconds: 90) { setup.controller.job?.isRunning == false }
+
+        #expect(setup.controller.job?.phase == .succeeded("FM-1_916"))
+        let log = setup.controller.log
+        let verifying = try #require(log.firstIndex { $0.contains("reading it back") })
+        let rebooting = try #require(log.firstIndex { $0.contains("Rebooting") })
+        #expect(verifying < rebooting)
+        #expect(log.count { $0.contains("reading it back") } == 1)
     }
 
     @Test func resumesAfterTheCableIsPulled() async throws {

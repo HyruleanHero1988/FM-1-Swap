@@ -48,13 +48,13 @@ struct FlashView: View {
                     .foregroundStyle(theme.bright)
                 if job.isRunning { BlinkingCursor() }
                 Spacer()
-                if let fraction = job.overallFraction {
+                if let fraction = job.phaseFraction {
                     Text("\(Int(fraction * 100))%")
                         .font(.lcd(30))
                         .foregroundStyle(theme.bright)
                 }
             }
-            PixelProgressBar(fraction: indeterminate(job) ? nil : job.overallFraction)
+            PixelProgressBar(fraction: job.phaseFraction)
         }
     }
 
@@ -106,7 +106,12 @@ struct FlashView: View {
                     "Auto-lock is paused. Don't lock the phone, switch apps or unplug the FM-1 until this finishes.",
                     size: 14
                 )
-                NoteText("If it is interrupted, the FM-1 waits in update mode and RESUME carries on.")
+                NoteText(
+                    """
+                    An install takes from about 35 seconds to a minute, depending on the firmware being \
+                    replaced. If it is interrupted, the FM-1 waits in update mode and RESUME carries on.
+                    """
+                )
             }
         }
     }
@@ -116,13 +121,6 @@ struct FlashView: View {
         case .succeeded: "FLASHED"
         case .failed: "INTERRUPTED"
         default: "FLASHING"
-        }
-    }
-
-    private func indeterminate(_ job: DeviceController.FlashJob) -> Bool {
-        switch job.phase {
-        case .preparing, .waitingForLoader, .rebooting: true
-        default: false
         }
     }
 }

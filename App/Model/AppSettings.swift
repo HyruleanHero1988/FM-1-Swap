@@ -37,6 +37,12 @@ final class AppSettings {
     var alwaysViaOfficial: Bool { didSet { defaults.set(alwaysViaOfficial, forKey: Keys.alwaysViaOfficial) } }
     var simulatedRecoveryMode: Bool { didSet { defaults.set(simulatedRecoveryMode, forKey: Keys.simulatedRecovery) } }
     var simulatedCablePull: Bool { didSet { defaults.set(simulatedCablePull, forKey: Keys.simulatedCablePull) } }
+    /// The simulated loader reads the image from the end, as M-VAVE's V15 loader does.
+    var simulatedReadsBackwards: Bool {
+        didSet { defaults.set(simulatedReadsBackwards, forKey: Keys.simulatedReadsBackwards) }
+    }
+    /// The simulated loader reads the image again after writing it, as Felucca's loader does.
+    var simulatedVerifies: Bool { didSet { defaults.set(simulatedVerifies, forKey: Keys.simulatedVerifies) } }
     /// The `SafetyNotice.version` the user last acknowledged (0 for never).
     var acknowledgedNoticeVersion: Int {
         didSet { defaults.set(acknowledgedNoticeVersion, forKey: Keys.acknowledgedNotice) }
@@ -72,6 +78,8 @@ final class AppSettings {
         alwaysViaOfficial = defaults.object(forKey: Keys.alwaysViaOfficial) as? Bool ?? false
         simulatedRecoveryMode = defaults.object(forKey: Keys.simulatedRecovery) as? Bool ?? false
         simulatedCablePull = defaults.object(forKey: Keys.simulatedCablePull) as? Bool ?? false
+        simulatedReadsBackwards = defaults.object(forKey: Keys.simulatedReadsBackwards) as? Bool ?? false
+        simulatedVerifies = defaults.object(forKey: Keys.simulatedVerifies) as? Bool ?? false
         acknowledgedNoticeVersion = defaults.integer(forKey: Keys.acknowledgedNotice)
     }
 
@@ -105,6 +113,8 @@ final class AppSettings {
         static let alwaysViaOfficial = "alwaysViaOfficial"
         static let simulatedRecovery = "simulatedRescueMode"  // The original key, so saved settings carry over.
         static let simulatedCablePull = "simulatedCablePull"
+        static let simulatedReadsBackwards = "simulatedReadsBackwards"
+        static let simulatedVerifies = "simulatedVerifies"
         static let acknowledgedNotice = "acknowledgedNoticeVersion"
     }
 }

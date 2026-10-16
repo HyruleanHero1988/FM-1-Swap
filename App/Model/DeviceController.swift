@@ -14,6 +14,8 @@ final class DeviceController {
         case staging(requests: Int)
         case waitingForLoader
         case writing(fraction: Double)
+        /// The loader reading back what it wrote; not every loader does this.
+        case verifying(fraction: Double)
         case rebooting
         case succeeded(String)
         case failed(String, canResume: Bool)
@@ -24,6 +26,7 @@ final class DeviceController {
             case .staging: "CHECKING PACKAGE"
             case .waitingForLoader: "WAITING FOR LOADER"
             case .writing: "WRITING"
+            case .verifying: "VERIFYING"
             case .rebooting: "REBOOTING"
             case .succeeded: "DONE"
             case .failed: "STOPPED"
@@ -45,19 +48,18 @@ final class DeviceController {
             }
         }
 
-        /// Overall progress across every step of the job.
-        var overallFraction: Double? {
-            let stepFraction: Double
+        /// How far the current phase has got, or `nil` while it can't be measured.
+        ///
+        /// Each phase counts from 0 on its own: whether a loader verifies after writing isn't known
+        /// until it starts, so one bar across every phase would have to jump back. Some loaders
+        /// don't read the whole image, so writing can end short of 1.
+        var phaseFraction: Double? {
             switch phase {
-            case .preparing: stepFraction = 0
-            case .staging(let requests): stepFraction = 0.06 * min(Double(requests) / 74, 1)
-            case .waitingForLoader: stepFraction = 0.07
-            case .writing(let fraction): stepFraction = 0.07 + 0.9 * fraction
-            case .rebooting: stepFraction = 0.98
-            case .succeeded: return 1
-            case .failed: return nil
+            case .staging(let requests): min(Double(requests) / 75, 1)
+            case .writing(let fraction), .verifying(let fraction): fraction
+            case .succeeded: 1
+            case .preparing, .waitingForLoader, .rebooting, .failed: nil
             }
-            return (Double(index) + stepFraction) / Double(steps.count)
         }
     }
 
@@ -105,6 +107,8 @@ final class DeviceController {
             var options = SimulatedFM1.Options()
             options.startsInRecoveryMode = settings.simulatedRecoveryMode
             options.unplugDuringWriteAt = settings.simulatedCablePull ? 0.45 : nil
+            options.writesBackwards = settings.simulatedReadsBackwards
+            options.checksAfterWriting = settings.simulatedVerifies
             transport = SimulatedFM1(options: options)
         }
         transportName = kind.name
@@ -232,9 +236,12 @@ final class DeviceController {
             appendLog("Loader: \(identity.text)")
         case .writing(let fraction, _):
             job?.phase = .writing(fraction: fraction)
+        case .checking(let fraction, _):
+            if case .verifying = job?.phase {} else { appendLog("Written; the loader is reading it back to check it.") }
+            job?.phase = .verifying(fraction: fraction)
         case .rebooting:
             job?.phase = .rebooting
-            appendLog("Written; rebooting.")
+            appendLog("Rebooting into the new firmware.")
         case .finished(let identity):
             appendLog("Device reports \(identity.text).")
         }

@@ -85,6 +85,8 @@ struct SettingsView: View {
         if settings.transportKind == .simulated {
             pixelToggle("START IN USB RECOVERY MODE", isOn: $settings.simulatedRecoveryMode)
             pixelToggle("PULL THE CABLE AT 45%", isOn: $settings.simulatedCablePull)
+            pixelToggle("READ BACKWARDS, LIKE V15", isOn: $settings.simulatedReadsBackwards)
+            pixelToggle("VERIFY AFTER WRITING, LIKE FELUCCA", isOn: $settings.simulatedVerifies)
             Button("RESET SIMULATED FM-1") { model.applyConnectionSettings() }
                 .buttonStyle(.pixel)
                 .disabled(model.device.isFlashing)

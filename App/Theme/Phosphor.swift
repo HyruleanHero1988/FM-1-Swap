@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// The look: a dark handheld-console screen with an accent colour the user picks. Pixel
-/// capitals for headings, a pixel monospace for reading, and optional CRT touches (glow,
+/// The look: a dark handheld-console screen with an accent colour the user picks.
+///
+/// Pixel capitals for headings, a pixel monospace for reading, and optional CRT touches (glow,
 /// scanlines, flicker) kept subtle.
 struct PhosphorTheme: Equatable {
     var base: Color
@@ -15,7 +16,6 @@ struct PhosphorTheme: Equatable {
     var dim: Color { base.opacity(0.5) }
     /// The accent, barely there: disabled states and empty segments.
     var faint: Color { base.opacity(0.2) }
-    var ghost: Color { base.opacity(0.06) }
 
     /// Body text: a warm off-white, nudged towards the accent.
     var ink: Color { Color(rgb: 0xECE8DF).mixed(with: base, amount: 0.08) }
@@ -29,7 +29,7 @@ struct PhosphorTheme: Equatable {
     /// The hard offset shadow under buttons and panels.
     var shadow: Color { Color.black.opacity(0.55) }
 
-    static let standard = PhosphorTheme(base: PhosphorPreset.green.colour, glow: 0.25, scanlines: false, flicker: false)
+    static let standard = Self(base: PhosphorPreset.green.colour, glow: 0.25, scanlines: false, flicker: false)
 }
 
 enum PhosphorPreset: String, CaseIterable, Identifiable {
@@ -126,7 +126,7 @@ extension Color {
     func mixed(with other: Color, amount: Double) -> Color {
         let from = rgbComponents
         let to = other.rgbComponents
-        let blend = { (a: Double, b: Double) in a + (b - a) * amount }
+        let blend = { (start: Double, end: Double) in start + (end - start) * amount }
         return Color(red: blend(from.red, to.red), green: blend(from.green, to.green), blue: blend(from.blue, to.blue))
     }
 }

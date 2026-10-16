@@ -1,4 +1,3 @@
-import FM1Kit
 import Foundation
 
 /// One firmware in the merged list, from the firmware hub, fm1-editor.com, or both.
@@ -11,10 +10,9 @@ struct CatalogueEntry: Codable, Sendable, Identifiable, Hashable {
     /// Which lists the firmware appears on.
     struct Listing: OptionSet, Codable, Sendable, Hashable {
         let rawValue: Int
-        init(rawValue: Int) { self.rawValue = rawValue }
 
-        static let hub = Listing(rawValue: 1 << 0)
-        static let editor = Listing(rawValue: 1 << 1)
+        static let hub = Self(rawValue: 1 << 0)
+        static let editor = Self(rawValue: 1 << 1)
     }
 
     /// Where the package link came from.
@@ -68,7 +66,6 @@ struct CatalogueEntry: Codable, Sendable, Identifiable, Hashable {
     var loader: String?
     var links: [CatalogueLink]
     var repo: String?
-    var stars: Int?
     var listing: Listing
     /// M-VAVE's own firmware.
     var isOfficial: Bool
@@ -96,7 +93,6 @@ struct CatalogueEntry: Codable, Sendable, Identifiable, Hashable {
         loader: String? = nil,
         links: [CatalogueLink] = [],
         repo: String? = nil,
-        stars: Int? = nil,
         listing: Listing,
         isOfficial: Bool = false
     ) {
@@ -116,7 +112,6 @@ struct CatalogueEntry: Codable, Sendable, Identifiable, Hashable {
         self.loader = loader
         self.links = links
         self.repo = repo
-        self.stars = stars
         self.listing = listing
         self.isOfficial = isOfficial
     }
@@ -135,7 +130,7 @@ struct CatalogueEntry: Codable, Sendable, Identifiable, Hashable {
     var needsBuildChoice: Bool { (builds?.count ?? 0) > 1 && build == nil }
 
     /// The entry pointing at the named build, or unchanged if there's no such build.
-    func choosing(build name: String) -> CatalogueEntry {
+    func choosing(build name: String) -> Self {
         guard let chosen = builds?.first(where: { $0.name == name }) else { return self }
         var entry = self
         // The identity the list gives belongs to its own build; another build may report another.
@@ -175,18 +170,16 @@ struct CatalogueLink: Codable, Sendable, Hashable {
 /// The firmware hub's catalogue (`https://thefirmwarehub.com/catalog.json`), rebuilt from each
 /// project's latest GitHub release and mirrored on the hub with SHA-256 hashes.
 struct HubFeed: Decodable, Sendable {
-    static let defaultURL = URL(string: "https://thefirmwarehub.com/catalog.json")!
+    static let defaultURL = URL(literal: "https://thefirmwarehub.com/catalog.json")
 
-    /// When the hub last rebuilt the catalogue, as the hub writes it (e.g. "2026-10-14 23:00 UTC").
-    var updated: String
     var firmwares: [Firmware]
 
-    static func decode(_ data: Data) throws -> HubFeed {
-        try JSONDecoder().decode(HubFeed.self, from: data)
+    static func decode(_ data: Data) throws -> Self {
+        try JSONDecoder().decode(Self.self, from: data)
     }
 
     /// The feed's entries, with package paths resolved against the feed's address.
-    func entries(relativeTo feedURL: URL = HubFeed.defaultURL) -> [CatalogueEntry] {
+    func entries(relativeTo feedURL: URL = Self.defaultURL) -> [CatalogueEntry] {
         firmwares.map { $0.entry(relativeTo: feedURL) }
     }
 
@@ -210,10 +203,10 @@ struct HubFeed: Decodable, Sendable {
         var editor: String?
         var play: String?
         var repo: String?
-        var stars: Int?
 
         enum CodingKeys: String, CodingKey {
-            case id, name, author, what, version, date, beta, pkg, product, size, sha256, loader, site, source, release, editor, play, repo, stars
+            case id, name, author, what, version, date, beta, pkg, product, size, sha256, loader, site, source, release,
+                editor, play, repo
             case kinds = "kind"
         }
 
@@ -242,7 +235,6 @@ struct HubFeed: Decodable, Sendable {
             editor = try container.decodeIfPresent(String.self, forKey: .editor)
             play = try container.decodeIfPresent(String.self, forKey: .play)
             repo = try container.decodeIfPresent(String.self, forKey: .repo)
-            stars = try container.decodeIfPresent(Int.self, forKey: .stars)
         }
 
         func entry(relativeTo feedURL: URL) -> CatalogueEntry {
@@ -278,7 +270,6 @@ struct HubFeed: Decodable, Sendable {
                 loader: loader,
                 links: links,
                 repo: repo,
-                stars: stars,
                 listing: .hub
             )
         }

@@ -17,7 +17,8 @@ App/                     SwiftUI app (iOS 17+)
   Model/                 settings, catalogue, saved firmwares, flash history, device controller
   Views/                 Device, Firmware (catalogue), Saved, Setup, Flash
   Resources/Fonts/       Departure Mono, Silkscreen, VT323 (SIL OFL)
-AppTests/                firmware list tests (Swift Testing)
+AppTests/                firmware list and flashing tests (Swift Testing)
+scripts/check.sh         every check CI runs
 ```
 
 Talking to the FM-1 (the update protocol, `.fwsc` packages, CoreMIDI and a simulated FM-1)
@@ -57,14 +58,35 @@ personal installs.
    mid-write and check that **RESUME** finishes it.
 4. Tune FM1Kit's `UpdaterTiming` if the real device wants different pacing.
 
-## Tests
+## Tests and checks
 
 ```bash
-xcodebuild test -project FMSwitch.xcodeproj -scheme FMSwitch -destination 'platform=iOS Simulator,name=iPhone 18 Pro'
+scripts/check.sh
 ```
 
-The app's tests cover the firmware list: reading both lists, merging, finding packages,
-version ordering and build names. FM1Kit has its own tests (`swift test` in its repository).
+This runs everything CI runs, and it must pass with no warnings. It needs
+`brew install xcodegen swiftlint periphery` and FM1Kit at `../FM1Kit`. In order, it:
+
+- regenerates the project;
+- checks formatting (`swift format`, `.swift-format`);
+- lints (`swiftlint --strict`, `.swiftlint.yml`);
+- builds with warnings as errors, then runs the tests on the first available iPhone simulator
+  (set `SIMULATOR` to choose one);
+- does an unsigned device build;
+- builds the DocC documentation with warnings as errors;
+- looks for unused code and imports (`swiftlint analyze` and Periphery).
+
+To fix formatting, run `swift format format --in-place --recursive App AppTests`. Some lint
+findings can be fixed with `swiftlint --fix`, but check what it changes: it can rewrite a
+closure inside `#require` into a key path, which doesn't compile.
+
+The app's tests cover the firmware list (reading both lists, merging, finding packages,
+version ordering and build names) and flashing against the simulated FM-1 (install, resume after
+a pulled cable, and refusing to reinstall the running firmware). FM1Kit has its own tests and
+checks in its repository.
+
+CI (`.github/workflows/ci.yml`) checks out FM1Kit from `ocean/FM1Kit` next to the app, so it
+can't pass until FM1Kit is published there.
 
 ## Staying alive during a flash
 

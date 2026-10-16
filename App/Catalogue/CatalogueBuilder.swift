@@ -3,18 +3,9 @@ import Foundation
 /// The merged firmware list, as saved on the phone.
 struct MergedCatalogue: Codable, Sendable, Equatable {
     var builtAt: Date
-    /// The hub's own build stamp, when the hub was reachable.
-    var hubUpdated: String?
     var entries: [CatalogueEntry]
     /// Sources that couldn't be read on this refresh, in plain words.
     var problems: [String]
-
-    init(builtAt: Date, hubUpdated: String?, entries: [CatalogueEntry], problems: [String]) {
-        self.builtAt = builtAt
-        self.hubUpdated = hubUpdated
-        self.entries = entries
-        self.problems = problems
-    }
 }
 
 /// Builds the merged list: the firmware hub's catalogue, plus every firmware on fm1-editor.com
@@ -44,14 +35,16 @@ struct CatalogueBuilder: Sendable {
         async let hubData = try? fetch(hubURL)
         async let editorData = try? fetch(editorURL)
         let hub = await hubData.flatMap { try? HubFeed.decode($0) }
-        let editor = await editorData.flatMap { String(data: $0, encoding: .utf8) }.map { EditorListing(html: $0, pageURL: editorURL) }
+        let editor = await editorData.flatMap { String(data: $0, encoding: .utf8) }
+            .map { html in EditorListing(html: html, pageURL: editorURL) }
 
         var problems: [String] = []
         if hub == nil { problems.append("The firmware hub couldn't be read.") }
         if editor == nil || editor?.entries.isEmpty == true { problems.append("fm1-editor.com couldn't be read.") }
         guard hub != nil || editor?.entries.isEmpty == false else { throw Failure.nothingReachable }
 
-        let merged = Self.merge(hub: hub?.entries(relativeTo: hubURL) ?? [], editor: editor?.entries ?? [], editorURL: editorURL)
+        let merged = Self.merge(
+            hub: hub?.entries(relativeTo: hubURL) ?? [], editor: editor?.entries ?? [], editorURL: editorURL)
         let discovery = PackageDiscovery(fetch: fetch)
         let previousByID = Dictionary(previous.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
 
@@ -70,7 +63,7 @@ struct CatalogueBuilder: Sendable {
             }
             return entries
         }
-        return MergedCatalogue(builtAt: .now, hubUpdated: hub?.updated, entries: resolved, problems: problems)
+        return MergedCatalogue(builtAt: .now, entries: resolved, problems: problems)
     }
 
     // MARK: - Merging.
@@ -87,24 +80,26 @@ struct CatalogueBuilder: Sendable {
                 entry.listing.insert(.editor)
                 if entry.what == nil { entry.what = listed.blurb }
                 if entry.author == nil { entry.author = listed.author }
-                for link in listed.links + [pageLink] where !entry.links.contains(where: { $0.comparable == link.comparable }) {
+                for link in listed.links + [pageLink]
+                where !entry.links.contains(where: { $0.comparable == link.comparable }) {
                     entry.links.append(link)
                 }
                 entries[index] = entry
             } else {
-                let isOfficial = listed.anchor == "stock" || listed.links.contains { $0.url.host()?.contains("m-vave.com") == true }
-                entries.append(CatalogueEntry(
-                    id: isOfficial ? "mvave-official" : "fm1-editor-\(listed.anchor)",
-                    name: isOfficial ? "M-VAVE official firmware" : listed.name,
-                    author: listed.author,
-                    what: listed.blurb,
-                    version: listed.latest,
-                    date: listed.updated,
-                    links: listed.links + [pageLink],
-                    stars: listed.stars,
-                    listing: .editor,
-                    isOfficial: isOfficial
-                ))
+                let isOfficial =
+                    listed.anchor == "stock" || listed.links.contains { $0.url.host()?.contains("m-vave.com") == true }
+                entries.append(
+                    CatalogueEntry(
+                        id: isOfficial ? "mvave-official" : "fm1-editor-\(listed.anchor)",
+                        name: isOfficial ? "M-VAVE official firmware" : listed.name,
+                        author: listed.author,
+                        what: listed.blurb,
+                        version: listed.latest,
+                        date: listed.updated,
+                        links: listed.links + [pageLink],
+                        listing: .editor,
+                        isOfficial: isOfficial
+                    ))
             }
         }
         return entries

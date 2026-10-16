@@ -44,9 +44,9 @@ struct ReleaseCheck: Sendable {
             return try await checkGitHub(entry)
         case .publisher:
             guard let found = await discovery.discover(name: entry.name, links: entry.links),
-                  found.url != entry.packageURL,
-                  let version = Self.version(of: found),
-                  ReleaseVersion.isNewer(version, than: entry.version)
+                found.url != entry.packageURL,
+                let version = Self.version(of: found),
+                ReleaseVersion.isNewer(version, than: entry.version)
             else {
                 return .upToDate(entry)
             }
@@ -62,7 +62,7 @@ struct ReleaseCheck: Sendable {
     func checkGitHub(_ entry: CatalogueEntry) async throws -> Outcome {
         var lastError: (any Error)?
         for repo in PackageDiscovery.gitHubRepos(in: Self.links(of: entry)) {
-            let releases: [PackageDiscovery.GitHubRelease]
+            let releases: [GitHubRelease]
             do {
                 releases = try await discovery.gitHubReleases(owner: repo.owner, repo: repo.name)
             } catch {
@@ -72,8 +72,9 @@ struct ReleaseCheck: Sendable {
             guard let newest = Self.newest(in: releases, for: entry) else { continue }
             let listed = Self.listedBuild(of: entry, in: releases)
             if let newestPackage = PackageDiscovery.package(from: newest, build: listed?.build),
-               let version = Self.version(of: newestPackage),
-               ReleaseVersion.isNewer(version, than: entry.version) {
+                let version = Self.version(of: newestPackage),
+                ReleaseVersion.isNewer(version, than: entry.version)
+            {
                 var newer = CatalogueBuilder.apply(newestPackage, to: entry)
                 newer.version = version
                 newer.beta = newest.prerelease
@@ -90,7 +91,7 @@ struct ReleaseCheck: Sendable {
                     current.builds = builds
                     current.build = listed.build
                 }
-                current.releaseURL = release.html_url ?? current.releaseURL
+                current.releaseURL = release.pageURL ?? current.releaseURL
             }
             return .upToDate(current)
         }
@@ -100,27 +101,35 @@ struct ReleaseCheck: Sendable {
 
     /// The newest release on the listed track: a full release isn't replaced by a pre-release,
     /// while a beta moves on to whichever is higher, the next pre-release or the full release.
-    static func newest(in releases: [PackageDiscovery.GitHubRelease], for entry: CatalogueEntry) -> PackageDiscovery.GitHubRelease? {
+    static func newest(in releases: [GitHubRelease], for entry: CatalogueEntry) -> GitHubRelease? {
         let full = PackageDiscovery.newest(in: releases, track: .fullOnly)
         let preRelease = entry.beta ? PackageDiscovery.newest(in: releases, track: .preReleaseOnly) : nil
         guard let full, let preRelease else { return full ?? preRelease }
-        return ReleaseVersion.isNewer(preRelease.tag_name, than: full.tag_name) ? preRelease : full
+        return ReleaseVersion.isNewer(preRelease.tagName, than: full.tagName) ? preRelease : full
     }
 
     /// The release the list points at, and which of its builds, found by the listed file's
-    /// checksum (the hub renames the files it mirrors) or address. With neither, the release
-    /// with the listed version is found, but not the build.
-    static func listedBuild(of entry: CatalogueEntry, in releases: [PackageDiscovery.GitHubRelease]) -> (release: PackageDiscovery.GitHubRelease?, build: String?)? {
+    /// checksum (the hub renames the files it mirrors) or address.
+    ///
+    /// With neither, the release with the listed version is found, but not the build.
+    static func listedBuild(
+        of entry: CatalogueEntry,
+        in releases: [GitHubRelease]
+    ) -> (release: GitHubRelease?, build: String?)? {
         for release in releases {
-            if let build = PackageDiscovery.builds(of: release).first(where: {
-                ($0.sha256 != nil && $0.sha256 == entry.sha256) || $0.url == entry.packageURL
-            }) {
-                return (release, build.name)
+            let listed = PackageDiscovery.builds(of: release).first { build in
+                (build.sha256 != nil && build.sha256 == entry.sha256) || build.url == entry.packageURL
+            }
+            if let listed {
+                return (release, listed.name)
             }
         }
-        if let version = entry.version, let release = releases.first(where: {
-            !ReleaseVersion.isNewer($0.tag_name, than: version) && !ReleaseVersion.isNewer(version, than: $0.tag_name)
-        }) {
+        if let version = entry.version,
+            let release = releases.first(where: { release in
+                !ReleaseVersion.isNewer(release.tagName, than: version)
+                    && !ReleaseVersion.isNewer(version, than: release.tagName)
+            })
+        {
             return (release, nil)
         }
         return nil
@@ -129,7 +138,7 @@ struct ReleaseCheck: Sendable {
     /// The release's version; some tags carry none (e.g. "ETCH-Update"), but the file name usually does.
     static func version(of package: DiscoveredPackage) -> String? {
         [package.version, package.url.deletingPathExtension().lastPathComponent]
-            .compactMap { $0 }
+            .compactMap(\.self)
             .first { $0.contains(where: \.isNumber) }
     }
 
@@ -143,9 +152,11 @@ struct ReleaseCheck: Sendable {
 /// Loose version ordering for release names such as "v1.3.10", "drum-v0.16.0", "1.4.0-rc.4"
 /// or "FM-1_101".
 enum ReleaseVersion {
-    /// True when `candidate` is a later release than `listed`. Anything before the first digit is
-    /// ignored, numbers compare as numbers, and a pre-release ("-rc.1", "-beta") comes before
-    /// the release it leads up to. With no listed version there's nothing to compare, so false.
+    /// True when `candidate` is a later release than `listed`.
+    ///
+    /// Anything before the first digit is ignored, numbers compare as numbers, and a pre-release
+    /// ("-rc.1", "-beta") comes before the release it leads up to. With no listed version there's
+    /// nothing to compare, so false.
     static func isNewer(_ candidate: String, than listed: String?) -> Bool {
         guard let listed else { return false }
         let (candidateCore, candidatePre) = split(candidate)
@@ -156,14 +167,14 @@ enum ReleaseVersion {
         case .orderedSame:
             switch (candidatePre, listedPre) {
             case (nil, .some): return true
-            case let (.some(candidatePre), .some(listedPre)):
+            case (.some(let candidatePre), .some(let listedPre)):
                 return candidatePre.compare(listedPre, options: [.numeric, .caseInsensitive]) == .orderedDescending
             default: return false
             }
         }
     }
 
-    /// The version from its first digit, and any pre-release part after a "-" and a letter.
+    /// The version from its first digit, and any pre-release part after a hyphen and a letter.
     static func split(_ version: String) -> (core: String, preRelease: String?) {
         let text = version.firstIndex(where: \.isNumber).map { String(version[$0...]) } ?? version
         guard let match = text.firstMatch(of: #/-(?=[A-Za-z])/#) else { return (text, nil) }

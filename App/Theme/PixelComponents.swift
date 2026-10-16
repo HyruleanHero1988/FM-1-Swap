@@ -6,27 +6,27 @@ struct PixelBox: InsettableShape {
     var inset: CGFloat = 0
 
     func path(in rect: CGRect) -> Path {
-        let r = rect.insetBy(dx: inset, dy: inset)
-        let s = min(step, r.width / 2, r.height / 2)
+        let box = rect.insetBy(dx: inset, dy: inset)
+        let notch = min(step, box.width / 2, box.height / 2)
         var path = Path()
-        path.move(to: CGPoint(x: r.minX + s, y: r.minY))
-        path.addLine(to: CGPoint(x: r.maxX - s, y: r.minY))
-        path.addLine(to: CGPoint(x: r.maxX - s, y: r.minY + s))
-        path.addLine(to: CGPoint(x: r.maxX, y: r.minY + s))
-        path.addLine(to: CGPoint(x: r.maxX, y: r.maxY - s))
-        path.addLine(to: CGPoint(x: r.maxX - s, y: r.maxY - s))
-        path.addLine(to: CGPoint(x: r.maxX - s, y: r.maxY))
-        path.addLine(to: CGPoint(x: r.minX + s, y: r.maxY))
-        path.addLine(to: CGPoint(x: r.minX + s, y: r.maxY - s))
-        path.addLine(to: CGPoint(x: r.minX, y: r.maxY - s))
-        path.addLine(to: CGPoint(x: r.minX, y: r.minY + s))
-        path.addLine(to: CGPoint(x: r.minX + s, y: r.minY + s))
+        path.move(to: CGPoint(x: box.minX + notch, y: box.minY))
+        path.addLine(to: CGPoint(x: box.maxX - notch, y: box.minY))
+        path.addLine(to: CGPoint(x: box.maxX - notch, y: box.minY + notch))
+        path.addLine(to: CGPoint(x: box.maxX, y: box.minY + notch))
+        path.addLine(to: CGPoint(x: box.maxX, y: box.maxY - notch))
+        path.addLine(to: CGPoint(x: box.maxX - notch, y: box.maxY - notch))
+        path.addLine(to: CGPoint(x: box.maxX - notch, y: box.maxY))
+        path.addLine(to: CGPoint(x: box.minX + notch, y: box.maxY))
+        path.addLine(to: CGPoint(x: box.minX + notch, y: box.maxY - notch))
+        path.addLine(to: CGPoint(x: box.minX, y: box.maxY - notch))
+        path.addLine(to: CGPoint(x: box.minX, y: box.minY + notch))
+        path.addLine(to: CGPoint(x: box.minX + notch, y: box.minY + notch))
         path.closeSubpath()
         return path
     }
 
-    func inset(by amount: CGFloat) -> PixelBox {
-        PixelBox(step: step, inset: inset + amount)
+    func inset(by amount: CGFloat) -> Self {
+        Self(step: step, inset: inset + amount)
     }
 }
 
@@ -156,7 +156,7 @@ struct BlinkingCursor: View {
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.5)) { timeline in
-            let on = reduceMotion || Int(timeline.date.timeIntervalSinceReferenceDate * 2) % 2 == 0
+            let on = reduceMotion || Int(timeline.date.timeIntervalSinceReferenceDate * 2).isMultiple(of: 2)
             Rectangle()
                 .fill(theme.bright)
                 .frame(width: 9, height: 16)
@@ -184,6 +184,19 @@ struct MonoText: View {
             .font(.mono(size))
             .lineSpacing(size * 0.2)
             .foregroundStyle(dim ? theme.muted : theme.ink)
+    }
+}
+
+/// A dimmed footnote under a control or panel, in small monospaced text.
+struct NoteText: View {
+    var text: String
+
+    init(_ text: String) {
+        self.text = text
+    }
+
+    var body: some View {
+        MonoText(text, size: 13, dim: true)
     }
 }
 

@@ -1,7 +1,8 @@
 import FM1Kit
 import Foundation
-@testable import FMSwitch
 import Testing
+
+@testable import FMSwitch
 
 /// End-to-end flashes through the app's own controller, library and history, against the
 /// simulated FM-1 at the real device's timings.
@@ -18,7 +19,8 @@ struct FlashingTests {
         for block in 0..<blockCount {
             let start = block * imageBytesPerBlock
             file += image[start..<(start + imageBytesPerBlock)]
-            file.append(block < productBytes.count ? UInt8(truncatingIfNeeded: Int(productBytes[block]) + block + 1) : 0x7D)
+            file.append(
+                block < productBytes.count ? UInt8(truncatingIfNeeded: Int(productBytes[block]) + block + 1) : 0x7D)
         }
         file += image[(blockCount * imageBytesPerBlock)...]
         return Data(file)
@@ -28,7 +30,6 @@ struct FlashingTests {
         let controller: DeviceController
         let library: FirmwareLibrary
         let history: FlashHistory
-        let settings: AppSettings
     }
 
     static func setUp(cablePull: Bool = false) async throws -> Setup {
@@ -41,7 +42,7 @@ struct FlashingTests {
         let controller = DeviceController(library: library, history: history)
         controller.configure(.simulated, settings: settings)
         try await waitUntil(seconds: 10) { controller.identity != nil }
-        return Setup(controller: controller, library: library, history: history, settings: settings)
+        return Setup(controller: controller, library: library, history: history)
     }
 
     static func save(_ product: String, in library: FirmwareLibrary) throws -> StoredFirmware {
@@ -72,6 +73,7 @@ struct FlashingTests {
         #expect(setup.controller.job?.phase == .succeeded("FM-1_916"))
         #expect(setup.controller.identity?.text == "FM-1_916")
         #expect(setup.controller.log.last == "✓ Finished.")
+        #expect(setup.history.last?.product == "FM-1_916")
     }
 
     @Test func resumesAfterTheCableIsPulled() async throws {
@@ -80,8 +82,9 @@ struct FlashingTests {
 
         setup.controller.flash([item])
         try await Self.waitUntil(seconds: 90) { setup.controller.job?.isRunning == false }
-        guard case let .failed(_, canResume) = setup.controller.job?.phase else {
-            Issue.record("Expected the pulled cable to stop the flash, got \(String(describing: setup.controller.job?.phase)).")
+        guard case .failed(_, let canResume) = setup.controller.job?.phase else {
+            Issue.record(
+                "Expected the pulled cable to stop the flash, got \(String(describing: setup.controller.job?.phase)).")
             return
         }
         #expect(canResume)
@@ -99,7 +102,7 @@ struct FlashingTests {
 
         setup.controller.flash([item])
         try await Self.waitUntil(seconds: 90) { setup.controller.job?.isRunning == false }
-        guard case let .failed(message, canResume) = setup.controller.job?.phase else {
+        guard case .failed(let message, let canResume) = setup.controller.job?.phase else {
             Issue.record("Expected the device to refuse its own firmware.")
             return
         }

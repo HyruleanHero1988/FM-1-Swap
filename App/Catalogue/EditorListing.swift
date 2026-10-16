@@ -3,10 +3,10 @@ import Foundation
 /// The firmware list on fm1-editor.com (`https://fm1-editor.com/firmware/`), read from its HTML.
 ///
 /// The page has no feed, so each `<article class="firmware-entry">` is picked apart: its
-/// anchor, title, author, description, latest version, update date, stars and links. It lists
+/// anchor, title, author, description, latest version, update date and links. It lists
 /// firmwares the hub does not, such as Baud Girl's and M-VAVE's own.
 struct EditorListing: Sendable {
-    static let defaultURL = URL(string: "https://fm1-editor.com/firmware/")!
+    static let defaultURL = URL(literal: "https://fm1-editor.com/firmware/")
 
     struct Entry: Sendable, Hashable {
         /// The page anchor, e.g. "baud-girl".
@@ -17,7 +17,6 @@ struct EditorListing: Sendable {
         /// The page's "Latest …" text, e.g. "V15" or "FM-1_101".
         var latest: String?
         var updated: String?
-        var stars: Int?
         /// Pinned to the top of the page (M-VAVE's and Baud Girl's).
         var pinned: Bool
         var links: [CatalogueLink]
@@ -25,7 +24,7 @@ struct EditorListing: Sendable {
 
     var entries: [Entry]
 
-    init(html: String, pageURL: URL = EditorListing.defaultURL) {
+    init(html: String, pageURL: URL = Self.defaultURL) {
         entries = HTML.elements("article", in: HTML.withoutComments(html)).compactMap { article in
             Self.entry(from: article, pageURL: pageURL)
         }
@@ -33,15 +32,17 @@ struct EditorListing: Sendable {
 
     private static func entry(from article: HTML.Element, pageURL: URL) -> Entry? {
         guard (article.attributes["class"] ?? "").contains("firmware-entry"),
-              let anchor = article.attributes["id"],
-              let title = HTML.elements("h2", in: article.inner).first.map({ HTML.text($0.inner) }),
-              !title.isEmpty
+            let anchor = article.attributes["id"],
+            let title = HTML.elements("h2", in: article.inner).first.map({ HTML.text($0.inner) }),
+            !title.isEmpty
         else {
             return nil
         }
         let paragraphs = HTML.elements("p", in: article.inner)
-        let author = paragraphs.first { ($0.attributes["class"] ?? "").contains("synthwave-kicker") }.map { HTML.text($0.inner) }
-        let blurbs = paragraphs
+        let author = paragraphs.first { ($0.attributes["class"] ?? "").contains("synthwave-kicker") }
+            .map { HTML.text($0.inner) }
+        let blurbs =
+            paragraphs
             .filter { ($0.attributes["class"] ?? "").contains("firmware-blurb") }
             .map { HTML.text($0.inner) }
             .filter { !$0.isEmpty }
@@ -51,11 +52,13 @@ struct EditorListing: Sendable {
             .map { String($0.dropFirst("Latest ".count)) }
 
         var links: [CatalogueLink] = []
-        let linkList = HTML.elements("ul", in: article.inner).first { ($0.attributes["class"] ?? "").contains("firmware-links") }
+        let linkList = HTML.elements("ul", in: article.inner).first { list in
+            (list.attributes["class"] ?? "").contains("firmware-links")
+        }
         for anchorElement in HTML.elements("a", in: linkList?.inner ?? "") {
             guard let href = anchorElement.attributes["href"],
-                  let url = URL(string: href, relativeTo: pageURL)?.absoluteURL,
-                  url.scheme?.hasPrefix("http") == true
+                let url = URL(string: href, relativeTo: pageURL)?.absoluteURL,
+                url.scheme?.hasPrefix("http") == true
             else {
                 continue
             }
@@ -75,7 +78,6 @@ struct EditorListing: Sendable {
             blurb: blurbs.isEmpty ? nil : blurbs.joined(separator: "\n\n"),
             latest: latest,
             updated: article.attributes["data-updated"],
-            stars: article.attributes["data-stars"].flatMap(Int.init),
             pinned: article.attributes["data-pinned"] != nil,
             links: links
         )
@@ -89,9 +91,14 @@ enum HTML {
         var inner: String
     }
 
-    /// Elements with this tag, outermost first. Nested elements of the same tag are not expected.
+    /// Elements with this tag, outermost first.
+    ///
+    /// Nested elements of the same tag are not expected.
     static func elements(_ tag: String, in html: String) -> [Element] {
-        guard let pattern = try? Regex<(Substring, Substring, Substring)>("(?si)<\(tag)((?:\\s[^>]*)?)>(.*?)</\(tag)\\s*>") else {
+        guard
+            let pattern = try? Regex<(Substring, Substring, Substring)>(
+                "(?si)<\(tag)((?:\\s[^>]*)?)>(.*?)</\(tag)\\s*>")
+        else {
             return []
         }
         return html.matches(of: pattern).map { match in
@@ -121,7 +128,8 @@ enum HTML {
             .split(whereSeparator: { $0.isWhitespace })
             .joined(separator: " ")
         // Closing punctuation should not float after a dropped tag.
-        return collapsed
+        return
+            collapsed
             .replacingOccurrences(of: " ,", with: ",")
             .replacingOccurrences(of: " .", with: ".")
             .replacingOccurrences(of: " )", with: ")")
@@ -130,14 +138,19 @@ enum HTML {
 
     static func decodeEntities(_ text: String) -> String {
         guard text.contains("&") else { return text }
-        let named = ["amp": "&", "lt": "<", "gt": ">", "quot": "\"", "apos": "'", "nbsp": " ", "rsquo": "’", "lsquo": "‘", "ldquo": "“", "rdquo": "”", "mdash": "—", "ndash": "–", "hellip": "…", "minus": "−"]
+        let named = [
+            "amp": "&", "lt": "<", "gt": ">", "quot": "\"", "apos": "'", "nbsp": " ", "rsquo": "’", "lsquo": "‘",
+            "ldquo": "“", "rdquo": "”", "mdash": "—", "ndash": "–", "hellip": "…", "minus": "−",
+        ]
         return text.replacing(#/&(#[xX][0-9A-Fa-f]+|#[0-9]+|[A-Za-z]+);/#) { match -> String in
             let body = String(match.output.1)
             if body.hasPrefix("#x") || body.hasPrefix("#X") {
-                return UInt32(body.dropFirst(2), radix: 16).flatMap(Unicode.Scalar.init).map { String(Character($0)) } ?? String(match.output.0)
+                return UInt32(body.dropFirst(2), radix: 16).flatMap(Unicode.Scalar.init).map { String(Character($0)) }
+                    ?? String(match.output.0)
             }
             if body.hasPrefix("#") {
-                return UInt32(body.dropFirst()).flatMap(Unicode.Scalar.init).map { String(Character($0)) } ?? String(match.output.0)
+                return UInt32(body.dropFirst()).flatMap(Unicode.Scalar.init).map { String(Character($0)) }
+                    ?? String(match.output.0)
             }
             return named[body.lowercased()] ?? String(match.output.0)
         }

@@ -1,8 +1,10 @@
 import SwiftUI
 
 /// Optional CRT touches laid over the whole app: faint scanlines with a light vignette, and a
-/// slow refresh band with a tiny flicker. Both are off by default and kept subtle. Never takes
-/// touches; motion is dropped when Reduce Motion is on.
+/// slow refresh band with a tiny flicker.
+///
+/// Both are off by default and kept subtle. Never takes touches; motion is dropped when Reduce
+/// Motion is on.
 struct CRTOverlay: View {
     @Environment(\.phosphor) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -32,10 +34,8 @@ private struct Scanlines: View {
     var body: some View {
         Canvas { context, size in
             var path = Path()
-            var y: CGFloat = 0
-            while y < size.height {
-                path.addRect(CGRect(x: 0, y: y, width: size.width, height: 1))
-                y += 3
+            for row in stride(from: 0, to: size.height, by: 3) {
+                path.addRect(CGRect(x: 0, y: row, width: size.width, height: 1))
             }
             context.fill(path, with: .color(.black.opacity(0.12)))
         }

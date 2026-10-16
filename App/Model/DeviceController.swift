@@ -118,8 +118,8 @@ final class DeviceController {
             for await _ in changes {
                 // Let a burst of add/remove notifications settle before probing.
                 try? await Task.sleep(for: .milliseconds(400))
-                guard let self, !self.isFlashing else { continue }
-                await self.scan()
+                guard let self, !isFlashing else { continue }
+                await scan()
             }
         }
     }
@@ -143,9 +143,9 @@ final class DeviceController {
     /// (or always, if the user prefers) and the device is not already running it.
     func plan(for target: StoredFirmware, requiresOfficial: Bool, alwaysViaOfficial: Bool) -> [StoredFirmware] {
         guard target.source != .official,
-              requiresOfficial || alwaysViaOfficial,
-              let official = library.official,
-              identity?.text != official.product
+            requiresOfficial || alwaysViaOfficial,
+            let official = library.official,
+            identity?.text != official.product
         else {
             return [target]
         }
@@ -196,9 +196,10 @@ final class DeviceController {
                 let result: Result<FM1Identity, any Error>
                 do {
                     let report: @Sendable (UpdateEvent) -> Void = { continuation.yield($0) }
-                    result = .success(isLoaderRunning
-                        ? try await updater.resume(package, events: report)
-                        : try await updater.install(package, events: report))
+                    result = .success(
+                        isLoaderRunning
+                            ? try await updater.resume(package, events: report)
+                            : try await updater.install(package, events: report))
                 } catch {
                     result = .failure(error)
                 }
@@ -286,7 +287,7 @@ final class DeviceController {
 final class UnavailableTransport: MIDITransport {
     func ports() async -> [MIDIPortDescriptor] { [] }
 
-    func open(_ port: MIDIPortDescriptor) async throws -> any MIDIConnection {
+    func open(_: MIDIPortDescriptor) async throws -> any MIDIConnection {
         throw MIDITransportError.portGone
     }
 

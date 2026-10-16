@@ -1,8 +1,10 @@
 import Foundation
 import Observation
 
-/// What this phone last installed. The device's identity alone is ambiguous (many firmwares
-/// report `FM-1_900`), so this fills the gap when the identities agree.
+/// What this phone last installed.
+///
+/// The device's identity alone is ambiguous (many firmwares report `FM-1_900`), so this fills the
+/// gap when the identities agree.
 struct FlashRecord: Codable, Hashable, Identifiable {
     var id = UUID()
     var name: String
@@ -22,7 +24,8 @@ final class FlashHistory {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         if let data = defaults.data(forKey: Self.key),
-           let decoded = try? JSONDecoder().decode([FlashRecord].self, from: data) {
+            let decoded = try? JSONDecoder().decode([FlashRecord].self, from: data)
+        {
             records = decoded
         }
     }

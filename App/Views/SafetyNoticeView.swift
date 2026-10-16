@@ -6,18 +6,20 @@ enum SafetyNotice {
     static let version = 1
 
     static let text = """
-    Not affiliated with M-Vave. Though this utility makes every attempt to correctly reset and \
-    safely flash your device, flashing custom firmware is at your own risk.
-    """
+        Not affiliated with M-Vave. Though this utility makes every attempt to correctly reset and \
+        safely flash your device, flashing custom firmware is at your own risk.
+        """
 
     static let recovery = """
-    If your device fails to boot, hold down the "OCT-" key while switching it on to start it in \
-    USB recovery mode, then connect it and flash a firmware from the SAVED screen.
-    """
+        If your device fails to boot, hold down the "OCT-" key while switching it on to start it in \
+        USB recovery mode, then connect it and flash a firmware from the SAVED screen.
+        """
 }
 
-/// The first-run notice. It has to be acknowledged before the app can be used; OK unlocks after a
-/// few seconds, so it isn't tapped away unread.
+/// The first-run notice.
+///
+/// It has to be acknowledged before the app can be used; OK unlocks after a few seconds, so it
+/// isn't tapped away unread.
 struct SafetyNoticeView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.phosphor) private var theme

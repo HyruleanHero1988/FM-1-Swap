@@ -68,29 +68,42 @@ struct DeviceView: View {
         return PixelPanel(title: "PROBABLY") {
             if let last {
                 MonoText("LAST FLASHED FROM THIS PHONE:", size: 13, dim: true)
-                MonoText("\(last.name) \(last.version)  ·  \(last.date.formatted(date: .abbreviated, time: .shortened))", size: 15)
+                MonoText(
+                    "\(last.name) \(last.version)  ·  \(last.date.formatted(date: .abbreviated, time: .shortened))",
+                    size: 15)
             }
             if let official {
                 MonoText("Matches your official firmware: \(official.name)", size: 14)
             }
             if !matches.isEmpty {
-                MonoText(matches.count == 1 ? "CATALOGUE MATCH:" : "\(matches.count) CATALOGUE FIRMWARES REPORT THIS ID:", size: 13, dim: true)
+                NoteText(
+                    matches.count == 1 ? "CATALOGUE MATCH:" : "\(matches.count) CATALOGUE FIRMWARES REPORT THIS ID:")
                 ForEach(matches) { entry in
                     MonoText("· \(entry.name) \(entry.version ?? "")", size: 15)
                 }
             }
             if last == nil && official == nil && matches.isEmpty {
-                MonoText("No saved or catalogue firmware reports this ID. It may be official firmware or an older release.", size: 14, dim: true)
+                MonoText(
+                    "No saved or catalogue firmware reports this ID. It may be official firmware or an older release.",
+                    size: 14,
+                    dim: true
+                )
             }
             if matches.count > 1 && last == nil {
-                MonoText("Several firmwares share this ID, so the device can't say which one it is.", size: 13, dim: true)
+                NoteText("Several firmwares share this ID, so the device can't say which one it is.")
             }
         }
     }
 
     private var loaderPanel: some View {
         PixelPanel(title: "UPDATE MODE") {
-            MonoText("The FM-1 is waiting in its update loader: an install was interrupted, or it was switched on holding OCT− (USB recovery mode).", size: 14)
+            MonoText(
+                """
+                The FM-1 is waiting in its update loader: an install was interrupted, or it was switched on \
+                holding OCT− (USB recovery mode).
+                """,
+                size: 14
+            )
             MonoText("Pick a saved firmware and flash it to finish.", size: 14, dim: true)
             Button("CHOOSE FIRMWARE") { tab = .library }
                 .buttonStyle(.pixelProminent)
@@ -117,7 +130,9 @@ struct DeviceView: View {
                 HStack {
                     MonoText(port.name, size: 14)
                     Spacer()
-                    PixelTag(text: FM1Updater.isProbeable(port) ? "PROBED" : "IGNORED", inverted: FM1Updater.isProbeable(port))
+                    PixelTag(
+                        text: FM1Updater.isProbeable(port) ? "PROBED" : "IGNORED",
+                        inverted: FM1Updater.isProbeable(port))
                 }
             }
             if let lastScan = device.lastScan {

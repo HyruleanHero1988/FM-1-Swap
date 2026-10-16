@@ -12,20 +12,21 @@ struct DiscoveredPackage: Sendable, Hashable {
     var size: Int?
     var sha256: String?
     /// Every build the release offers, when there's more than one.
-    var builds: [CatalogueEntry.Build]? = nil
-    var releaseURL: URL? = nil
+    var builds: [CatalogueEntry.Build]?
+    var releaseURL: URL?
 }
 
-/// Finds downloadable `.fwsc` packages for a firmware from its links. In order:
-/// M-VAVE's download page (official firmware only), the newest GitHub release with a `.fwsc`
-/// asset, a release list the publisher embeds in their page (as Baud Girl's install page does),
-/// and finally `.fwsc` links on the project pages themselves. A page link is only taken when
-/// its file name shares a word with the firmware's name or repository, since pages such as
-/// shared installers can link other firmwares too.
+/// Finds downloadable `.fwsc` packages for a firmware from its links.
+///
+/// In order: M-VAVE's download page (official firmware only), the newest GitHub release with a
+/// `.fwsc` asset, a release list the publisher embeds in their page (as Baud Girl's install page
+/// does), and finally `.fwsc` links on the project pages themselves. A page link is only taken when
+/// its file name shares a word with the firmware's name or repository, since pages such as shared
+/// installers can link other firmwares too.
 struct PackageDiscovery: Sendable {
     typealias Fetch = @Sendable (URL) async throws -> Data
 
-    static let mvaveDownloadsURL = URL(string: "https://www.m-vave.com/download")!
+    static let mvaveDownloadsURL = URL(literal: "https://www.m-vave.com/download")
 
     let fetch: Fetch
 
@@ -48,8 +49,8 @@ struct PackageDiscovery: Sendable {
         while let page = pages.first, visited.count < 6 {
             pages.removeFirst()
             guard visited.insert(page.absoluteString).inserted,
-                  let data = try? await fetch(page),
-                  let pageHTML = String(data: data, encoding: .utf8)
+                let data = try? await fetch(page),
+                let pageHTML = String(data: data, encoding: .utf8)
             else {
                 continue
             }
@@ -70,33 +71,26 @@ struct PackageDiscovery: Sendable {
     /// M-VAVE's own FM-1 firmware, linked from their downloads page and checked by hash on download.
     func officialPackage() async -> DiscoveredPackage? {
         guard let data = try? await fetch(Self.mvaveDownloadsURL),
-              let html = String(data: data, encoding: .utf8),
-              let url = Self.packageLinks(in: html, pageURL: Self.mvaveDownloadsURL, includingOfficial: true)
-                  .first(where: { $0.lastPathComponent.caseInsensitiveCompare("FM-1.fwsc") == .orderedSame })
+            let html = String(data: data, encoding: .utf8),
+            let url = Self.packageLinks(in: html, pageURL: Self.mvaveDownloadsURL, includingOfficial: true)
+                .first(where: { $0.lastPathComponent.caseInsensitiveCompare("FM-1.fwsc") == .orderedSame })
         else {
             return nil
         }
         let official = OfficialFirmware.v15
-        return DiscoveredPackage(url: url, origin: .mvave, version: "V15", date: nil, beta: false, product: nil, size: official.size, sha256: official.sha256)
+        return DiscoveredPackage(
+            url: url,
+            origin: .mvave,
+            version: "V15",
+            date: nil,
+            beta: false,
+            product: nil,
+            size: official.size,
+            sha256: official.sha256
+        )
     }
 
     // MARK: - GitHub.
-
-    struct GitHubRelease: Decodable {
-        struct Asset: Decodable {
-            var name: String
-            var size: Int
-            var digest: String?
-            var browser_download_url: URL
-        }
-
-        var tag_name: String
-        var html_url: URL?
-        var draft: Bool
-        var prerelease: Bool
-        var published_at: String?
-        var assets: [Asset]
-    }
 
     func latestRelease(owner: String, repo: String, track: ReleaseTrack = .preferFull) async -> DiscoveredPackage? {
         guard let releases = try? await gitHubReleases(owner: owner, repo: repo) else { return nil }
@@ -104,7 +98,9 @@ struct PackageDiscovery: Sendable {
     }
 
     func gitHubReleases(owner: String, repo: String) async throws -> [GitHubRelease] {
-        let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/releases?per_page=10")!
+        let url = URL(literal: "https://api.github.com/repos")
+            .appending(components: owner, repo, "releases")
+            .appending(queryItems: [URLQueryItem(name: "per_page", value: "10")])
         return try JSONDecoder().decode([GitHubRelease].self, from: try await fetch(url))
     }
 
@@ -124,12 +120,14 @@ struct PackageDiscovery: Sendable {
         return switch track {
         case .preferFull: usable.first(where: { !$0.prerelease }) ?? usable.first
         case .fullOnly: usable.first(where: { !$0.prerelease })
-        case .preReleaseOnly: usable.first(where: { $0.prerelease })
+        case .preReleaseOnly: usable.first(where: \.prerelease)
         }
     }
 
-    /// The newest release on the given track. When it offers several builds, the package points
-    /// at the plainest-named one, but no build is marked as chosen: that's left to the person.
+    /// The newest release on the given track.
+    ///
+    /// When it offers several builds, the package points at the plainest-named one, but no build is
+    /// marked as chosen: that's left to the person.
     static func pick(from releases: [GitHubRelease], track: ReleaseTrack = .preferFull) -> DiscoveredPackage? {
         newest(in: releases, track: track).flatMap { package(from: $0, build: nil) }
     }
@@ -137,19 +135,21 @@ struct PackageDiscovery: Sendable {
     /// The release as a package, pointing at the named build (or the plainest one).
     static func package(from release: GitHubRelease, build name: String?) -> DiscoveredPackage? {
         let builds = builds(of: release)
-        guard let plainest = builds.min(by: { $0.url.lastPathComponent.count < $1.url.lastPathComponent.count }) else { return nil }
+        guard let plainest = builds.min(by: { $0.url.lastPathComponent.count < $1.url.lastPathComponent.count }) else {
+            return nil
+        }
         let chosen = builds.first { $0.name == name } ?? plainest
         return DiscoveredPackage(
             url: chosen.url,
             origin: .githubRelease,
-            version: release.tag_name,
-            date: release.published_at.map { String($0.prefix(10)) },
+            version: release.tagName,
+            date: release.publishedAt.map { String($0.prefix(10)) },
             beta: release.prerelease,
             product: nil,
             size: chosen.size,
             sha256: chosen.sha256,
             builds: builds.count > 1 ? builds : nil,
-            releaseURL: release.html_url
+            releaseURL: release.pageURL
         )
     }
 
@@ -159,14 +159,16 @@ struct PackageDiscovery: Sendable {
         let names = buildNames(for: assets.map(\.name))
         return zip(assets, names).map { asset, name in
             let digest = asset.digest.flatMap { $0.hasPrefix("sha256:") ? String($0.dropFirst("sha256:".count)) : nil }
-            return CatalogueEntry.Build(name: name, url: asset.browser_download_url, size: asset.size, sha256: digest)
+            return CatalogueEntry.Build(name: name, url: asset.downloadURL, size: asset.size, sha256: digest)
         }
     }
 
     /// Short names for a release's packages: what's left of each file name once the part they all
-    /// share is taken off both ends, cut at "-", "_" or ".". So `melodee-1.3.6-1core.fwsc` and
-    /// `melodee-1.3.6.fwsc` become "1core" and "standard", and `bubba-diag-0.6.1-beta.fwsc` and
-    /// `bubba-machine-0.6.1-beta.fwsc` become "diag" and "machine".
+    /// share is taken off both ends, cut at "-", "_" or ".".
+    ///
+    /// So `melodee-1.3.6-1core.fwsc` and `melodee-1.3.6.fwsc` become "1core" and "standard", and
+    /// `bubba-diag-0.6.1-beta.fwsc` and `bubba-machine-0.6.1-beta.fwsc` become "diag" and
+    /// "machine".
     static func buildNames(for fileNames: [String]) -> [String] {
         let stems = fileNames.map { name in
             name.lowercased().hasSuffix(".fwsc") ? Array(name.dropLast(".fwsc".count)) : Array(name)
@@ -178,19 +180,27 @@ struct PackageDiscovery: Sendable {
         // The shared start, cut back to a separator.
         var prefix = 0
         while prefix < shortest, stems.allSatisfy({ $0[prefix] == stems[0][prefix] }) { prefix += 1 }
-        while prefix > 0, !(isSeparator(stems[0][prefix - 1]) || stems.allSatisfy({ $0.count == prefix || isSeparator($0[prefix]) })) {
+        while prefix > 0,
+            !(isSeparator(stems[0][prefix - 1]) || stems.allSatisfy({ $0.count == prefix || isSeparator($0[prefix]) }))
+        {
             prefix -= 1
         }
 
         // The shared end, likewise, never overlapping the start.
         var suffix = 0
-        while suffix < shortest - prefix, stems.allSatisfy({ $0[$0.count - 1 - suffix] == stems[0][stems[0].count - 1 - suffix] }) { suffix += 1 }
-        while suffix > 0, !(isSeparator(stems[0][stems[0].count - suffix]) || stems.allSatisfy({ $0.count == suffix || isSeparator($0[$0.count - 1 - suffix]) })) {
+        while suffix < shortest - prefix,
+            stems.allSatisfy({ $0[$0.count - 1 - suffix] == stems[0][stems[0].count - 1 - suffix] })
+        { suffix += 1 }
+        while suffix > 0,
+            !(isSeparator(stems[0][stems[0].count - suffix])
+                || stems.allSatisfy({ $0.count == suffix || isSeparator($0[$0.count - 1 - suffix]) }))
+        {
             suffix -= 1
         }
 
         let names = stems.map { stem in
-            let middle = String(stem[prefix..<(stem.count - suffix)]).trimmingCharacters(in: CharacterSet(charactersIn: "-_. "))
+            let middle = String(stem[prefix..<(stem.count - suffix)]).trimmingCharacters(
+                in: CharacterSet(charactersIn: "-_. "))
             return middle.isEmpty ? "standard" : middle
         }
         return Set(names).count == names.count ? names : stems.map { String($0) }
@@ -208,7 +218,12 @@ struct PackageDiscovery: Sendable {
             } else if host.hasSuffix(".github.io"), let first = parts.first {
                 repo = (String(host.dropLast(".github.io".count)), first)
             }
-            if let repo, !repos.contains(where: { $0.owner.lowercased() == repo.owner.lowercased() && $0.name.lowercased() == repo.name.lowercased() }) {
+            if let repo,
+                !repos.contains(where: { known in
+                    known.owner.lowercased() == repo.owner.lowercased()
+                        && known.name.lowercased() == repo.name.lowercased()
+                })
+            {
                 repos.append(repo)
             }
         }
@@ -222,21 +237,39 @@ struct PackageDiscovery: Sendable {
         var file: String
         var sha256: String?
         var date: String?
-        var beta: Bool?
-        var current: Bool?
+        /// Whether it's a pre-release; an unmarked release isn't.
+        var beta: Bool
+        /// Whether the publisher marks it as the one to install.
+        var current: Bool
+
+        enum CodingKeys: String, CodingKey {
+            case version, file, sha256, date, beta, current
+        }
+
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            version = try container.decodeIfPresent(String.self, forKey: .version)
+            file = try container.decode(String.self, forKey: .file)
+            sha256 = try container.decodeIfPresent(String.self, forKey: .sha256)
+            date = try container.decodeIfPresent(String.self, forKey: .date)
+            beta = try container.decodeIfPresent(Bool.self, forKey: .beta) ?? false
+            current = try container.decodeIfPresent(Bool.self, forKey: .current) ?? false
+        }
     }
 
     /// A JSON release list embedded in the page, as `[{"version", "file", "sha256", "beta", "current"}]`.
     static func manifestPackage(in html: String, pageURL: URL) -> DiscoveredPackage? {
         for script in HTML.elements("script", in: html) where (script.attributes["type"] ?? "").contains("json") {
             guard let releases = try? JSONDecoder().decode([ManifestRelease].self, from: Data(script.inner.utf8)),
-                  !releases.isEmpty
+                !releases.isEmpty
             else {
                 continue
             }
             let fwsc = releases.filter { $0.file.lowercased().hasSuffix(".fwsc") }
-            guard let chosen = fwsc.first(where: { $0.current == true }) ?? fwsc.first(where: { $0.beta != true }) ?? fwsc.first,
-                  let url = URL(string: chosen.file, relativeTo: pageURL)?.absoluteURL
+            guard
+                let chosen = fwsc.first(where: \.current) ?? fwsc.first(where: { !$0.beta })
+                    ?? fwsc.first,
+                let url = URL(string: chosen.file, relativeTo: pageURL)?.absoluteURL
             else {
                 continue
             }
@@ -246,7 +279,7 @@ struct PackageDiscovery: Sendable {
                 origin: .publisherManifest,
                 version: chosen.version,
                 date: chosen.date,
-                beta: chosen.beta ?? false,
+                beta: chosen.beta,
                 product: product,
                 size: nil,
                 sha256: chosen.sha256?.lowercased()
@@ -261,9 +294,9 @@ struct PackageDiscovery: Sendable {
         for match in html.matches(of: #/["'(=]([^"'()<>\s]*[A-Za-z0-9_\-.+%]\.fwsc)(?=["'()<>\s?#])/#) {
             let path = String(match.output.1)
             guard let url = URL(string: path, relativeTo: pageURL)?.absoluteURL,
-                  url.scheme?.hasPrefix("http") == true,
-                  includingOfficial || !isOfficialFileName(url.lastPathComponent),
-                  !found.contains(url)
+                url.scheme?.hasPrefix("http") == true,
+                includingOfficial || !isOfficialFileName(url.lastPathComponent),
+                !found.contains(url)
             else {
                 continue
             }
@@ -277,11 +310,11 @@ struct PackageDiscovery: Sendable {
         var found: [URL] = []
         for anchor in HTML.elements("a", in: html) {
             guard let href = anchor.attributes["href"],
-                  let url = URL(string: href, relativeTo: pageURL)?.absoluteURL,
-                  url.host() == pageURL.host(),
-                  url.path().lowercased().contains("install"),
-                  url.path() != pageURL.path(),
-                  !found.contains(url)
+                let url = URL(string: href, relativeTo: pageURL)?.absoluteURL,
+                url.host() == pageURL.host(),
+                url.path().lowercased().contains("install"),
+                url.path() != pageURL.path(),
+                !found.contains(url)
             else {
                 continue
             }
@@ -293,17 +326,30 @@ struct PackageDiscovery: Sendable {
     /// Page links have no published checksum, and pages sometimes name files they don't host, so
     /// each candidate (newest first) is downloaded and must read as an FM-1 package to be listed.
     func firstWorkingPackage(in candidates: [URL]) async -> DiscoveredPackage? {
-        let ordered = candidates.sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedDescending }
+        let ordered = candidates.sorted { lhs, rhs in
+            lhs.lastPathComponent.localizedStandardCompare(rhs.lastPathComponent) == .orderedDescending
+        }
         for url in ordered.prefix(3) {
             guard let data = try? await fetch(url), let package = try? FwscPackage(data: data) else { continue }
-            return DiscoveredPackage(url: url, origin: .projectPage, version: nil, date: nil, beta: false, product: package.product, size: data.count, sha256: nil)
+            return DiscoveredPackage(
+                url: url,
+                origin: .projectPage,
+                version: nil,
+                date: nil,
+                beta: false,
+                product: package.product,
+                size: data.count,
+                sha256: nil
+            )
         }
         return nil
     }
 
     /// Distinctive words from the firmware's name and repository names, e.g. "doom" for "FM-1 Doom".
     static func identifyingWords(name: String, links: [CatalogueLink]) -> Set<String> {
-        let common: Set<String> = ["fm", "fm1", "the", "and", "for", "firmware", "patch", "synth", "web", "app", "github", "io"]
+        let common: Set<String> = [
+            "fm", "fm1", "the", "and", "for", "firmware", "patch", "synth", "web", "app", "github", "io",
+        ]
         let sources = [name] + gitHubRepos(in: links).map(\.name)
         var words: Set<String> = []
         for source in sources {

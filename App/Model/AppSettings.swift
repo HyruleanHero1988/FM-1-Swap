@@ -38,7 +38,9 @@ final class AppSettings {
     var simulatedRecoveryMode: Bool { didSet { defaults.set(simulatedRecoveryMode, forKey: Keys.simulatedRecovery) } }
     var simulatedCablePull: Bool { didSet { defaults.set(simulatedCablePull, forKey: Keys.simulatedCablePull) } }
     /// The `SafetyNotice.version` the user last acknowledged (0 for never).
-    var acknowledgedNoticeVersion: Int { didSet { defaults.set(acknowledgedNoticeVersion, forKey: Keys.acknowledgedNotice) } }
+    var acknowledgedNoticeVersion: Int {
+        didSet { defaults.set(acknowledgedNoticeVersion, forKey: Keys.acknowledgedNotice) }
+    }
 
     var needsSafetyNotice: Bool { acknowledgedNoticeVersion < SafetyNotice.version }
 
@@ -59,11 +61,12 @@ final class AppSettings {
         scanlines = defaults.object(forKey: Keys.scanlines) as? Bool ?? standard.scanlines
         flicker = defaults.object(forKey: Keys.flicker) as? Bool ?? standard.flicker
         #if targetEnvironment(simulator)
-        let defaultTransport = TransportKind.simulated
+            let defaultTransport = TransportKind.simulated
         #else
-        let defaultTransport = TransportKind.usbMIDI
+            let defaultTransport = TransportKind.usbMIDI
         #endif
-        transportKind = defaults.string(forKey: Keys.transport).flatMap(TransportKind.init(rawValue:)) ?? defaultTransport
+        transportKind =
+            defaults.string(forKey: Keys.transport).flatMap(TransportKind.init(rawValue:)) ?? defaultTransport
         showBeta = defaults.object(forKey: Keys.showBeta) as? Bool ?? true
         showLinksOnly = defaults.object(forKey: Keys.showLinksOnly) as? Bool ?? false
         alwaysViaOfficial = defaults.object(forKey: Keys.alwaysViaOfficial) as? Bool ?? false
@@ -82,7 +85,12 @@ final class AppSettings {
     }
 
     var theme: PhosphorTheme {
-        PhosphorTheme(base: Color(hex: phosphorHex) ?? PhosphorPreset.green.colour, glow: glow, scanlines: scanlines, flicker: flicker)
+        PhosphorTheme(
+            base: Color(hex: phosphorHex) ?? PhosphorPreset.green.colour,
+            glow: glow,
+            scanlines: scanlines,
+            flicker: flicker
+        )
     }
 
     private enum Keys {

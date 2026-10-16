@@ -37,9 +37,9 @@ struct RootView: View {
     /// Debug builds accept `-initialTab firmware` (etc.) as a launch argument, for screenshots.
     private static var initialTab: AppTab {
         #if DEBUG
-        UserDefaults.standard.string(forKey: "initialTab").flatMap(AppTab.init(rawValue:)) ?? .device
+            UserDefaults.standard.string(forKey: "initialTab").flatMap(AppTab.init(rawValue:)) ?? .device
         #else
-        .device
+            .device
         #endif
     }
 

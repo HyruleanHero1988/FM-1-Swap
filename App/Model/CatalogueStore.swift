@@ -1,4 +1,3 @@
-import FM1Kit
 import Foundation
 import Observation
 
@@ -27,8 +26,10 @@ final class CatalogueStore {
         loadCached()
     }
 
-    /// M-VAVE's firmware first, then by name. A newer release found at the firmware's source
-    /// stands in for the listed one, pointing at the build picked for it.
+    /// M-VAVE's firmware first, then by name.
+    ///
+    /// A newer release found at the firmware's source stands in for the listed one, pointing at the
+    /// build picked for it.
     var entries: [CatalogueEntry] {
         (catalogue?.entries ?? []).map(newestKnown).sorted { lhs, rhs in
             if lhs.isOfficial != rhs.isOfficial { return lhs.isOfficial }
@@ -53,7 +54,7 @@ final class CatalogueStore {
     /// The newest known release, pointing at the build the lists use (if known), before any pick.
     func defaultBuild(of entry: CatalogueEntry) -> CatalogueEntry {
         switch sourceChecks[entry.id]?.outcome {
-        case let .newer(newer), let .current(newer): newer
+        case .newer(let newer), .current(let newer): newer
         case .failed, nil: entry
         }
     }
@@ -64,8 +65,10 @@ final class CatalogueStore {
     }
 
     /// Asks the firmware's own source (its GitHub releases, or its publisher's site) for a newer
-    /// release than the lists show, since they're only rebuilt every so often. A result is
-    /// reused for a few minutes, to stay well inside GitHub's limit on unsigned requests.
+    /// release than the lists show, since they're only rebuilt every so often.
+    ///
+    /// A result is reused for a few minutes, to stay well inside GitHub's limit on unsigned
+    /// requests.
     func checkSource(of id: String) async {
         guard let listed = listedEntry(id: id), ReleaseCheck.source(for: listed) != nil else { return }
         if let previous = sourceChecks[id] {
@@ -76,8 +79,8 @@ final class CatalogueStore {
         let outcome: SourceCheck.Outcome
         do {
             switch try await ReleaseCheck(fetch: Network.fetch).check(listed) {
-            case let .newer(newer): outcome = .newer(newer)
-            case let .upToDate(current): outcome = .current(current)
+            case .newer(let newer): outcome = .newer(newer)
+            case .upToDate(let current): outcome = .current(current)
             case .noSource: outcome = .current(listed)
             }
         } catch {
@@ -110,7 +113,8 @@ final class CatalogueStore {
                 try? data.write(to: cacheURL, options: .atomic)
             }
         } catch {
-            errorMessage = catalogue == nil
+            errorMessage =
+                catalogue == nil
                 ? "Couldn't fetch the firmware list. Check your connection and try again."
                 : "Couldn't refresh; showing the list saved on this phone."
         }
@@ -160,7 +164,9 @@ enum Network {
 }
 
 enum AppDirectories {
-    /// Application Support, created on first use. Kept out of iCloud backups (it is a re-downloadable cache).
+    /// Application Support, created on first use.
+    ///
+    /// Kept out of iCloud backups (it is a re-downloadable cache).
     static let support: URL = {
         let url = URL.applicationSupportDirectory.appending(path: "FMSwitch", directoryHint: .isDirectory)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)

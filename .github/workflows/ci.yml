@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: macos-26
+    steps:
+      # project.yml uses FM1Kit from ../FM1Kit, so both are checked out side by side.
+      - uses: actions/checkout@v4
+        with:
+          path: FM-SWITCH
+      - uses: actions/checkout@v4
+        with:
+          repository: ocean/FM1Kit
+          path: FM1Kit
+      - name: Install XcodeGen, SwiftLint and Periphery
+        run: brew install xcodegen swiftlint periphery
+      - name: Run every check
+        working-directory: FM-SWITCH
+        run: scripts/check.sh

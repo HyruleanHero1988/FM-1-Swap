@@ -40,38 +40,9 @@ struct CatalogueView: View {
                 .disabled(model.catalogue.isRefreshing)
             }
 
-            HStack(spacing: 8) {
-                Text(">").font(.mono(17)).foregroundStyle(theme.bright)
-                TextField("", text: $search, prompt: Text("SEARCH").foregroundStyle(theme.muted))
-                    .font(.mono(15))
-                    .foregroundStyle(theme.ink)
-                    .tint(theme.bright)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 9)
-            .background(PixelBox().fill(theme.surface))
-            .overlay(PixelBox().strokeBorder(theme.dim, lineWidth: 2))
-
+            searchField
             statusLine
-
-            ScrollView {
-                LazyVStack(spacing: 8) {
-                    ForEach(visibleEntries) { entry in
-                        Button {
-                            selected = entry
-                        } label: {
-                            CatalogueRow(entry: entry)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    linksOnlyFooter
-                }
-                .padding(.bottom, 16)
-            }
-            .scrollIndicators(.hidden)
-            .refreshable { await model.catalogue.refresh() }
+            firmwareList
         }
         .padding(.horizontal, 16)
         .padding(.top, 16)
@@ -86,12 +57,47 @@ struct CatalogueView: View {
                 await model.catalogue.refresh()
             }
             #if DEBUG
-            // `-openFirmware <id>` opens a firmware's page at launch, for screenshots.
-            if let id = UserDefaults.standard.string(forKey: "openFirmware") {
-                selected = model.catalogue.entry(id: id)
-            }
+                // `-openFirmware <id>` opens a firmware's page at launch, for screenshots.
+                if let id = UserDefaults.standard.string(forKey: "openFirmware") {
+                    selected = model.catalogue.entry(id: id)
+                }
             #endif
         }
+    }
+
+    private var searchField: some View {
+        HStack(spacing: 8) {
+            Text(">").font(.mono(17)).foregroundStyle(theme.bright)
+            TextField("", text: $search, prompt: Text("SEARCH").foregroundStyle(theme.muted))
+                .font(.mono(15))
+                .foregroundStyle(theme.ink)
+                .tint(theme.bright)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 9)
+        .background(PixelBox().fill(theme.surface))
+        .overlay(PixelBox().strokeBorder(theme.dim, lineWidth: 2))
+    }
+
+    private var firmwareList: some View {
+        ScrollView {
+            LazyVStack(spacing: 8) {
+                ForEach(visibleEntries) { entry in
+                    Button {
+                        selected = entry
+                    } label: {
+                        CatalogueRow(entry: entry)
+                    }
+                    .buttonStyle(.plain)
+                }
+                linksOnlyFooter
+            }
+            .padding(.bottom, 16)
+        }
+        .scrollIndicators(.hidden)
+        .refreshable { await model.catalogue.refresh() }
     }
 
     /// Says how many links-only firmwares are hidden, with a switch to show or hide them.
@@ -100,13 +106,7 @@ struct CatalogueView: View {
         let linksOnly = matchingEntries.filter { !isFlashable($0) }.count
         if linksOnly > 0 {
             VStack(alignment: .leading, spacing: 8) {
-                MonoText(
-                    model.settings.showLinksOnly
-                        ? "Showing \(linksOnly) links-only firmware\(linksOnly == 1 ? "" : "s") (no file to download)."
-                        : "\(linksOnly) more firmware\(linksOnly == 1 ? " has" : "s have") no file to download, only links to \(linksOnly == 1 ? "its" : "their") sites.",
-                    size: 13,
-                    dim: true
-                )
+                NoteText(linksOnlyMessage(count: linksOnly))
                 Button(model.settings.showLinksOnly ? "HIDE LINKS-ONLY" : "SHOW LINKS-ONLY (\(linksOnly))") {
                     model.settings.showLinksOnly.toggle()
                 }
@@ -117,12 +117,22 @@ struct CatalogueView: View {
         }
     }
 
+    private func linksOnlyMessage(count: Int) -> String {
+        if model.settings.showLinksOnly {
+            return "Showing \(count) links-only firmware\(count == 1 ? "" : "s") (no file to download)."
+        }
+        return count == 1
+            ? "1 more firmware has no file to download, only links to its site."
+            : "\(count) more firmwares have no file to download, only links to their sites."
+    }
+
     @ViewBuilder
     private var statusLine: some View {
         let count = visibleEntries.count
         VStack(alignment: .leading, spacing: 2) {
             if let catalogue = model.catalogue.catalogue {
-                MonoText("\(count) FIRMWARES · CHECKED \(catalogue.builtAt.formatted(date: .abbreviated, time: .shortened).uppercased())", size: 12, dim: true)
+                let checked = catalogue.builtAt.formatted(date: .abbreviated, time: .shortened).uppercased()
+                MonoText("\(count) FIRMWARES · CHECKED \(checked)", size: 12, dim: true)
                 ForEach(catalogue.problems, id: \.self) { problem in
                     MonoText(problem, size: 12)
                 }
@@ -143,17 +153,7 @@ private struct CatalogueRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(entry.name.uppercased())
-                    .font(.pixel(14, bold: true, relativeTo: .headline))
-                    .foregroundStyle(theme.bright)
-                    .phosphorGlow(0.6)
-                Spacer()
-                Text(entry.version ?? "")
-                    .font(.mono(13))
-                    .foregroundStyle(theme.muted)
-                    .lineLimit(1)
-            }
+            title
             if let what = entry.what {
                 Text(what)
                     .font(.mono(13))
@@ -162,30 +162,48 @@ private struct CatalogueRow: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
             }
-            HStack(spacing: 6) {
-                if entry.isOfficial { PixelTag(text: "OFFICIAL") }
-                if model.library.stored(for: entry) != nil || model.library.otherBuild(for: entry) != nil {
-                    PixelTag(text: "SAVED")
-                } else if model.library.outdated(for: entry) != nil {
-                    PixelTag(text: "UPDATE")
-                }
-                if !entry.isDownloadable { PixelTag(text: "LINKS ONLY", inverted: false) }
-                if entry.beta { PixelTag(text: "BETA", inverted: false) }
-                if entry.requiresOfficialFirmware { PixelTag(text: "VIA OFFICIAL", inverted: false) }
-                if model.device.identity?.text == entry.product { PixelTag(text: "ID MATCH", inverted: false) }
-                Spacer()
-                if let author = entry.author {
-                    Text(author.uppercased())
-                        .font(.pixel(8, relativeTo: .caption2))
-                        .foregroundStyle(theme.muted)
-                        .lineLimit(1)
-                }
-            }
+            tags
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PixelBox().fill(theme.surface))
         .overlay(PixelBox().strokeBorder(theme.faint, lineWidth: 2))
         .contentShape(Rectangle())
+    }
+
+    private var title: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(entry.name.uppercased())
+                .font(.pixel(14, bold: true, relativeTo: .headline))
+                .foregroundStyle(theme.bright)
+                .phosphorGlow(0.6)
+            Spacer()
+            Text(entry.version ?? "")
+                .font(.mono(13))
+                .foregroundStyle(theme.muted)
+                .lineLimit(1)
+        }
+    }
+
+    private var tags: some View {
+        HStack(spacing: 6) {
+            if entry.isOfficial { PixelTag(text: "OFFICIAL") }
+            if model.library.stored(for: entry) != nil || model.library.otherBuild(for: entry) != nil {
+                PixelTag(text: "SAVED")
+            } else if model.library.outdated(for: entry) != nil {
+                PixelTag(text: "UPDATE")
+            }
+            if !entry.isDownloadable { PixelTag(text: "LINKS ONLY", inverted: false) }
+            if entry.beta { PixelTag(text: "BETA", inverted: false) }
+            if entry.requiresOfficialFirmware { PixelTag(text: "VIA OFFICIAL", inverted: false) }
+            if model.device.identity?.text == entry.product { PixelTag(text: "ID MATCH", inverted: false) }
+            Spacer()
+            if let author = entry.author {
+                Text(author.uppercased())
+                    .font(.pixel(8, relativeTo: .caption2))
+                    .foregroundStyle(theme.muted)
+                    .lineLimit(1)
+            }
+        }
     }
 }

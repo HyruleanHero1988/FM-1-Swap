@@ -1,4 +1,3 @@
-import FM1Kit
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -34,12 +33,20 @@ struct LibraryView: View {
             .padding(16)
         }
         .scrollIndicators(.hidden)
-        .fileImporter(isPresented: $importing, allowedContentTypes: [UTType(filenameExtension: "fwsc") ?? .data, .data]) { result in
+        .fileImporter(
+            isPresented: $importing, allowedContentTypes: [UTType(filenameExtension: "fwsc") ?? .data, .data]
+        ) { result in
             switch result {
             case .success(let url):
                 do {
                     let item = try library.importFile(at: url)
-                    message = item.source == .official ? "Official firmware verified and saved." : "Saved \(item.name) (\(item.product)). It isn't in the catalogue, so check where it came from."
+                    message =
+                        item.source == .official
+                        ? "Official firmware verified and saved."
+                        : """
+                        Saved \(item.name) (\(item.product)). It isn't in the catalogue, \
+                        so check where it came from.
+                        """
                 } catch {
                     message = error.localizedDescription
                 }
@@ -48,11 +55,15 @@ struct LibraryView: View {
             }
         }
         .sheet(item: $flashing) { item in
-            FlashConfirmView(target: item, requiresOfficial: item.catalogueID.flatMap(model.catalogue.entry(id:))?.requiresOfficialFirmware ?? false)
-                .environment(model)
-                .environment(\.phosphor, theme)
-                .presentationDetents([.medium, .large])
-                .presentationBackground(theme.background)
+            FlashConfirmView(
+                target: item,
+                requiresOfficial: item.catalogueID.flatMap(model.catalogue.entry(id:))?.requiresOfficialFirmware
+                    ?? false
+            )
+            .environment(model)
+            .environment(\.phosphor, theme)
+            .presentationDetents([.medium, .large])
+            .presentationBackground(theme.background)
         }
         .confirmationDialog("Clear saved firmwares?", isPresented: $confirmingClear, titleVisibility: .visible) {
             Button("Clear all except official", role: .destructive) { library.clear(includingOfficial: false) }
@@ -60,6 +71,13 @@ struct LibraryView: View {
         } message: {
             Text("They can be downloaded again while online.")
         }
+    }
+
+    /// One line describing a saved firmware: version, build, identity and size.
+    private func summary(of item: StoredFirmware) -> String {
+        [item.version, item.build.map { "\($0) build" }, item.product, formattedBytes(item.size)]
+            .compactMap(\.self)
+            .joined(separator: " · ")
     }
 
     private var officialPanel: some View {
@@ -70,33 +88,43 @@ struct LibraryView: View {
                     Spacer()
                     PixelTag(text: official.product)
                 }
-                MonoText("Verified against the known checksum. Kept when you clear the cache.", size: 13, dim: true)
+                NoteText("Verified against the known checksum. Kept when you clear the cache.")
                 Button("FLASH OFFICIAL") { flashing = official }
                     .buttonStyle(.pixel)
             } else {
-                MonoText("Not saved. Download FM-1 V15 (FM-1.fwsc) straight from M-VAVE's site, or import a copy you already have. Either way it's checked against the known checksum.", size: 14)
-                Button(busy ? "DOWNLOADING…" : "GET FROM M-VAVE") { Task { await fetchOfficialFromMVAVE() } }
-                    .buttonStyle(.pixelProminent)
-                    .disabled(busy)
-                Button("IMPORT FROM FILES") { importing = true }
-                    .buttonStyle(.pixel)
-                HStack(spacing: 8) {
-                    TextField("", text: $officialLink, prompt: Text("OR PASTE A DOWNLOAD LINK").foregroundStyle(theme.muted))
-                        .font(.mono(14))
-                        .foregroundStyle(theme.ink)
-                        .tint(theme.bright)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .keyboardType(.URL)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 8)
-                        .background(PixelBox(step: 2).fill(theme.background))
-                        .overlay(PixelBox(step: 2).strokeBorder(theme.dim, lineWidth: 2))
-                    Button(busy ? "…" : "GET") { Task { await fetchOfficial() } }
-                        .buttonStyle(.pixelCompact)
-                        .disabled(busy || URL(string: officialLink)?.scheme == nil)
-                }
+                officialMissing
             }
+        }
+    }
+
+    @ViewBuilder private var officialMissing: some View {
+        MonoText(
+            """
+            Not saved. Download FM-1 V15 (FM-1.fwsc) straight from M-VAVE's site, or import a copy you \
+            already have. Either way it's checked against the known checksum.
+            """,
+            size: 14
+        )
+        Button(busy ? "DOWNLOADING…" : "GET FROM M-VAVE") { Task { await fetchOfficialFromMVAVE() } }
+            .buttonStyle(.pixelProminent)
+            .disabled(busy)
+        Button("IMPORT FROM FILES") { importing = true }
+            .buttonStyle(.pixel)
+        HStack(spacing: 8) {
+            TextField("", text: $officialLink, prompt: Text("OR PASTE A DOWNLOAD LINK").foregroundStyle(theme.muted))
+                .font(.mono(14))
+                .foregroundStyle(theme.ink)
+                .tint(theme.bright)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(.URL)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
+                .background(PixelBox(step: 2).fill(theme.background))
+                .overlay(PixelBox(step: 2).strokeBorder(theme.dim, lineWidth: 2))
+            Button(busy ? "…" : "GET") { Task { await fetchOfficial() } }
+                .buttonStyle(.pixelCompact)
+                .disabled(busy || URL(string: officialLink)?.scheme == nil)
         }
     }
 
@@ -104,7 +132,8 @@ struct LibraryView: View {
         PixelPanel(title: "ON THIS PHONE") {
             let items = library.sortedItems.filter { $0.source != .official }
             if items.isEmpty {
-                MonoText("Nothing saved. Save firmwares from the FIRMWARE list to flash them offline.", size: 14, dim: true)
+                MonoText(
+                    "Nothing saved. Save firmwares from the FIRMWARE list to flash them offline.", size: 14, dim: true)
             }
             ForEach(items) { item in
                 HStack(alignment: .center, spacing: 10) {
@@ -113,7 +142,7 @@ struct LibraryView: View {
                             .font(.pixel(12, bold: true, relativeTo: .headline))
                             .foregroundStyle(theme.bright)
                             .phosphorGlow(0.7)
-                        MonoText([item.version, item.build.map { "\($0) build" }, item.product, formattedBytes(item.size)].compactMap { $0 }.joined(separator: " · "), size: 17, dim: true)
+                        MonoText(summary(of: item), size: 17, dim: true)
                     }
                     Spacer()
                     Button("FLASH") { flashing = item }
@@ -133,7 +162,9 @@ struct LibraryView: View {
         PixelPanel(title: "STORAGE") {
             MonoText("\(library.items.count) FILES · \(formattedBytes(library.totalBytes))", size: 15)
             if !updatable.isEmpty {
-                MonoText("\(updatable.count) saved firmware\(updatable.count == 1 ? " has" : "s have") a newer release.", size: 13)
+                MonoText(
+                    "\(updatable.count) saved firmware\(updatable.count == 1 ? " has" : "s have") a newer release.",
+                    size: 13)
                 Button(busy ? "UPDATING…" : "DOWNLOAD UPDATES") { Task { await downloadUpdates() } }
                     .buttonStyle(.pixel)
                     .disabled(busy)
@@ -179,6 +210,9 @@ struct LibraryView: View {
                 failures += 1
             }
         }
-        message = failures == 0 ? "Saved firmwares are up to date." : "\(failures) update\(failures == 1 ? "" : "s") failed. Refresh the list and try again."
+        message =
+            failures == 0
+            ? "Saved firmwares are up to date."
+            : "\(failures) update\(failures == 1 ? "" : "s") failed. Refresh the list and try again."
     }
 }

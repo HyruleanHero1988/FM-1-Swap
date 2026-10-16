@@ -10,10 +10,19 @@ struct StoredFirmware: Codable, Identifiable, Hashable {
         case imported
     }
 
+    /// What's known about a package before it's saved, beyond what the package itself says.
+    struct Details {
+        var name: String
+        var version: String
+        var source: Source
+        var catalogueID: String?
+        var packageURL: URL?
+        var build: String?
+    }
+
     var id: String
     var name: String
     var version: String
-    var author: String?
     var product: String
     var sha256: String
     var size: Int
@@ -46,13 +55,22 @@ final class FirmwareLibrary {
             case .noPackage:
                 return "No downloadable file is known for this firmware. Get it from the project's own links."
             case .hashMismatch:
-                return "The downloaded file doesn't match its published size or checksum, so it was not saved. Refresh the list and try again."
+                return """
+                    The downloaded file doesn't match its published size or checksum, so it was not saved. \
+                    Refresh the list and try again.
+                    """
             case .productMismatch(let expected, let found):
                 return "The file reports \(found), but the catalogue says \(expected). Not saved."
             case .notOfficial:
-                return "That file isn't a recognised official FM-1 firmware (only an unmodified V15 FM-1.fwsc is accepted)."
+                return """
+                    That file isn't a recognised official FM-1 firmware \
+                    (only an unmodified V15 FM-1.fwsc is accepted).
+                    """
             case .officialNotFound:
-                return "Couldn't find FM-1.fwsc on M-VAVE's downloads page. Download it in Safari and import it from Files."
+                return """
+                    Couldn't find FM-1.fwsc on M-VAVE's downloads page. \
+                    Download it in Safari and import it from Files.
+                    """
             }
         }
     }
@@ -99,7 +117,8 @@ final class FirmwareLibrary {
     func outdated(for entry: CatalogueEntry) -> StoredFirmware? {
         guard stored(for: entry) == nil else { return nil }
         return items.first { item in
-            item.catalogueID == entry.id && (entry.version.map { ReleaseVersion.isNewer($0, than: item.version) } ?? true)
+            item.catalogueID == entry.id
+                && (entry.version.map { ReleaseVersion.isNewer($0, than: item.version) } ?? true)
         }
     }
 
@@ -121,6 +140,7 @@ final class FirmwareLibrary {
 
     /// Downloads a catalogue firmware, checks whatever is published about it (size, hash,
     /// identity), checks it reads as an FM-1 package, and saves it, replacing older releases.
+    ///
     /// M-VAVE's own firmware is recognised by its hash and kept as the official firmware.
     @discardableResult
     func download(_ entry: CatalogueEntry) async throws -> StoredFirmware {
@@ -136,14 +156,22 @@ final class FirmwareLibrary {
             throw Failure.productMismatch(expected: product, found: package.product)
         }
         if let official = OfficialFirmware.matching(package) {
-            if let existing = items.first(where: { $0.sha256 == package.sha256 }) { return existing }
-            return try save(data, package: package, name: official.name, version: "Official", author: "M-VAVE", source: .official, catalogueID: entry.id, packageURL: packageURL)
+            return try saveOfficial(
+                data, package: package, name: official.name, catalogueID: entry.id, from: packageURL)
         }
         guard !entry.isOfficial else { throw Failure.notOfficial }
         for older in items where older.catalogueID == entry.id {
             remove(older)
         }
-        return try save(data, package: package, name: entry.name, version: entry.version ?? package.product, author: entry.author, source: .catalogue, catalogueID: entry.id, packageURL: packageURL, build: entry.build)
+        let details = StoredFirmware.Details(
+            name: entry.name,
+            version: entry.version ?? package.product,
+            source: .catalogue,
+            catalogueID: entry.id,
+            packageURL: packageURL,
+            build: entry.build
+        )
+        return try save(data, package: package, details: details)
     }
 
     /// Finds FM-1.fwsc on M-VAVE's downloads page and saves it, if it is the known official release.
@@ -155,7 +183,9 @@ final class FirmwareLibrary {
         return try await importOfficial(from: found.url)
     }
 
-    /// Imports a `.fwsc` the user picked in Files. Official firmware is recognised by its hash.
+    /// Imports a `.fwsc` the user picked in Files.
+    ///
+    /// Official firmware is recognised by its hash.
     @discardableResult
     func importFile(at url: URL) throws -> StoredFirmware {
         let accessing = url.startAccessingSecurityScopedResource()
@@ -176,11 +206,35 @@ final class FirmwareLibrary {
     private func add(_ data: Data, fallbackName: String) throws -> StoredFirmware {
         let package = try FwscPackage(data: data)
         if let official = OfficialFirmware.matching(package) {
-            if let existing = items.first(where: { $0.sha256 == package.sha256 }) { return existing }
-            return try save(data, package: package, name: official.name, version: "Official", author: "M-VAVE", source: .official, catalogueID: nil, packageURL: nil)
+            return try saveOfficial(data, package: package, name: official.name, catalogueID: nil, from: nil)
         }
-        if let existing = items.first(where: { $0.sha256 == package.sha256 }) { return existing }
-        return try save(data, package: package, name: fallbackName, version: package.product, author: nil, source: .imported, catalogueID: nil, packageURL: nil)
+        if let existing = existing(package) { return existing }
+        let details = StoredFirmware.Details(name: fallbackName, version: package.product, source: .imported)
+        return try save(data, package: package, details: details)
+    }
+
+    /// Saves M-VAVE's own firmware, or returns the copy already saved.
+    private func saveOfficial(
+        _ data: Data,
+        package: FwscPackage,
+        name: String,
+        catalogueID: String?,
+        from packageURL: URL?
+    ) throws -> StoredFirmware {
+        if let existing = existing(package) { return existing }
+        let details = StoredFirmware.Details(
+            name: name,
+            version: "Official",
+            source: .official,
+            catalogueID: catalogueID,
+            packageURL: packageURL
+        )
+        return try save(data, package: package, details: details)
+    }
+
+    /// The saved copy of exactly this package, if there is one.
+    private func existing(_ package: FwscPackage) -> StoredFirmware? {
+        items.first { $0.sha256 == package.sha256 }
     }
 
     private func fetch(_ url: URL) async throws -> Data {
@@ -191,32 +245,21 @@ final class FirmwareLibrary {
         }
     }
 
-    private func save(
-        _ data: Data,
-        package: FwscPackage,
-        name: String,
-        version: String,
-        author: String?,
-        source: StoredFirmware.Source,
-        catalogueID: String?,
-        packageURL: URL?,
-        build: String? = nil
-    ) throws -> StoredFirmware {
+    private func save(_ data: Data, package: FwscPackage, details: StoredFirmware.Details) throws -> StoredFirmware {
         let fileName = "\(package.sha256.prefix(16)).fwsc"
         try data.write(to: directory.appending(path: fileName), options: .atomic)
         let item = StoredFirmware(
             id: package.sha256,
-            name: name,
-            version: version,
-            author: author,
+            name: details.name,
+            version: details.version,
             product: package.product,
             sha256: package.sha256,
             size: data.count,
             fileName: fileName,
-            source: source,
-            catalogueID: catalogueID,
-            packageURL: packageURL,
-            build: build,
+            source: details.source,
+            catalogueID: details.catalogueID,
+            packageURL: details.packageURL,
+            build: details.build,
             savedAt: .now
         )
         items.removeAll { $0.id == item.id }
@@ -233,7 +276,9 @@ final class FirmwareLibrary {
         persist()
     }
 
-    /// Empties the cache. The official firmware is kept unless `includingOfficial` is set.
+    /// Empties the cache.
+    ///
+    /// The official firmware is kept unless `includingOfficial` is set.
     func clear(includingOfficial: Bool) {
         for item in items where includingOfficial || item.source != .official {
             remove(item)
@@ -244,7 +289,7 @@ final class FirmwareLibrary {
 
     private func load() {
         guard let data = try? Data(contentsOf: indexURL),
-              let decoded = try? JSONDecoder().decode([StoredFirmware].self, from: data)
+            let decoded = try? JSONDecoder().decode([StoredFirmware].self, from: data)
         else {
             return
         }

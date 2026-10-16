@@ -100,7 +100,7 @@ struct DeviceView: View {
             MonoText(
                 """
                 The FM-1 is waiting in its update loader: an install was interrupted, or it was switched on \
-                holding OCT− (USB recovery mode).
+                holding OCT− (USB recovery mode, which some firmwares offer).
                 """,
                 size: 14
             )

@@ -3,7 +3,7 @@ import SwiftUI
 /// The risk and recovery notice: shown full screen on first run, and kept in SETUP.
 enum SafetyNotice {
     /// Bump when the wording changes materially, so everyone sees it again once.
-    static let version = 1
+    static let version = 2
 
     static let text = """
         Not affiliated with M-Vave. Though this utility makes every attempt to correctly reset and \
@@ -11,8 +11,9 @@ enum SafetyNotice {
         """
 
     static let recovery = """
-        If your device fails to boot, hold down the "OCT-" key while switching it on to start it in \
-        USB recovery mode, then connect it and flash a firmware from the SAVED screen.
+        If your FM-1 won't start, some firmwares can start it in USB recovery mode if you hold down \
+        the "OCT−" key while switching it on. Then connect it and flash a firmware from the SAVED \
+        screen. Not every firmware does this, and if yours doesn't, recovery needs a computer.
         """
 }
 

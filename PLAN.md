@@ -40,8 +40,10 @@ phone. A native app fills that gap.
 - `.fwsc`: the product ID is encoded in marker bytes after each of the first 20 × 0x30 blocks.
   The logical image is the file with those 20 marker bytes stripped. Both are pure functions
   and simple to port.
-- **USB rescue:** hold OCT− while powering on. This works for some firmwares (SLOOP family,
-  zp12) and uses the same MIDI protocol, so the app supports it.
+- **USB rescue:** hold OCT− while powering on. This is a check the running firmware makes at
+  start-up, not a ROM feature, so it only works for some firmwares (SLOOP family, zp12) and
+  can't help a device whose firmware won't start. Felucca 1.6.1 doesn't offer it (tried on
+  2026-10-16). It uses the same MIDI protocol, so the app supports it where it exists.
 - **Not possible on iOS:** ROM bootloader recovery (`UBOOT1.00` USB mass storage with SCSI
   pass-through via jl-uboot-tool). That needs a computer. The app must say so clearly.
 

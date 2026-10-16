@@ -14,6 +14,7 @@ struct StoredFirmware: Codable, Identifiable, Hashable {
     struct Details {
         var name: String
         var version: String
+        var author: String?
         var source: Source
         var catalogueID: String?
         var packageURL: URL?
@@ -23,6 +24,7 @@ struct StoredFirmware: Codable, Identifiable, Hashable {
     var id: String
     var name: String
     var version: String
+    var author: String?
     var product: String
     var sha256: String
     var size: Int
@@ -166,6 +168,7 @@ final class FirmwareLibrary {
         let details = StoredFirmware.Details(
             name: entry.name,
             version: entry.version ?? package.product,
+            author: entry.author,
             source: .catalogue,
             catalogueID: entry.id,
             packageURL: packageURL,
@@ -225,6 +228,7 @@ final class FirmwareLibrary {
         let details = StoredFirmware.Details(
             name: name,
             version: "Official",
+            author: "M-VAVE",
             source: .official,
             catalogueID: catalogueID,
             packageURL: packageURL
@@ -252,6 +256,7 @@ final class FirmwareLibrary {
             id: package.sha256,
             name: details.name,
             version: details.version,
+            author: details.author,
             product: package.product,
             sha256: package.sha256,
             size: data.count,

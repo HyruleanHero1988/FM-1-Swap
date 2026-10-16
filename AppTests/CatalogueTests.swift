@@ -45,8 +45,12 @@ struct CatalogueTests {
         """
 
     @Test func decodesTheHubFeedAndResolvesPackageURLs() throws {
-        let entries = try HubFeed.decode(Data(Self.hubSample.utf8)).entries()
+        let feed = try HubFeed.decode(Data(Self.hubSample.utf8))
+        #expect(feed.updated == "2026-10-14 20:00 UTC")
+        let entries = feed.entries()
         #expect(entries.count == 2)
+        #expect(entries[0].stars == 21)
+        #expect(entries[1].stars == nil)
         #expect(entries[0].kinds == ["drums"])
         #expect(entries[0].sha256 == "dd05")
         #expect(entries[0].packageURL?.absoluteString == "https://thefirmwarehub.com/fw/zp12-2.4.2.fwsc")
@@ -60,6 +64,7 @@ struct CatalogueTests {
     @Test func readsEditorEntriesAndIgnoresMarkupInComments() {
         let listing = EditorListing(html: Self.editorSample)
         #expect(listing.entries.map(\.anchor) == ["stock", "baud-girl", "zp12-sampler"])
+        #expect(listing.entries[2].stars == 25)
         let baudGirl = listing.entries[1]
         #expect(baudGirl.name == "Baud Girl (FM-1+VA)")
         #expect(baudGirl.author == "Baud Girl")
@@ -79,6 +84,7 @@ struct CatalogueTests {
         let zp12 = try #require(merged.first { $0.id == "zp12" })
         #expect(zp12.listing == [.hub, .editor])
         #expect(zp12.what == "A 12-bit sampler.")
+        #expect(zp12.stars == 21, "The hub's count is kept over the editor's.")
         #expect(zp12.links.contains { $0.url.absoluteString == "https://fm1-editor.com/firmware/#zp12-sampler" })
 
         let officialEntry = merged.first(where: \.isOfficial)
@@ -187,6 +193,17 @@ struct CatalogueTests {
 }
 
 struct ReleaseCheckTests {
+    @Test func describesEachKnownRecoveryModeAndLeavesTheRestUnknown() {
+        let sloop = CatalogueEntry(id: "sloop", name: "SLOOP", listing: .hub)
+        #expect(sloop.rescueMode == .octaveDownAtPowerOn(since: nil))
+        #expect(RescueMode.known["melodee"]?.summary == "Hold OCT− while switching on (from 1.3.5)")
+        #expect(RescueMode.known["fumi"] == .bothOctaveKeysHeld)
+        #expect(RescueMode.known["felucca"] == .none(tried: "1.6.1"))
+        #expect(RescueMode.known["mvave-official"]?.isFromReadme == false)
+        #expect(RescueMode.known["zp12"]?.isFromReadme == true)
+        #expect(CatalogueEntry(id: "x0x", name: "X0X", listing: .hub).rescueMode == nil)
+    }
+
     @Test func ordersVersionsNumericallyWithPreReleasesFirst() {
         #expect(ReleaseVersion.isNewer("v1.3.10", than: "1.3.9"))
         #expect(ReleaseVersion.isNewer("1.3.7", than: "1.3.6"))

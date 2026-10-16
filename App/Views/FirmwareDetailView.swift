@@ -78,7 +78,7 @@ struct FirmwareDetailView: View {
 
     /// The version and author, e.g. "1.3.7  ·  by Melodee".
     private var byline: String {
-        [entry.version, entry.author.map { "by \($0)" }]
+        [entry.version, (entry.author ?? stored?.author).map { "by \($0)" }]
             .compactMap(\.self)
             .joined(separator: "  ·  ")
     }
@@ -89,7 +89,12 @@ struct FirmwareDetailView: View {
             if let size = entry.size ?? stored?.size { detailRow("SIZE", formattedBytes(size)) }
             if let date = entry.date { detailRow("RELEASED", date) }
             if !entry.kinds.isEmpty { detailRow("KIND", entry.kinds.joined(separator: ", ")) }
+            if let stars = entry.stars { detailRow("STARS", "★ \(stars)") }
+            detailRow("RECOVERY", entry.rescueMode?.summary ?? "Not known")
             detailRow("LISTED ON", listedOn)
+            if entry.listing.contains(.hub), let hubUpdated = model.catalogue.catalogue?.hubUpdated {
+                detailRow("HUB LIST", "Updated \(hubUpdated)")
+            }
             detailRow("FILE FROM", packageSource)
             detailRow("SHA-256", entry.sha256.map { String($0.prefix(16)) + "…" } ?? "Not published")
             if entry.isDownloadable && !entry.hasPublishedChecksum {
@@ -99,6 +104,9 @@ struct FirmwareDetailView: View {
                     package before saving.
                     """
                 )
+            }
+            if entry.rescueMode?.isFromReadme == true {
+                NoteText("The recovery mode is as the project's README describes it; FM-SWITCH hasn't tried it.")
             }
             if entry.requiresOfficialFirmware {
                 MonoText("Installs from the official firmware: the official firmware is flashed first.", size: 13)

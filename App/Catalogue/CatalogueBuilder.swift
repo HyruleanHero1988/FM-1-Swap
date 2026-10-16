@@ -3,6 +3,8 @@ import Foundation
 /// The merged firmware list, as saved on the phone.
 struct MergedCatalogue: Codable, Sendable, Equatable {
     var builtAt: Date
+    /// When the firmware hub last rebuilt its catalogue, as the hub writes it, e.g. "2026-10-14 20:00 UTC".
+    var hubUpdated: String?
     var entries: [CatalogueEntry]
     /// Sources that couldn't be read on this refresh, in plain words.
     var problems: [String]
@@ -63,7 +65,7 @@ struct CatalogueBuilder: Sendable {
             }
             return entries
         }
-        return MergedCatalogue(builtAt: .now, entries: resolved, problems: problems)
+        return MergedCatalogue(builtAt: .now, hubUpdated: hub?.updated, entries: resolved, problems: problems)
     }
 
     // MARK: - Merging.
@@ -80,6 +82,7 @@ struct CatalogueBuilder: Sendable {
                 entry.listing.insert(.editor)
                 if entry.what == nil { entry.what = listed.blurb }
                 if entry.author == nil { entry.author = listed.author }
+                if entry.stars == nil { entry.stars = listed.stars }
                 for link in listed.links + [pageLink]
                 where !entry.links.contains(where: { $0.comparable == link.comparable }) {
                     entry.links.append(link)
@@ -98,7 +101,8 @@ struct CatalogueBuilder: Sendable {
                         date: listed.updated,
                         links: listed.links + [pageLink],
                         listing: .editor,
-                        isOfficial: isOfficial
+                        isOfficial: isOfficial,
+                        stars: listed.stars
                     ))
             }
         }

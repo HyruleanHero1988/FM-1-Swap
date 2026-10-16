@@ -15,6 +15,8 @@ struct SettingsView: View {
                     MonoText(SafetyNotice.recovery, size: 14)
                 }
 
+                PixelPanel(title: "IF IT WON'T START AT ALL") { romRecovery }
+
                 PixelPanel(title: "COLOUR + SCREEN") { lookSettings }
                 PixelPanel(title: "CONNECTION") { connectionSettings }
                 PixelPanel(title: "FLASHING") { flashingSettings }
@@ -26,6 +28,17 @@ struct SettingsView: View {
     }
 
     // MARK: - Panels.
+
+    @ViewBuilder private var romRecovery: some View {
+        MonoText(SafetyNotice.romRecovery, size: 14)
+        ForEach(SafetyNotice.romRecoveryLinks, id: \.url) { link in
+            Link(destination: link.url) {
+                Text("▸ \(link.label.uppercased())")
+                    .font(.pixel(11, bold: true, relativeTo: .callout))
+                    .foregroundStyle(theme.bright)
+            }
+        }
+    }
 
     @ViewBuilder private var lookSettings: some View {
         @Bindable var settings = model.settings

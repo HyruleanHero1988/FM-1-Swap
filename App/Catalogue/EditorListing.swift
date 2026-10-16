@@ -3,7 +3,7 @@ import Foundation
 /// The firmware list on fm1-editor.com (`https://fm1-editor.com/firmware/`), read from its HTML.
 ///
 /// The page has no feed, so each `<article class="firmware-entry">` is picked apart: its
-/// anchor, title, author, description, latest version, update date and links. It lists
+/// anchor, title, author, description, latest version, update date, stars and links. It lists
 /// firmwares the hub does not, such as Baud Girl's and M-VAVE's own.
 struct EditorListing: Sendable {
     static let defaultURL = URL(literal: "https://fm1-editor.com/firmware/")
@@ -17,6 +17,8 @@ struct EditorListing: Sendable {
         /// The page's "Latest …" text, e.g. "V15" or "FM-1_101".
         var latest: String?
         var updated: String?
+        /// The page's star count for the project.
+        var stars: Int?
         /// Pinned to the top of the page (M-VAVE's and Baud Girl's).
         var pinned: Bool
         var links: [CatalogueLink]
@@ -78,6 +80,7 @@ struct EditorListing: Sendable {
             blurb: blurbs.isEmpty ? nil : blurbs.joined(separator: "\n\n"),
             latest: latest,
             updated: article.attributes["data-updated"],
+            stars: article.attributes["data-stars"].flatMap(Int.init),
             pinned: article.attributes["data-pinned"] != nil,
             links: links
         )

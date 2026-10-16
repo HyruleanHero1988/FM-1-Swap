@@ -7,9 +7,12 @@ In order. Each item waits until it's asked for.
 2. **Hardware testing:** stage A of FM1Kit's `HARDWARE_TESTING.md` passed on 2026-10-16 on
    Felucca 1.6.1 (`FM-1_916`): the "Felucca" port matched the filter, 50 of 50 handshakes were
    answered in 2–81 ms, and the port came back within 2–3 s of switching on. Stage B isn't
-   possible on that firmware, as it doesn't start in USB recovery mode with OCT− held. Still to
-   do: tune `UpdaterTiming` from those results, and optionally stage C (the DEVICE tab on a
-   phone).
+   possible on that firmware, as it doesn't start in USB recovery mode with OCT− held, and nor
+   does official V15. The first real install (Felucca to V15, with `fm1probe install`) passed in
+   34.7 s: staging 4.2 s over 75 requests, writing 24.4 s over 1167 requests, at most 350 ms
+   between requests. Still to do: FM1Kit's write progress jumps from 0% to 80% and sits there
+   (the loader reads out of order), so the app's progress bar needs FM1Kit's fix; tune
+   `UpdaterTiming`; and optionally stage C (the DEVICE tab on a phone).
 
 Then, only when asked:
 

@@ -75,6 +75,8 @@ struct CatalogueEntry: Codable, Sendable, Identifiable, Hashable {
     var build: String?
     /// The release's page, with its notes.
     var releaseURL: URL?
+    /// The project's star count, as the firmware lists give it.
+    var stars: Int?
 
     init(
         id: String,
@@ -94,7 +96,8 @@ struct CatalogueEntry: Codable, Sendable, Identifiable, Hashable {
         links: [CatalogueLink] = [],
         repo: String? = nil,
         listing: Listing,
-        isOfficial: Bool = false
+        isOfficial: Bool = false,
+        stars: Int? = nil
     ) {
         self.id = id
         self.name = name
@@ -114,6 +117,7 @@ struct CatalogueEntry: Codable, Sendable, Identifiable, Hashable {
         self.repo = repo
         self.listing = listing
         self.isOfficial = isOfficial
+        self.stars = stars
     }
 
     /// True when the official firmware has to be running before this one can be installed.
@@ -172,6 +176,8 @@ struct CatalogueLink: Codable, Sendable, Hashable {
 struct HubFeed: Decodable, Sendable {
     static let defaultURL = URL(literal: "https://thefirmwarehub.com/catalog.json")
 
+    /// When the hub last rebuilt the catalogue, e.g. "2026-10-14 20:00 UTC".
+    var updated: String?
     var firmwares: [Firmware]
 
     static func decode(_ data: Data) throws -> Self {
@@ -203,10 +209,11 @@ struct HubFeed: Decodable, Sendable {
         var editor: String?
         var play: String?
         var repo: String?
+        var stars: Int?
 
         enum CodingKeys: String, CodingKey {
             case id, name, author, what, version, date, beta, pkg, product, size, sha256, loader, site, source, release,
-                editor, play, repo
+                editor, play, repo, stars
             case kinds = "kind"
         }
 
@@ -235,6 +242,7 @@ struct HubFeed: Decodable, Sendable {
             editor = try container.decodeIfPresent(String.self, forKey: .editor)
             play = try container.decodeIfPresent(String.self, forKey: .play)
             repo = try container.decodeIfPresent(String.self, forKey: .repo)
+            stars = try container.decodeIfPresent(Int.self, forKey: .stars)
         }
 
         func entry(relativeTo feedURL: URL) -> CatalogueEntry {
@@ -270,7 +278,8 @@ struct HubFeed: Decodable, Sendable {
                 loader: loader,
                 links: links,
                 repo: repo,
-                listing: .hub
+                listing: .hub,
+                stars: stars
             )
         }
     }

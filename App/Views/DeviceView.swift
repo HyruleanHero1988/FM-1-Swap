@@ -6,6 +6,7 @@ struct DeviceView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.phosphor) private var theme
     @Binding var tab: AppTab
+    @State private var restoringVoices = false
 
     private var device: DeviceController { model.device }
 
@@ -27,6 +28,7 @@ struct DeviceView: View {
                         loaderPanel(identity)
                     } else {
                         installedPanel(identity)
+                        if identity == .officialV15 { voicesPanel }
                     }
                 } else {
                     hintPanel
@@ -37,6 +39,22 @@ struct DeviceView: View {
             .padding(16)
         }
         .scrollIndicators(.hidden)
+        .voiceRestoreSheet(isPresented: $restoringVoices, model: model, theme: theme)
+    }
+
+    private var voicesPanel: some View {
+        PixelPanel(title: "FACTORY VOICES") {
+            MonoText(
+                """
+                After V15 goes on over another firmware, some voice banks can still hold the old \
+                firmware's voices. Restoring writes V15's 128 factory voices over all four banks.
+                """,
+                size: 14
+            )
+            Button("RESTORE FACTORY VOICES") { restoringVoices = true }
+                .buttonStyle(.pixel)
+                .disabled(device.isWriting)
+        }
     }
 
     private var identityPanel: some View {

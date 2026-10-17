@@ -99,8 +99,10 @@ and `I18n.js` are GPLv3, so read them for facts and copy no code. What it change
 - **Loaders:** each package brings its own loader, which reports `ota-` and that package's
   identity, so only that package can finish an interrupted install. M-VAVE's stock loader
   is the exception: it always reports `ota-FM-1_015`, so any package that brings it (V15,
-  Open) can finish. The device screen lists the saved packages that can finish, and the
-  confirmation warns when the chosen one can't.
+  Open) can finish. Armed open firmware's loader is another exception: it reports
+  `ota-FM1C_` and the first 16 hex digits of the armed build ID (`ota-FM1C_db1642b2b6fa5c2c`
+  for V15, whose build ID is its SHA-256). The device screen lists the saved packages that
+  can finish, and the confirmation warns when the chosen one can't.
 - **Moving between firmware lines** (V15, custom, Open) is a separate, confirmed step in
   M-VAVE's updater, with a warning that it may erase projects and samples. FM1Kit refuses a
   switch the app hasn't confirmed, and `FM1Updater.check` says beforehand whether an install
@@ -108,11 +110,13 @@ and `I18n.js` are GPLv3, so read them for facts and copy no code. What it change
   turns away a reinstall of what's running. FM1Kit can't tell custom firmwares apart, so
   custom to custom counts as a switch.
 - **Factory voices:** M-VAVE's "restore V15" also rewrites the four voice banks from the V15
-  package. That's on hold, with Drew's agreement (2026-10-17). On Drew's FM-1, installing V15
-  after Ghoulbox, SLOOP, Melodee and Felucca brought back the factory voices by itself, and
-  the install never reads the package's voice data. So V15 probably resets banks it can't read.
-  Leaving Open hasn't been tested; it's FM1Kit's HARDWARE_TESTING stage E4. The app doesn't
-  promise a voice restore.
+  package. Installing V15 over custom firmwares brought the factory voices back by itself on
+  Drew's FM-1. But after Open V12 (stage E, 2026-10-17), presets 096–127 still held earlier
+  firmwares' voices, some silent or ringing, so V15 doesn't reset every bank. FM1Kit's
+  `FM1Updater.restoreFactoryVoices(from:progress:)` passed on Drew's FM-1 (0.7 s, every voice
+  right). The app offers it, never automatically: on the DEVICE screen while the FM-1 runs
+  V15, and after a flash that ends on V15. It first says plainly that every voice in the four
+  banks is replaced, the person's own included, and can't be read back, and needs a tick.
 - **Recovery:** fm1_open says nothing about OCT− or the ROM route. For firmware without the
   USB-MIDI update protocol it says to use that firmware's own recovery tool.
 

@@ -89,7 +89,7 @@ struct SettingsView: View {
             PixelToggle("VERIFY AFTER WRITING, LIKE FELUCCA", isOn: $settings.simulatedVerifies)
             Button("RESET SIMULATED FM-1") { model.applyConnectionSettings() }
                 .buttonStyle(.pixel)
-                .disabled(model.device.isFlashing)
+                .disabled(model.device.isWriting)
         }
     }
 

@@ -34,6 +34,18 @@ final class DeviceController {
         }
     }
 
+    /// Restoring V15's factory voices, which M-VAVE's updater offers after installing V15.
+    enum VoiceRestore: Equatable {
+        case idle
+        case writing(fraction: Double)
+        case succeeded
+        case failed(String)
+
+        var isRunning: Bool {
+            if case .writing = self { true } else { false }
+        }
+    }
+
     struct FlashJob: Equatable {
         var steps: [StoredFirmware]
         /// Whether the person confirmed that these steps switch the FM-1 to a different firmware,
@@ -71,6 +83,7 @@ final class DeviceController {
     private(set) var lastScan: Date?
     private(set) var ports: [MIDIPortDescriptor] = []
     private(set) var job: FlashJob?
+    private(set) var voiceRestore = VoiceRestore.idle
     private(set) var log: [String] = []
     private(set) var transportName = ""
     private(set) var transportError: String?
@@ -90,12 +103,16 @@ final class DeviceController {
 
     var isFlashing: Bool { job?.isRunning ?? false }
 
+    /// Whether anything is being written to the FM-1, a flash or a voice restore, so nothing else
+    /// may talk to it.
+    var isWriting: Bool { isFlashing || voiceRestore.isRunning }
+
     var simulatedDevice: SimulatedFM1? { transport as? SimulatedFM1 }
 
     // MARK: - Transport.
 
     func configure(_ kind: TransportKind, settings: AppSettings) {
-        guard !isFlashing else { return }
+        guard !isWriting else { return }
         watchTask?.cancel()
         transportError = nil
         switch kind {
@@ -125,7 +142,7 @@ final class DeviceController {
             for await _ in changes {
                 // Let a burst of add/remove notifications settle before probing.
                 try? await Task.sleep(for: .milliseconds(400))
-                guard let self, !isFlashing else { continue }
+                guard let self, !isWriting else { continue }
                 await scan()
             }
         }
@@ -134,7 +151,7 @@ final class DeviceController {
     // MARK: - Identifying.
 
     func scan() async {
-        guard !isScanning, !isFlashing else { return }
+        guard !isScanning, !isWriting else { return }
         isScanning = true
         defer {
             isScanning = false
@@ -173,7 +190,7 @@ final class DeviceController {
     ///   - confirmsSwitchingFirmware: Set once the person has confirmed a switch to a different
     ///     firmware; FM1Kit refuses one otherwise.
     func flash(_ steps: [StoredFirmware], confirmsSwitchingFirmware: Bool = false) {
-        guard !steps.isEmpty, !isFlashing else { return }
+        guard !steps.isEmpty, !isWriting else { return }
         log = []
         job = FlashJob(steps: steps, confirmsSwitchingFirmware: confirmsSwitchingFirmware)
         Task { await run(from: 0) }
@@ -264,6 +281,48 @@ final class DeviceController {
         }
     }
 
+    // MARK: - Factory voices.
+
+    /// Erases the FM-1's four voice banks and writes V15's 128 factory voices from the official
+    /// firmware, if the FM-1 is running V15.
+    ///
+    /// Every voice in the banks is replaced, including the person's own, and V15 can't read
+    /// them back first, so ask before calling this. If it's interrupted, running it again fixes it.
+    func restoreFactoryVoices() async {
+        guard !isWriting else { return }
+        voiceRestore = .writing(fraction: 0)
+        setKeepAwake(true)
+        defer { setKeepAwake(false) }
+        do {
+            guard let official = library.official else { throw FM1UpdateError.factoryVoicesUnavailable }
+            let package = try library.loadPackage(official)
+            let (fractions, continuation) = AsyncStream<Double>.makeStream()
+            let consumer = Task { @MainActor [weak self] in
+                for await fraction in fractions {
+                    self?.voiceRestore = .writing(fraction: fraction)
+                }
+            }
+            let result: Result<Void, any Error>
+            do {
+                try await updater.restoreFactoryVoices(from: package) { continuation.yield($0) }
+                result = .success(())
+            } catch {
+                result = .failure(error)
+            }
+            continuation.finish()
+            await consumer.value
+            try result.get()
+            voiceRestore = .succeeded
+        } catch {
+            voiceRestore = .failed(error.localizedDescription)
+        }
+    }
+
+    func dismissVoiceRestore() {
+        guard !voiceRestore.isRunning else { return }
+        voiceRestore = .idle
+    }
+
     private static func isResumable(_ error: any Error) -> Bool {
         switch error as? FM1UpdateError {
         case .disconnected(.writing, _), .stalled(.writing, _), .loaderNotFound:
@@ -288,9 +347,9 @@ final class DeviceController {
     /// If the user leaves mid-flash, ask iOS for the short grace period apps get to finish work.
     func scenePhaseChanged(to phase: ScenePhase) {
         switch phase {
-        case .background where isFlashing:
+        case .background where isWriting:
             guard backgroundTask == .invalid else { return }
-            backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "FM-1 flash") { [weak self] in
+            backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "FM-1 write") { [weak self] in
                 Task { @MainActor in self?.endBackgroundTask() }
             }
         case .active:

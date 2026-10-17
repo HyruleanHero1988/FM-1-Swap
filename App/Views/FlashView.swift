@@ -1,3 +1,4 @@
+import FM1Kit
 import SwiftUI
 
 /// Full-screen progress for a flash.
@@ -6,6 +7,7 @@ import SwiftUI
 struct FlashView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.phosphor) private var theme
+    @State private var restoringVoices = false
 
     var body: some View {
         if let job = model.device.job {
@@ -27,6 +29,7 @@ struct FlashView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(theme.background.ignoresSafeArea())
             .accessibilityAddTraits(.isModal)
+            .voiceRestoreSheet(isPresented: $restoringVoices, model: model, theme: theme)
         }
     }
 
@@ -84,6 +87,16 @@ struct FlashView: View {
         case .succeeded(let reported):
             PixelPanel(title: "DONE") {
                 MonoText("The FM-1 now reports \(reported).", size: 15)
+                if reported == FM1Identity.officialV15.text {
+                    NoteText(
+                        """
+                        V15 can keep the old firmware's voices in some banks, some of them wrong or \
+                        silent. Restoring writes its 128 factory voices over all four banks.
+                        """
+                    )
+                    Button("RESTORE FACTORY VOICES") { restoringVoices = true }
+                        .buttonStyle(.pixel)
+                }
                 Button("CLOSE") { model.device.dismissFlash() }
                     .buttonStyle(.pixelProminent)
             }

@@ -128,4 +128,30 @@ struct FlashingTests {
         #expect(message.contains("confirm the switch"))
         #expect(setup.controller.identity?.text == "FM-1_900")
     }
+
+    @Test func restoresTheFactoryVoicesOnceV15IsInstalled() async throws {
+        let setup = try await Self.setUp()
+        let official = try #require(setup.library.official)
+
+        setup.controller.flash([official], confirmsSwitchingFirmware: true)
+        try await Self.waitUntil(seconds: 120) { setup.controller.job?.isRunning == false }
+        #expect(setup.controller.job?.phase == .succeeded("FM-1_015"))
+
+        await setup.controller.restoreFactoryVoices()
+        #expect(setup.controller.voiceRestore == .succeeded)
+        // The hash M-VAVE's updater pins for V15's factory voices.
+        let voices = try #require(setup.controller.simulatedDevice?.currentVoices)
+        #expect(
+            FwscPackage.sha256Hex(Data(voices)) == "ecad0b8620f9d784d46c8da1e3c5de02c40214649ed8dec218026431046aad25")
+    }
+
+    @Test func refusesToRestoreVoicesOnAnotherFirmware() async throws {
+        let setup = try await Self.setUp()
+        await setup.controller.restoreFactoryVoices()
+        guard case .failed(let message) = setup.controller.voiceRestore else {
+            Issue.record("Expected the restore to be refused on FM-1_900.")
+            return
+        }
+        #expect(message.contains("needs the FM-1 running V15"))
+    }
 }

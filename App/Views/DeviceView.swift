@@ -24,7 +24,7 @@ struct DeviceView: View {
 
                 if let identity = device.identity {
                     if identity.isLoader {
-                        loaderPanel
+                        loaderPanel(identity)
                     } else {
                         installedPanel(identity)
                     }
@@ -82,7 +82,10 @@ struct DeviceView: View {
                     MonoText("· \(entry.name) \(entry.version ?? "")", size: 15)
                 }
             }
-            if last == nil && official == nil && matches.isEmpty {
+            if OpenFirmware.isOpen(identity.text) {
+                MonoText("M-VAVE's open-source firmware (FM1 Open), or a build of it.", size: 14)
+            }
+            if last == nil && official == nil && matches.isEmpty && !OpenFirmware.isOpen(identity.text) {
                 MonoText(
                     "No saved or catalogue firmware reports this ID. It may be official firmware or an older release.",
                     size: 14,
@@ -95,8 +98,9 @@ struct DeviceView: View {
         }
     }
 
-    private var loaderPanel: some View {
-        PixelPanel(title: "UPDATE MODE") {
+    private func loaderPanel(_ loader: FM1Identity) -> some View {
+        let finishers = model.library.packages(thatCanFinish: loader)
+        return PixelPanel(title: "UPDATE MODE") {
             MonoText(
                 """
                 The FM-1 is waiting in its update loader: an install was interrupted, or it was switched on \
@@ -104,7 +108,21 @@ struct DeviceView: View {
                 """,
                 size: 14
             )
-            MonoText("Pick a saved firmware and flash it to finish.", size: 14, dim: true)
+            if finishers.isEmpty {
+                MonoText(
+                    """
+                    None of your saved firmwares brought this loader. Flash the firmware you were \
+                    installing (save it first if it isn't), as only its own package can finish.
+                    """,
+                    size: 14,
+                    dim: true
+                )
+            } else {
+                NoteText(finishers.count == 1 ? "THIS ONE CAN FINISH IT:" : "ANY OF THESE CAN FINISH IT:")
+                ForEach(finishers) { item in
+                    MonoText("· \(item.name) \(item.version)", size: 15)
+                }
+            }
             Button("CHOOSE FIRMWARE") { tab = .library }
                 .buttonStyle(.pixelProminent)
         }

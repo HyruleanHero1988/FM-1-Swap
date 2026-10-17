@@ -2,8 +2,9 @@
 
 An iOS app for swapping M-VAVE FM-1 firmwares from a phone over USB-C. Firmwares come from the
 firmware hub's catalogue merged with fm1-editor.com's list, and are saved on the phone for
-offline flashing. The official firmware is never bundled: the user downloads it from M-VAVE's
-site (or imports it), and it is checked against the known hash. See `PLAN.md` for the research and the phased plan.
+offline flashing. M-VAVE's official V15 comes with the app (from M-VAVE's open-source
+[fm1_open](https://github.com/m-vave/fm1_open), Apache-2.0), so it's always there to go back to.
+See `PLAN.md` for the research and the phased plan.
 
 ## Layout
 
@@ -17,6 +18,7 @@ App/                     SwiftUI app (iOS 17+)
   Model/                 settings, catalogue, saved firmwares, flash history, device controller
   Views/                 Device, Firmware (catalogue), Saved, Setup, Flash
   Resources/Fonts/       Departure Mono, Silkscreen, VT323 (SIL OFL)
+  Resources/Firmware/    M-VAVE's FM-1 V15, unmodified, and its Apache-2.0 notice
   Assets.xcassets/       the app icon, made by scripts/make-icon.py
 AppTests/                firmware list and flashing tests (Swift Testing)
 scripts/check.sh         every check CI runs

@@ -59,8 +59,8 @@ struct SettingsView: View {
         labelledSlider("GLOW", value: $settings.glow)
         Button("RESET LOOK") { settings.resetLook() }
             .buttonStyle(.pixelCompact)
-        pixelToggle("CRT SCANLINES", isOn: $settings.scanlines)
-        pixelToggle("CRT FLICKER", isOn: $settings.flicker)
+        PixelToggle("CRT SCANLINES", isOn: $settings.scanlines)
+        PixelToggle("CRT FLICKER", isOn: $settings.flicker)
     }
 
     @ViewBuilder private var connectionSettings: some View {
@@ -83,10 +83,10 @@ struct SettingsView: View {
             )
         #endif
         if settings.transportKind == .simulated {
-            pixelToggle("START IN USB RECOVERY MODE", isOn: $settings.simulatedRecoveryMode)
-            pixelToggle("PULL THE CABLE AT 45%", isOn: $settings.simulatedCablePull)
-            pixelToggle("READ BACKWARDS, LIKE V15", isOn: $settings.simulatedReadsBackwards)
-            pixelToggle("VERIFY AFTER WRITING, LIKE FELUCCA", isOn: $settings.simulatedVerifies)
+            PixelToggle("START IN USB RECOVERY MODE", isOn: $settings.simulatedRecoveryMode)
+            PixelToggle("PULL THE CABLE AT 45%", isOn: $settings.simulatedCablePull)
+            PixelToggle("READ BACKWARDS, LIKE V15", isOn: $settings.simulatedReadsBackwards)
+            PixelToggle("VERIFY AFTER WRITING, LIKE FELUCCA", isOn: $settings.simulatedVerifies)
             Button("RESET SIMULATED FM-1") { model.applyConnectionSettings() }
                 .buttonStyle(.pixel)
                 .disabled(model.device.isFlashing)
@@ -95,10 +95,10 @@ struct SettingsView: View {
 
     @ViewBuilder private var flashingSettings: some View {
         @Bindable var settings = model.settings
-        pixelToggle("ALWAYS VIA OFFICIAL FIRMWARE", isOn: $settings.alwaysViaOfficial)
+        PixelToggle("ALWAYS VIA OFFICIAL FIRMWARE", isOn: $settings.alwaysViaOfficial)
         NoteText("Off: the official firmware is only flashed first when a firmware needs it.")
-        pixelToggle("SHOW BETA FIRMWARES", isOn: $settings.showBeta)
-        pixelToggle("SHOW LINKS-ONLY FIRMWARES", isOn: $settings.showLinksOnly)
+        PixelToggle("SHOW BETA FIRMWARES", isOn: $settings.showBeta)
+        PixelToggle("SHOW LINKS-ONLY FIRMWARES", isOn: $settings.showLinksOnly)
         NoteText("Links-only firmwares have no file this app can download; they link to their own sites.")
     }
 
@@ -111,6 +111,13 @@ struct SettingsView: View {
             """
         )
         NoteText("Update protocol: written from the AL-255/FM-1-RE reverse-engineering notes.")
+        NoteText(
+            """
+            Official firmware: M-VAVE's FM-1 V15, unmodified, from github.com/m-vave/fm1_open under \
+            the Apache License 2.0 (apache.org/licenses/LICENSE-2.0). FM-SWITCH isn't made or \
+            endorsed by M-VAVE.
+            """
+        )
         NoteText("Fonts: Departure Mono, Silkscreen and VT323 (SIL Open Font Licence).")
     }
 
@@ -132,24 +139,6 @@ struct SettingsView: View {
         .buttonStyle(.plain)
         .accessibilityLabel(preset.name.capitalized)
         .accessibilityAddTraits(selected ? .isSelected : [])
-    }
-
-    private func pixelToggle(_ title: String, isOn: Binding<Bool>) -> some View {
-        Button {
-            isOn.wrappedValue.toggle()
-        } label: {
-            HStack {
-                MonoText(title, size: 14)
-                Spacer()
-                Text(isOn.wrappedValue ? "[■]" : "[ ]")
-                    .font(.mono(17))
-                    .foregroundStyle(theme.bright)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(title.capitalized)
-        .accessibilityValue(isOn.wrappedValue ? "On" : "Off")
     }
 
     private func labelledSlider(_ title: String, value: Binding<Double>) -> some View {

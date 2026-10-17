@@ -38,7 +38,10 @@ struct StoredFirmware: Codable, Identifiable, Hashable {
     var savedAt: Date
 }
 
-/// The on-phone firmware cache: downloads, the user's official firmware, and imports.
+/// The on-phone firmware cache: downloads, the official firmware, and imports.
+///
+/// M-VAVE's V15 comes with the app (it's Apache-2.0, from M-VAVE's open-source repository), and
+/// is saved here on first launch, so the official firmware is always to hand for recovery.
 @MainActor
 @Observable
 final class FirmwareLibrary {
@@ -79,19 +82,33 @@ final class FirmwareLibrary {
 
     private(set) var items: [StoredFirmware] = []
     private(set) var downloading: Set<String> = []
+    /// Each saved package's loader hash, worked out when first needed.
+    @ObservationIgnored private var loaderHashes: [String: String?] = [:]
 
     private let directory: URL
     private let indexURL: URL
 
-    init(directory: URL = AppDirectories.support.appending(path: "Firmware", directoryHint: .isDirectory)) {
+    /// The copy of V15 that comes with the app.
+    static let bundledOfficialURL = Bundle.main.url(forResource: "FM-1_015", withExtension: "fwsc")
+
+    init(
+        directory: URL = AppDirectories.support.appending(path: "Firmware", directoryHint: .isDirectory),
+        bundledOfficial: URL? = bundledOfficialURL
+    ) {
         self.directory = directory
         indexURL = directory.appending(path: "library.json")
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         load()
+        if official == nil, let bundledOfficial {
+            try? saveBundledOfficial(from: bundledOfficial)
+        }
     }
 
+    /// The saved V15: the firmware other firmwares install from, and the one to go back to.
+    ///
+    /// Only V15 counts, as M-VAVE's other official firmware (FM1 Open) doesn't do either job.
     var official: StoredFirmware? {
-        items.first { $0.source == .official }
+        items.first { $0.source == .official && $0.sha256 == OfficialFirmware.v15.sha256 }
     }
 
     var totalBytes: Int {
@@ -138,6 +155,29 @@ final class FirmwareLibrary {
         try FwscPackage(data: Data(contentsOf: url(for: item)))
     }
 
+    /// The saved firmwares whose package can finish the update `loader` is waiting to do.
+    ///
+    /// Each package brings its own update loader, and a loader reports `ota-` and the identity of
+    /// the package that started it, so that package can finish it. M-VAVE's loader is the
+    /// exception: it always reports `ota-FM-1_015`, so any package that brings it will do.
+    func packages(thatCanFinish loader: FM1Identity) -> [StoredFirmware] {
+        sortedItems.filter { item in
+            FM1Identity.loaderPrefix + item.product == loader.text
+                || (loader.text == Self.stockLoaderIdentity
+                    && loaderSHA256(of: item) == OfficialFirmware.stockLoaderSHA256)
+        }
+    }
+
+    /// What M-VAVE's update loader reports, whichever package started it.
+    static let stockLoaderIdentity = "ota-FM-1_015"
+
+    private func loaderSHA256(of item: StoredFirmware) -> String? {
+        if let known = loaderHashes[item.id] { return known }
+        let hash = try? loadPackage(item).loaderSHA256
+        loaderHashes[item.id] = hash
+        return hash
+    }
+
     // MARK: - Adding.
 
     /// Downloads a catalogue firmware, checks whatever is published about it (size, hash,
@@ -157,9 +197,9 @@ final class FirmwareLibrary {
         if let product = entry.product, package.product != product {
             throw Failure.productMismatch(expected: product, found: package.product)
         }
-        if let official = OfficialFirmware.matching(package) {
+        if OfficialFirmware.matching(package) == .v15 {
             return try saveOfficial(
-                data, package: package, name: official.name, catalogueID: entry.id, from: packageURL)
+                data, package: package, name: OfficialFirmware.v15.name, catalogueID: entry.id, from: packageURL)
         }
         guard !entry.isOfficial else { throw Failure.notOfficial }
         for older in items where older.catalogueID == entry.id {
@@ -202,21 +242,38 @@ final class FirmwareLibrary {
     func importOfficial(from remoteURL: URL) async throws -> StoredFirmware {
         let data = try await fetch(remoteURL)
         let package = try FwscPackage(data: data)
-        guard OfficialFirmware.matching(package) != nil else { throw Failure.notOfficial }
+        guard OfficialFirmware.matching(package) == .v15 else { throw Failure.notOfficial }
         return try add(data, fallbackName: "Official")
     }
 
     private func add(_ data: Data, fallbackName: String) throws -> StoredFirmware {
         let package = try FwscPackage(data: data)
-        if let official = OfficialFirmware.matching(package) {
-            return try saveOfficial(data, package: package, name: official.name, catalogueID: nil, from: nil)
+        let official = OfficialFirmware.matching(package)
+        if official == .v15 {
+            return try saveOfficial(
+                data, package: package, name: OfficialFirmware.v15.name, catalogueID: nil, from: nil)
         }
         if let existing = existing(package) { return existing }
-        let details = StoredFirmware.Details(name: fallbackName, version: package.product, source: .imported)
+        // M-VAVE's other releases (FM1 Open) are named and credited, but aren't the official V15.
+        let details = StoredFirmware.Details(
+            name: official?.name ?? fallbackName,
+            version: package.product,
+            author: official == nil ? nil : "M-VAVE",
+            source: .imported
+        )
         return try save(data, package: package, details: details)
     }
 
+    /// Saves the V15 that comes with the app, after checking it's the known release.
+    private func saveBundledOfficial(from url: URL) throws {
+        let data = try Data(contentsOf: url)
+        let package = try FwscPackage(data: data)
+        guard OfficialFirmware.matching(package) == .v15 else { throw Failure.notOfficial }
+        try saveOfficial(data, package: package, name: OfficialFirmware.v15.name, catalogueID: nil, from: nil)
+    }
+
     /// Saves M-VAVE's own firmware, or returns the copy already saved.
+    @discardableResult
     private func saveOfficial(
         _ data: Data,
         package: FwscPackage,
@@ -281,11 +338,9 @@ final class FirmwareLibrary {
         persist()
     }
 
-    /// Empties the cache.
-    ///
-    /// The official firmware is kept unless `includingOfficial` is set.
-    func clear(includingOfficial: Bool) {
-        for item in items where includingOfficial || item.source != .official {
+    /// Empties the cache, except for the official firmware.
+    func clear() {
+        for item in items where item.source != .official {
             remove(item)
         }
     }

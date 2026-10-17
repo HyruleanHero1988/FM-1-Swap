@@ -232,6 +232,36 @@ extension ScreenHeader where Trailing == EmptyView {
     }
 }
 
+/// An on/off switch drawn as a text check box, "[■]" or "[ ]".
+struct PixelToggle: View {
+    @Environment(\.phosphor) private var theme
+    let title: String
+    @Binding var isOn: Bool
+
+    init(_ title: String, isOn: Binding<Bool>) {
+        self.title = title
+        _isOn = isOn
+    }
+
+    var body: some View {
+        Button {
+            isOn.toggle()
+        } label: {
+            HStack {
+                MonoText(title, size: 14)
+                Spacer()
+                Text(isOn ? "[■]" : "[ ]")
+                    .font(.mono(17))
+                    .foregroundStyle(theme.bright)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title.capitalized)
+        .accessibilityValue(isOn ? "On" : "Off")
+    }
+}
+
 /// Formats byte counts as "597 KB".
 func formattedBytes(_ count: Int) -> String {
     let formatter = ByteCountFormatter()

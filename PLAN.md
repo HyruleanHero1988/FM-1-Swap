@@ -73,13 +73,44 @@ consumes the feed and downloads from their mirror, and cache responsibly.
 
 ## Official firmware
 
-- Do not bundle it. The user either imports `FM-1.fwsc` from Files (from M-UPGRADE or the
-  m-vave.com download) or pastes a URL.
+- Bundled since 2026-10-17. M-VAVE published V15 as `sdk/firmware/FM-1_015.fwsc` in
+  [fm1_open](https://github.com/m-vave/fm1_open) under Apache-2.0 (its `THIRD_PARTY.md`), so
+  the app ships that file, unmodified, with the licence (`App/Resources/Firmware/`). The
+  library saves it on first launch and keeps it through a cache clear. Downloading from
+  m-vave.com or importing from Files stay as fallbacks. (Until then: don't bundle it, as its
+  terms were unknown.)
 - Validate it the way Felucca does: V15 is 699,956 bytes with SHA-256
   `db1642b2b6fa5c2cccb11ffd13878068bb28601678d3644049f99dc40e7edb8a`. Keep a small table of
   known official hashes so it can be updated later.
 - **"Swap" = chained flash:** when the target needs stock (or the user opts in to "always go
   via stock"), run stock → target as one guided operation.
+
+## M-VAVE's open-source firmware and workbench (fm1_open)
+
+[fm1_open](https://github.com/m-vave/fm1_open) (read at 5d3eac2, 2026-10-16) is M-VAVE's
+FM1 Open V12 firmware (GPLv3 app on a binary engine) and its web workbench. `WebUpdate.js`
+and `I18n.js` are GPLv3, so read them for facts and copy no code. What it changes here:
+
+- **V15 is bundled** (above).
+- **Open identities:** `FM1_OFFICIAL_OPEN`, `FM1_COMMUNITY_<n>` or `FM-1_8` and six digits
+  (V12 is `FM-1_8000012`). The device screen recognises them. Installing over Open needs an
+  arming command first, which FM1Kit sends. The library names Open V12 "FM1 Open V12" and
+  keeps it apart from the official V15.
+- **Loaders:** each package brings its own loader, which reports `ota-` and that package's
+  identity, so only that package can finish an interrupted install. M-VAVE's stock loader
+  is the exception: it always reports `ota-FM-1_015`, so any package that brings it (V15,
+  Open) can finish. The device screen lists the saved packages that can finish, and the
+  confirmation warns when the chosen one can't.
+- **Moving between firmware lines** (V15, custom, Open) is a separate, confirmed step in
+  M-VAVE's updater, with a warning that it may erase projects and samples. FM1Kit refuses a
+  switch the app hasn't confirmed, and `FM1Updater.check` says beforehand whether an install
+  is one. The confirmation then asks for SWITCH FIRMWARE? and an "I've backed up" tick, and
+  turns away a reinstall of what's running. FM1Kit can't tell custom firmwares apart, so
+  custom to custom counts as a switch.
+- **Factory voices:** M-VAVE's "restore V15" also rewrites the four voice banks (128 factory
+  voices) from the V15 package. Not done yet: the wire part belongs in FM1Kit.
+- **Recovery:** fm1_open says nothing about OCT− or the ROM route. For firmware without the
+  USB-MIDI update protocol it says to use that firmware's own recovery tool.
 
 ## Risks and open questions
 

@@ -36,6 +36,9 @@ final class DeviceController {
 
     struct FlashJob: Equatable {
         var steps: [StoredFirmware]
+        /// Whether the person confirmed that these steps switch the FM-1 to a different firmware,
+        /// which can erase its projects and samples.
+        var confirmsSwitchingFirmware = false
         var index = 0
         var phase = FlashPhase.preparing
 
@@ -156,10 +159,23 @@ final class DeviceController {
         return [official, target]
     }
 
-    func flash(_ steps: [StoredFirmware]) {
+    /// What installing `item` on the connected FM-1 would do, sending only the handshake (and,
+    /// for M-VAVE's open firmware, its capability query).
+    func check(_ item: StoredFirmware) async throws -> InstallCheck {
+        let package = try library.loadPackage(item)
+        return try await updater.check(package)
+    }
+
+    /// Starts installing `steps` in order.
+    ///
+    /// - Parameters:
+    ///   - steps: The firmwares to install, in order.
+    ///   - confirmsSwitchingFirmware: Set once the person has confirmed a switch to a different
+    ///     firmware; FM1Kit refuses one otherwise.
+    func flash(_ steps: [StoredFirmware], confirmsSwitchingFirmware: Bool = false) {
         guard !steps.isEmpty, !isFlashing else { return }
         log = []
-        job = FlashJob(steps: steps)
+        job = FlashJob(steps: steps, confirmsSwitchingFirmware: confirmsSwitchingFirmware)
         Task { await run(from: 0) }
     }
 
@@ -178,6 +194,7 @@ final class DeviceController {
 
     private func run(from startIndex: Int) async {
         guard let steps = job?.steps else { return }
+        let options = InstallOptions(confirmsSwitchingFirmware: job?.confirmsSwitchingFirmware ?? false)
         setKeepAwake(true)
         defer { setKeepAwake(false) }
 
@@ -203,7 +220,7 @@ final class DeviceController {
                     result = .success(
                         isLoaderRunning
                             ? try await updater.resume(package, events: report)
-                            : try await updater.install(package, events: report))
+                            : try await updater.install(package, options: options, events: report))
                 } catch {
                     result = .failure(error)
                 }

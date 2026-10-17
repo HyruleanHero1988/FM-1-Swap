@@ -18,9 +18,18 @@ Then, only when asked:
 
 3. Create github.com/ocean/FM1Kit and push FM1Kit to it, then check that its CI (`macos-26`)
    runs.
-4. Give FM-SWITCH its own GitHub repository and push it. Its CI needs `ocean/FM1Kit` to exist
-   first (step 3).
+4. ~~Give FM-SWITCH its own GitHub repository and push it.~~ Done 2026-10-16:
+   github.com/ocean/FM-SWITCH (public).
 5. Once FM1Kit is published, point `project.yml` at the GitHub URL and a version instead of
-   `../FM1Kit`.
+   `../FM1Kit`. FM1Kit is pushed but not tagged yet: Drew has more of it to test first
+   (maybe over the weekend of 2026-10-17).
 6. Write `fm1probe install` (hardware stage D). In progress in the FM1Kit session since
    2026-10-16.
+7. **fm1_open follow-ups** (see PLAN.md). Done 2026-10-17, against FM1Kit c3bebbf:
+   - bundle V15;
+   - list the packages that can finish a loader's update;
+   - recognise Open identities and keep Open V12 apart from the official V15;
+   - check before flashing, with SWITCH FIRMWARE? and a backup tick;
+   - move the tests to `FwscPackage.sampleFile`.
+   Not started, waiting for Drew's priority call and an FM1Kit API: restoring V15's factory
+   voices after installing V15.

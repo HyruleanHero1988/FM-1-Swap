@@ -66,10 +66,9 @@ struct LibraryView: View {
             .presentationBackground(theme.background)
         }
         .confirmationDialog("Clear saved firmwares?", isPresented: $confirmingClear, titleVisibility: .visible) {
-            Button("Clear all except official", role: .destructive) { library.clear(includingOfficial: false) }
-            Button("Clear everything", role: .destructive) { library.clear(includingOfficial: true) }
+            Button("Clear", role: .destructive) { library.clear() }
         } message: {
-            Text("They can be downloaded again while online.")
+            Text("The official firmware stays. The rest can be downloaded again while online.")
         }
     }
 
@@ -88,7 +87,7 @@ struct LibraryView: View {
                     Spacer()
                     PixelTag(text: official.product)
                 }
-                NoteText("Verified against the known checksum. Kept when you clear the cache.")
+                NoteText("Comes with the app, checked against the known checksum. Kept when you clear the cache.")
                 Button("FLASH OFFICIAL") { flashing = official }
                     .buttonStyle(.pixel)
             } else {
@@ -100,8 +99,9 @@ struct LibraryView: View {
     @ViewBuilder private var officialMissing: some View {
         MonoText(
             """
-            Not saved. Download FM-1 V15 (FM-1.fwsc) straight from M-VAVE's site, or import a copy you \
-            already have. Either way it's checked against the known checksum.
+            The copy that comes with the app couldn't be saved. Download FM-1 V15 (FM-1.fwsc) straight \
+            from M-VAVE's site, or import a copy you already have. Either way it's checked against the \
+            known checksum.
             """,
             size: 14
         )
@@ -171,7 +171,7 @@ struct LibraryView: View {
             }
             Button("CLEAR CACHE") { confirmingClear = true }
                 .buttonStyle(.pixel)
-                .disabled(library.items.isEmpty)
+                .disabled(library.items.allSatisfy { $0.source == .official })
         }
     }
 

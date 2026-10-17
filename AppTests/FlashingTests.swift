@@ -1,4 +1,4 @@
-import FM1Kit
+@_spi(Testing) import FM1Kit
 import Foundation
 import Testing
 
@@ -9,23 +9,6 @@ import Testing
 @MainActor
 @Suite(.serialized)
 struct FlashingTests {
-    /// A `.fwsc` file whose header markers spell `product`, built the way the format is documented.
-    static func packageFile(product: String, size: Int = 20_000) -> Data {
-        let blockCount = 20
-        let imageBytesPerBlock = 0x2F
-        let image = (0..<size).map { UInt8(truncatingIfNeeded: $0 &* 13 &+ 5) }
-        let productBytes = Array(product.utf8)
-        var file: [UInt8] = []
-        for block in 0..<blockCount {
-            let start = block * imageBytesPerBlock
-            file += image[start..<(start + imageBytesPerBlock)]
-            file.append(
-                block < productBytes.count ? UInt8(truncatingIfNeeded: Int(productBytes[block]) + block + 1) : 0x7D)
-        }
-        file += image[(blockCount * imageBytesPerBlock)...]
-        return Data(file)
-    }
-
     struct Setup {
         let controller: DeviceController
         let library: FirmwareLibrary
@@ -48,7 +31,7 @@ struct FlashingTests {
 
     static func save(_ product: String, in library: FirmwareLibrary) throws -> StoredFirmware {
         let url = URL.temporaryDirectory.appending(path: "\(UUID().uuidString).fwsc")
-        try packageFile(product: product).write(to: url)
+        try FwscPackage.sampleFile(product: product).write(to: url)
         return try library.importFile(at: url)
     }
 
@@ -68,7 +51,7 @@ struct FlashingTests {
         #expect(setup.controller.identity?.text == "FM-1_900")
         let item = try Self.save("FM-1_916", in: setup.library)
 
-        setup.controller.flash([item])
+        setup.controller.flash([item], confirmsSwitchingFirmware: true)
         try await Self.waitUntil(seconds: 90) { setup.controller.job?.isRunning == false }
 
         #expect(setup.controller.job?.phase == .succeeded("FM-1_916"))
@@ -84,7 +67,7 @@ struct FlashingTests {
         }
         let item = try Self.save("FM-1_916", in: setup.library)
 
-        setup.controller.flash([item])
+        setup.controller.flash([item], confirmsSwitchingFirmware: true)
         try await Self.waitUntil(seconds: 90) { setup.controller.job?.isRunning == false }
 
         #expect(setup.controller.job?.phase == .succeeded("FM-1_916"))
@@ -99,7 +82,7 @@ struct FlashingTests {
         let setup = try await Self.setUp(cablePull: true)
         let item = try Self.save("FM-1_916", in: setup.library)
 
-        setup.controller.flash([item])
+        setup.controller.flash([item], confirmsSwitchingFirmware: true)
         try await Self.waitUntil(seconds: 90) { setup.controller.job?.isRunning == false }
         guard case .failed(_, let canResume) = setup.controller.job?.phase else {
             Issue.record(
@@ -119,14 +102,30 @@ struct FlashingTests {
         let setup = try await Self.setUp()
         let item = try Self.save("FM-1_900", in: setup.library)
 
-        setup.controller.flash([item])
+        setup.controller.flash([item], confirmsSwitchingFirmware: true)
         try await Self.waitUntil(seconds: 90) { setup.controller.job?.isRunning == false }
         guard case .failed(let message, let canResume) = setup.controller.job?.phase else {
             Issue.record("Expected the device to refuse its own firmware.")
             return
         }
         #expect(!canResume)
-        #expect(message.contains("checking the package"))
+        #expect(message.contains("already running FM-1_900"))
+        #expect(setup.controller.identity?.text == "FM-1_900")
+    }
+
+    @Test func refusesToSwitchFirmwareUnconfirmed() async throws {
+        let setup = try await Self.setUp()
+        let item = try Self.save("FM-1_916", in: setup.library)
+        #expect(try await setup.controller.check(item).kind == .switchingFirmware)
+
+        setup.controller.flash([item])
+        try await Self.waitUntil(seconds: 90) { setup.controller.job?.isRunning == false }
+        guard case .failed(let message, let canResume) = setup.controller.job?.phase else {
+            Issue.record("Expected the unconfirmed switch to be refused.")
+            return
+        }
+        #expect(!canResume)
+        #expect(message.contains("confirm the switch"))
         #expect(setup.controller.identity?.text == "FM-1_900")
     }
 }

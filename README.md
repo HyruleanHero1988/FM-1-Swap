@@ -80,6 +80,11 @@ This runs everything CI runs, and it must pass with no warnings. It needs
 - builds the DocC documentation with warnings as errors;
 - looks for unused code and imports (`swiftlint analyze` and Periphery).
 
+To run only some of these, name their groups: `lint`, `build`, `test`, `device`, `docs` and
+`unused`. For example, `scripts/check.sh lint` or `scripts/check.sh build test`. `test` and
+`unused` use the results of `build`. CI runs three parallel jobs: `lint device docs`,
+`build test` and `build unused`.
+
 To fix formatting, run `swift format format --in-place --recursive App AppTests`. Some lint
 findings can be fixed with `swiftlint --fix`, but check what it changes: it can rewrite a
 closure inside `#require` into a key path, which doesn't compile.

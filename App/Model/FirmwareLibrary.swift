@@ -158,14 +158,26 @@ final class FirmwareLibrary {
     /// The saved firmwares whose package can finish the update `loader` is waiting to do.
     ///
     /// Each package brings its own update loader, and a loader reports `ota-` and the identity of
-    /// the package that started it, so that package can finish it. M-VAVE's loader is the
-    /// exception: it always reports `ota-FM-1_015`, so any package that brings it will do.
+    /// the package that started it, so that package can finish it. There are two exceptions:
+    /// - M-VAVE's loader always reports `ota-FM-1_015`, so any package that brings it will do.
+    /// - The loader of armed open firmware reports `ota-FM1C_` and the start of the armed build
+    ///   ID, so the package with that build ID is the one.
     func packages(thatCanFinish loader: FM1Identity) -> [StoredFirmware] {
         sortedItems.filter { item in
-            FM1Identity.loaderPrefix + item.product == loader.text
+            if let armedBuildPrefix = loader.armedBuildPrefix {
+                return Self.buildID(of: item).hasPrefix(armedBuildPrefix.lowercased())
+            }
+            return FM1Identity.loaderPrefix + item.product == loader.text
                 || (loader.text == Self.stockLoaderIdentity
                     && loaderSHA256(of: item) == OfficialFirmware.stockLoaderSHA256)
         }
+    }
+
+    /// The build ID open firmware is armed with to install `item`, in lower-case hex: M-VAVE's
+    /// published one for its own releases, otherwise the package's SHA-256, as M-VAVE's updater
+    /// uses.
+    private static func buildID(of item: StoredFirmware) -> String {
+        OfficialFirmware.known.first { $0.sha256 == item.sha256 }?.buildID.hex.lowercased() ?? item.sha256
     }
 
     /// What M-VAVE's update loader reports, whichever package started it.

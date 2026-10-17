@@ -38,6 +38,16 @@ struct LibraryTests {
         #expect(library.packages(thatCanFinish: otherLoader).isEmpty)
     }
 
+    @Test func picksThePackageAnArmedOpenFirmwaresLoaderIsWaitingFor() throws {
+        let library = FirmwareLibrary(directory: Self.emptyDirectory())
+        let official = try #require(library.official)
+        // Open firmware armed with V15 starts a loader named after the start of V15's build ID.
+        let armedForV15 = try #require(FM1Identity(text: "ota-FM1C_db1642b2b6fa5c2c"))
+        let armedForOther = try #require(FM1Identity(text: "ota-FM1C_0123456789abcdef"))
+        #expect(library.packages(thatCanFinish: armedForV15) == [official])
+        #expect(library.packages(thatCanFinish: armedForOther).isEmpty)
+    }
+
     @Test func recognisesOpenFirmwareIdentities() {
         #expect(OpenFirmware.isOpen("FM-1_8000012"))
         #expect(OpenFirmware.isOpen("FM1_OFFICIAL_OPEN"))

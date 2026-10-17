@@ -44,18 +44,21 @@ struct RootView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            StatusLine()
-            Group {
-                switch tab {
-                case .device: DeviceView(tab: $tab)
-                case .firmware: CatalogueView()
-                case .library: LibraryView()
-                case .settings: SettingsView()
+        GeometryReader { geometry in
+            let isWide = geometry.size.width >= WideLayout.minimumWidth
+            VStack(spacing: 0) {
+                StatusLine()
+                if isWide {
+                    HStack(spacing: 0) {
+                        PixelSidebar(selection: $tab)
+                        screen
+                    }
+                } else {
+                    screen
+                    PixelTabBar(selection: $tab)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            PixelTabBar(selection: $tab)
+            .environment(\.isWideLayout, isWide)
         }
         .background(theme.background.ignoresSafeArea())
         .overlay {
@@ -77,6 +80,56 @@ struct RootView: View {
         .onChange(of: scenePhase) { _, phase in
             model.device.scenePhaseChanged(to: phase)
         }
+    }
+}
+
+extension RootView {
+    private var screen: some View {
+        Group {
+            switch tab {
+            case .device: DeviceView(tab: $tab)
+            case .firmware: CatalogueView()
+            case .library: LibraryView()
+            case .settings: SettingsView()
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// The sections down the left of the wide layout, drawn like the tab bar's buttons.
+private struct PixelSidebar: View {
+    @Environment(\.phosphor) private var theme
+    @Binding var selection: AppTab
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(AppTab.allCases) { tab in
+                let selected = tab == selection
+                Button {
+                    selection = tab
+                } label: {
+                    HStack(spacing: 10) {
+                        Text(tab.glyph).font(.mono(16))
+                        Text(tab.title).font(.pixel(11, bold: true, relativeTo: .callout))
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .foregroundStyle(selected ? theme.background : theme.muted)
+                    .background(PixelBox(step: 2).fill(selected ? theme.bright : .clear))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(tab.title.capitalized)
+                .accessibilityAddTraits(selected ? .isSelected : [])
+            }
+            Spacer()
+        }
+        .padding(12)
+        .frame(width: 180)
+        .background(theme.surface.ignoresSafeArea(edges: [.bottom, .leading]))
+        .overlay(alignment: .trailing) { Rectangle().fill(theme.dim).frame(width: 2) }
     }
 }
 

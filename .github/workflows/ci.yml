@@ -24,8 +24,8 @@ jobs:
       # The groups of scripts/check.sh, split so the long test run isn't waited on by the rest.
       matrix:
         include:
-          - name: Lint, device build and docs
-            groups: lint device docs
+          - name: Lint, device and Mac builds, and docs
+            groups: lint device mac docs
           - name: Build and test
             groups: build test
           - name: Unused code

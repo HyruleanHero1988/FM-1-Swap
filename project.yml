@@ -3,6 +3,7 @@ options:
   bundleIdPrefix: com.drewrobinson
   deploymentTarget:
     iOS: "17.0"
+    macOS: "14.0"
   createIntermediateGroups: true
 packages:
   # The tagged release, taking 0.1.x fixes but not 0.2.0, which may change the API. To work
@@ -20,9 +21,18 @@ settings:
 targets:
   FMSwitch:
     type: application
-    platform: iOS
+    # One target for iPhone, iPad and a native Mac app.
+    platform: auto
+    supportedDestinations: [iOS, macOS]
     sources:
       - path: App
+        excludes:
+          - Platform/**
+      # Code for one platform only, so neither is compiled (or analysed) for the other.
+      - path: App/Platform/iOS
+        destinationFilters: [iOS]
+      - path: App/Platform/macOS
+        destinationFilters: [macOS]
     dependencies:
       - package: FM1Kit
         product: FM1Kit
@@ -37,6 +47,9 @@ targets:
           - Silkscreen-Regular.ttf
           - Silkscreen-Bold.ttf
           - DepartureMono-Regular.otf
+        # The Mac's equivalent: every font in the app's Resources folder.
+        ATSApplicationFontsPath: .
+        LSApplicationCategoryType: public.app-category.music
         UILaunchScreen:
           UIColorName: ""
         UIUserInterfaceStyle: Dark
@@ -55,10 +68,15 @@ targets:
         SWIFT_VERSION: "6.0"
         TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGN_STYLE: Automatic
+        # The Mac app is sandboxed: it reaches the network, opens files the person picks, and
+        # talks MIDI, which the sandbox allows.
+        CODE_SIGN_ENTITLEMENTS[sdk=macosx*]: App/FMSwitch-macOS.entitlements
+        ENABLE_HARDENED_RUNTIME[sdk=macosx*]: YES
         ENABLE_PREVIEWS: YES
   FMSwitchTests:
     type: bundle.unit-test
-    platform: iOS
+    platform: auto
+    supportedDestinations: [iOS, macOS]
     sources:
       - path: AppTests
     dependencies:
@@ -68,6 +86,8 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         SWIFT_VERSION: "6.0"
         PRODUCT_BUNDLE_IDENTIFIER: com.drewrobinson.fmswitch.tests
+        # A Mac app's executable is inside Contents/MacOS, which XcodeGen's default misses.
+        TEST_HOST[sdk=macosx*]: $(BUILT_PRODUCTS_DIR)/FMSwitch.app/Contents/MacOS/FMSwitch
 schemes:
   FMSwitch:
     build:

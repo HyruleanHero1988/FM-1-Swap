@@ -116,7 +116,7 @@ final class CatalogueStore {
             errorMessage =
                 catalogue == nil
                 ? "Couldn't fetch the firmware list. Check your connection and try again."
-                : "Couldn't refresh; showing the list saved on this phone."
+                : "Couldn't refresh; showing the list saved earlier."
         }
     }
 

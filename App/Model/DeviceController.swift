@@ -2,7 +2,6 @@ import FM1Kit
 import Foundation
 import Observation
 import SwiftUI
-import UIKit
 
 /// Talks to the FM-1: identifies it, watches for it coming and going, and runs flashes,
 /// including "official first, then the target" chains and resuming interrupted writes.
@@ -91,7 +90,7 @@ final class DeviceController {
     private(set) var transport: any MIDITransport = UnavailableTransport()
     private var updater = FM1Updater(transport: UnavailableTransport())
     private var watchTask: Task<Void, Never>?
-    private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+    private let wakeKeeper = WakeKeeper()
 
     private let library: FirmwareLibrary
     private let history: FlashHistory
@@ -338,31 +337,15 @@ final class DeviceController {
 
     // MARK: - Staying alive.
 
-    /// Auto-lock is paused for the whole flash, so the user only has to stay in the app.
+    /// Keeps the device awake for the whole flash or restore, so the person only has to stay in
+    /// the app.
     private func setKeepAwake(_ on: Bool) {
-        UIApplication.shared.isIdleTimerDisabled = on
-        if !on { endBackgroundTask() }
+        wakeKeeper.isHolding = on
     }
 
-    /// If the user leaves mid-flash, ask iOS for the short grace period apps get to finish work.
+    /// Passes on scene changes, so a write that's under way can ask for time to finish.
     func scenePhaseChanged(to phase: ScenePhase) {
-        switch phase {
-        case .background where isWriting:
-            guard backgroundTask == .invalid else { return }
-            backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "FM-1 write") { [weak self] in
-                Task { @MainActor in self?.endBackgroundTask() }
-            }
-        case .active:
-            endBackgroundTask()
-        default:
-            break
-        }
-    }
-
-    private func endBackgroundTask() {
-        guard backgroundTask != .invalid else { return }
-        UIApplication.shared.endBackgroundTask(backgroundTask)
-        backgroundTask = .invalid
+        wakeKeeper.scenePhaseChanged(to: phase, isWriting: isWriting)
     }
 }
 

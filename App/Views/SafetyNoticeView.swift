@@ -21,7 +21,7 @@ enum SafetyNotice {
     ///
     /// The tools are other people's, and haven't been tried with FM-SWITCH.
     static let romRecovery = """
-        If the FM-1 won't start at all, not even in USB recovery mode, a phone can't help. If a computer \
+        If the FM-1 won't start at all, not even in USB recovery mode, FM-SWITCH can't help. If a computer \
         sees a USB device with UBOOT in its name (such as WL80UBOOT), the FM-1's chip is in its own \
         download mode, and tools built on jl-uboot-tool can put the official firmware back. Some \
         firmwares (Melodee, FuMi-1 and Hortator among them) publish one with instructions. If it never \
@@ -73,6 +73,7 @@ struct SafetyNoticeView: View {
             .disabled(secondsLeft > 0)
             .padding(20)
         }
+        .frame(maxWidth: WideLayout.readableWidth)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(theme.background.ignoresSafeArea())
         .accessibilityAddTraits(.isModal)

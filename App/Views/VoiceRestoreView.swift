@@ -105,7 +105,7 @@ extension View {
             VoiceRestoreView()
                 .environment(model)
                 .environment(\.phosphor, theme)
-                .presentationDetents([.medium, .large])
+                .pixelSheetSize()
                 .presentationBackground(theme.background)
         }
     }

@@ -3,7 +3,8 @@
 
 The icon is a cartridge with a lightning bolt on its label, going into a synth: swapping the
 synth's software by flashing it. It's drawn on a 32 x 32 grid, so each cell is exactly 32 pixels
-of the 1024-pixel icon, with a one-cell block shadow like the app's buttons.
+of the 1024-pixel icon, with a one-cell block shadow like the app's buttons. The Mac's sizes are
+drawn from the same grid.
 
 Run it after changing the map or the colours: `scripts/make-icon.py`. It needs only Python 3.
 """
@@ -93,28 +94,42 @@ def with_shadow(cells):
 
 
 def png(pixels):
-    """Encodes rows of RGBA tuples as a PNG."""
+    """Encodes square rows of RGBA tuples as a PNG."""
     raw = b"".join(b"\x00" + b"".join(struct.pack("4B", *pixel) for pixel in row) for row in pixels)
 
     def chunk(kind, data):
         body = kind + data
         return struct.pack(">I", len(data)) + body + struct.pack(">I", zlib.crc32(body) & 0xFFFFFFFF)
 
-    header = struct.pack(">IIBBBBB", SIZE, SIZE, 8, 6, 0, 0, 0)
+    size = len(pixels)
+    header = struct.pack(">IIBBBBB", size, size, 8, 6, 0, 0, 0)
     return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b"")
 
 
-def render(cells, palette):
-    scale = SIZE // 32
+def render(cells, palette, size=SIZE):
+    """Draws the cells at `size` pixels square, taking each pixel from the cell it falls in."""
     rows = []
-    for y in range(SIZE):
-        cell_row = cells[y // scale]
-        rows.append([palette[cell_row[x // scale]] for x in range(SIZE)])
+    for y in range(size):
+        cell_row = cells[y * 32 // size]
+        rows.append([palette[cell_row[x * 32 // size]] for x in range(size)])
     return rows
+
+
+# The Mac's icon sizes, in points, each at 1x and 2x.
+MAC_SIZES = [16, 32, 128, 256, 512]
+
+
+def mac_file(points, scale):
+    return f"AppIcon-mac-{points}@{scale}x.png"
 
 
 def contents():
     icon = {"idiom": "universal", "platform": "ios", "size": "1024x1024"}
+    mac = [
+        {"idiom": "mac", "size": f"{points}x{points}", "scale": f"{scale}x", "filename": mac_file(points, scale)}
+        for points in MAC_SIZES
+        for scale in (1, 2)
+    ]
     return {
         "images": [
             {**icon, "filename": "AppIcon.png"},
@@ -124,7 +139,8 @@ def contents():
                 "filename": "AppIcon-Tinted.png",
                 "appearances": [{"appearance": "luminosity", "value": "tinted"}],
             },
-        ],
+        ]
+        + mac,
         "info": {"author": "xcode", "version": 1},
     }
 
@@ -135,6 +151,12 @@ def main():
     icon_set.mkdir(parents=True, exist_ok=True)
     for name, palette in PALETTES.items():
         (icon_set / name).write_bytes(png(render(cells, palette)))
+    # The Mac draws its icon at fixed sizes; below 32 pixels a cell is less than a pixel, so the
+    # smallest ones lose some detail.
+    for points in MAC_SIZES:
+        for scale in (1, 2):
+            pixels = render(cells, PALETTES["AppIcon.png"], points * scale)
+            (icon_set / mac_file(points, scale)).write_bytes(png(pixels))
     (icon_set / "Contents.json").write_text(json.dumps(contents(), indent=2) + "\n")
     (CATALOGUE / "Contents.json").write_text(json.dumps({"info": {"author": "xcode", "version": 1}}, indent=2) + "\n")
     print(f"Wrote {icon_set.relative_to(CATALOGUE.parent.parent)}")

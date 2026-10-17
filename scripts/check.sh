@@ -10,10 +10,11 @@
 #   lint    formatting and SwiftLint
 #   build   the warnings-as-errors simulator build that `test` and `unused` use
 #   test    the tests, on the simulator build
-#   device  an unsigned device build
+#   device  an unsigned iPhone and iPad device build
+#   mac     the Mac app: a warnings-as-errors build, then the tests on macOS
 #   docs    the DocC documentation, with warnings as errors
 #   unused  SwiftLint analyze and Periphery, on the simulator build
-# CI runs them as parallel jobs: `lint device docs`, `build test` and `build unused`.
+# CI runs them as parallel jobs: `lint device mac docs`, `build test` and `build unused`.
 #
 # Tests run on the first available iPhone simulator; set SIMULATOR to pick one by name.
 set -euo pipefail
@@ -76,6 +77,15 @@ check_device() {
         -derivedDataPath .build/device CODE_SIGNING_ALLOWED=NO FMSWITCH_STRICT=YES -quiet
 }
 
+check_mac() {
+    step "Mac build with warnings as errors, and tests on macOS"
+    # Signed to run locally only, as tests need a signed app to host them.
+    xcodebuild test -project FMSwitch.xcodeproj -scheme FMSwitch -destination 'platform=macOS' \
+        -derivedDataPath .build/mac CODE_SIGN_IDENTITY=- FMSWITCH_STRICT=YES \
+        > .build/logs/mac.log 2>&1 || fail_with_log .build/logs/mac.log
+    grep -E 'Test run with' .build/logs/mac.log || true
+}
+
 check_docs() {
     step "Documentation (DocC, warnings as errors)"
     xcodebuild docbuild -project FMSwitch.xcodeproj -scheme FMSwitch -destination 'generic/platform=iOS Simulator' \
@@ -94,13 +104,13 @@ check_unused() {
 
 groups=("$@")
 if [[ ${#groups[@]} -eq 0 ]]; then
-    groups=(lint build test device docs unused)
+    groups=(lint build test device mac docs unused)
 fi
 for group in "${groups[@]}"; do
     case "$group" in
-        lint | build | test | device | docs | unused) ;;
+        lint | build | test | device | mac | docs | unused) ;;
         *)
-            echo "Unknown check group: $group (use lint, build, test, device, docs or unused)." >&2
+            echo "Unknown check group: $group (use lint, build, test, device, mac, docs or unused)." >&2
             exit 1
             ;;
     esac

@@ -59,7 +59,7 @@ struct FirmwareLinksPanel: View {
             .accessibilityLabel(link.displayLabel)
             .accessibilityHint(link.url.absoluteString)
             .contextMenu {
-                Button("Copy link") { UIPasteboard.general.url = link.url }
+                Button("Copy link") { Pasteboard.copy(link.url) }
             }
         }
     }

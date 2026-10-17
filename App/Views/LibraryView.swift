@@ -5,7 +5,10 @@ import UniformTypeIdentifiers
 struct LibraryView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.phosphor) private var theme
+    @Environment(\.isWideLayout) private var isWide
     @State private var importing = false
+    /// The saved firmware showing beside the list, in the wide layout.
+    @State private var selectedID: String?
     @State private var officialLink = ""
     @State private var message: String?
     @State private var busy = false
@@ -19,20 +22,26 @@ struct LibraryView: View {
         model.catalogue.entries.filter { library.outdated(for: $0) != nil }
     }
 
+    /// The picked saved firmware, or the official one until something is picked.
+    private var selected: StoredFirmware? {
+        library.items.first { $0.id == selectedID } ?? library.official
+    }
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                ScreenHeader(title: "SAVED")
-                officialPanel
-                savedPanel
-                storagePanel
-                if let message {
-                    MonoText(message, size: 14)
+        Group {
+            if isWide {
+                ListAndDetail(placeholder: "Pick a saved firmware from the list.", hasSelection: selected != nil) {
+                    listColumn
+                } detail: {
+                    if let selected {
+                        detail(of: selected)
+                            .id(selected.id)
+                    }
                 }
+            } else {
+                listColumn
             }
-            .padding(16)
         }
-        .scrollIndicators(.hidden)
         .fileImporter(
             isPresented: $importing, allowedContentTypes: [UTType(filenameExtension: "fwsc") ?? .data, .data]
         ) { result in
@@ -62,7 +71,7 @@ struct LibraryView: View {
             )
             .environment(model)
             .environment(\.phosphor, theme)
-            .presentationDetents([.medium, .large])
+            .pixelSheetSize()
             .presentationBackground(theme.background)
         }
         .confirmationDialog("Clear saved firmwares?", isPresented: $confirmingClear, titleVisibility: .visible) {
@@ -73,6 +82,57 @@ struct LibraryView: View {
     }
 
     /// One line describing a saved firmware: version, build, identity and size.
+    private var listColumn: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                ScreenHeader(title: "SAVED")
+                officialPanel
+                savedPanel
+                storagePanel
+                if let message {
+                    MonoText(message, size: 14)
+                }
+            }
+            .padding(16)
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    /// A saved firmware's catalogue page when it has one, otherwise what the package says.
+    @ViewBuilder private func detail(of item: StoredFirmware) -> some View {
+        if let entry = item.catalogueID.flatMap(model.catalogue.entry(id:)) {
+            FirmwareDetailView(entry: entry, isInPane: true)
+        } else {
+            SavedFirmwareDetail(item: item, onFlash: { flashing = item })
+        }
+    }
+
+    /// The name of a saved firmware, which picks it in the wide layout.
+    @ViewBuilder private func itemTitle(_ item: StoredFirmware) -> some View {
+        let title = VStack(alignment: .leading, spacing: 2) {
+            Text(item.name.uppercased())
+                .font(.pixel(12, bold: true, relativeTo: .headline))
+                .foregroundStyle(theme.bright)
+                .phosphorGlow(0.7)
+            MonoText(summary(of: item), size: 17, dim: true)
+        }
+        if isWide {
+            Button {
+                selectedID = item.id
+            } label: {
+                HStack(spacing: 6) {
+                    Text(selected?.id == item.id ? "▸" : " ").font(.mono(15)).foregroundStyle(theme.bright)
+                    title
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(selected?.id == item.id ? .isSelected : [])
+        } else {
+            title
+        }
+    }
+
     private func summary(of item: StoredFirmware) -> String {
         [item.version, item.build.map { "\($0) build" }, item.product, formattedBytes(item.size)]
             .compactMap(\.self)
@@ -83,7 +143,14 @@ struct LibraryView: View {
         PixelPanel(title: "OFFICIAL FIRMWARE") {
             if let official = library.official {
                 HStack {
-                    MonoText("✓ \(official.name)", size: 17)
+                    if isWide {
+                        Button("✓ \(official.name)") { selectedID = official.id }
+                            .buttonStyle(.plain)
+                            .font(.mono(17))
+                            .foregroundStyle(selected?.id == official.id ? theme.bright : theme.ink)
+                    } else {
+                        MonoText("✓ \(official.name)", size: 17)
+                    }
                     Spacer()
                     PixelTag(text: official.product)
                 }
@@ -115,9 +182,7 @@ struct LibraryView: View {
                 .font(.mono(14))
                 .foregroundStyle(theme.ink)
                 .tint(theme.bright)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .keyboardType(.URL)
+                .plainTextEntry(forLinks: true)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 8)
                 .background(PixelBox(step: 2).fill(theme.background))
@@ -129,7 +194,7 @@ struct LibraryView: View {
     }
 
     private var savedPanel: some View {
-        PixelPanel(title: "ON THIS PHONE") {
+        PixelPanel(title: "ON THIS \(ThisDevice.name.uppercased())") {
             let items = library.sortedItems.filter { $0.source != .official }
             if items.isEmpty {
                 MonoText(
@@ -137,13 +202,7 @@ struct LibraryView: View {
             }
             ForEach(items) { item in
                 HStack(alignment: .center, spacing: 10) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(item.name.uppercased())
-                            .font(.pixel(12, bold: true, relativeTo: .headline))
-                            .foregroundStyle(theme.bright)
-                            .phosphorGlow(0.7)
-                        MonoText(summary(of: item), size: 17, dim: true)
-                    }
+                    itemTitle(item)
                     Spacer()
                     Button("FLASH") { flashing = item }
                         .buttonStyle(.pixelCompact)
@@ -214,5 +273,51 @@ struct LibraryView: View {
             failures == 0
             ? "Saved firmwares are up to date."
             : "\(failures) update\(failures == 1 ? "" : "s") failed. Refresh the list and try again."
+    }
+}
+
+/// What's known about a saved firmware that isn't in the catalogue (an import, or the official
+/// firmware), shown beside the list in the wide layout.
+private struct SavedFirmwareDetail: View {
+    @Environment(\.phosphor) private var theme
+    let item: StoredFirmware
+    let onFlash: () -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(item.name.uppercased())
+                        .font(.pixel(24, bold: true, relativeTo: .largeTitle))
+                        .foregroundStyle(theme.bright)
+                        .phosphorGlow()
+                    if let author = item.author {
+                        MonoText("by \(author)", size: 15, dim: true)
+                    }
+                }
+                Button("FLASH") { onFlash() }
+                    .buttonStyle(.pixelProminent)
+                PixelPanel(title: "DETAILS") {
+                    row("REPORTS", item.product)
+                    row("VERSION", item.version)
+                    row("SIZE", formattedBytes(item.size))
+                    row("SAVED", item.savedAt.formatted(date: .abbreviated, time: .shortened))
+                    row("SHA-256", String(item.sha256.prefix(16)) + "…")
+                }
+                if item.source == .imported {
+                    NoteText("Imported from Files, and not in the catalogue, so check where it came from.")
+                }
+            }
+            .padding(16)
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    private func row(_ label: String, _ value: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            MonoText(label, size: 13, dim: true)
+                .frame(width: 90, alignment: .leading)
+            MonoText(value, size: 15)
+        }
     }
 }

@@ -11,7 +11,17 @@ struct FMSwitchApp: App {
                 .environment(\.phosphor, model.settings.theme)
                 .preferredColorScheme(.dark)
                 .tint(model.settings.theme.bright)
+                #if DEBUG && os(macOS)
+                    .onAppear { DebugSnapshot.scheduleIfAsked() }
+                #endif
+                #if os(macOS)
+                    .frame(minWidth: 420, minHeight: 560)
+                #endif
         }
+        #if os(macOS)
+            // Opens wide enough for the sidebar layout.
+            .defaultSize(width: 1180, height: 820)
+        #endif
     }
 }
 

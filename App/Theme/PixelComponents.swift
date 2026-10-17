@@ -262,6 +262,32 @@ struct PixelToggle: View {
     }
 }
 
+extension View {
+    /// Text entry for searches and links: no capitals or corrections, and a keyboard for links
+    /// on iPhone and iPad when `forLinks` is set.
+    func plainTextEntry(forLinks: Bool = false) -> some View {
+        #if os(iOS)
+            textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(forLinks ? .URL : .default)
+        #else
+            autocorrectionDisabled()
+        #endif
+    }
+}
+
+extension View {
+    /// Sizes a sheet: half or full height on iPhone and iPad (full only when `isTall`), and a
+    /// fixed size on the Mac, where a sheet otherwise shrinks to fit and cuts off scrolling text.
+    func pixelSheetSize(isTall: Bool = false) -> some View {
+        #if os(macOS)
+            frame(minWidth: 520, idealWidth: 560, minHeight: isTall ? 640 : 480, idealHeight: isTall ? 720 : 560)
+        #else
+            presentationDetents(isTall ? [.large] : [.medium, .large])
+        #endif
+    }
+}
+
 /// Formats byte counts as "597 KB".
 func formattedBytes(_ count: Int) -> String {
     let formatter = ByteCountFormatter()

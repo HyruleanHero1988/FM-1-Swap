@@ -5,6 +5,7 @@ import SwiftUI
 struct CatalogueView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.phosphor) private var theme
+    @Environment(\.isWideLayout) private var isWide
     @State private var search = ""
     @State private var selected: CatalogueEntry?
 
@@ -31,25 +32,26 @@ struct CatalogueView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            ScreenHeader(title: "FIRMWARE") {
-                Button(model.catalogue.isRefreshing ? "LOADING" : "REFRESH") {
-                    Task { await model.catalogue.refresh() }
+        Group {
+            if isWide {
+                ListAndDetail(placeholder: "Pick a firmware from the list.", hasSelection: selected != nil) {
+                    listColumn
+                } detail: {
+                    if let selected {
+                        FirmwareDetailView(entry: selected, isInPane: true)
+                            .id(selected.id)
+                    }
                 }
-                .buttonStyle(.pixelCompact)
-                .disabled(model.catalogue.isRefreshing)
+            } else {
+                listColumn
             }
-
-            searchField
-            statusLine
-            firmwareList
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 16)
-        .sheet(item: $selected) { entry in
+        // In the wide layout the selected firmware shows beside the list instead.
+        .sheet(item: isWide ? .constant(nil) : $selected) { entry in
             FirmwareDetailView(entry: entry)
                 .environment(model)
                 .environment(\.phosphor, theme)
+                .pixelSheetSize(isTall: true)
                 .presentationBackground(theme.background)
         }
         .task {
@@ -65,6 +67,24 @@ struct CatalogueView: View {
         }
     }
 
+    private var listColumn: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ScreenHeader(title: "FIRMWARE") {
+                Button(model.catalogue.isRefreshing ? "LOADING" : "REFRESH") {
+                    Task { await model.catalogue.refresh() }
+                }
+                .buttonStyle(.pixelCompact)
+                .disabled(model.catalogue.isRefreshing)
+            }
+
+            searchField
+            statusLine
+            firmwareList
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
+    }
+
     private var searchField: some View {
         HStack(spacing: 8) {
             Text(">").font(.mono(17)).foregroundStyle(theme.bright)
@@ -72,8 +92,7 @@ struct CatalogueView: View {
                 .font(.mono(15))
                 .foregroundStyle(theme.ink)
                 .tint(theme.bright)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
+                .plainTextEntry()
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 9)
@@ -88,7 +107,7 @@ struct CatalogueView: View {
                     Button {
                         selected = entry
                     } label: {
-                        CatalogueRow(entry: entry)
+                        CatalogueRow(entry: entry, isSelected: isWide && selected?.id == entry.id)
                     }
                     .buttonStyle(.plain)
                 }
@@ -150,6 +169,8 @@ private struct CatalogueRow: View {
     @Environment(AppModel.self) private var model
     @Environment(\.phosphor) private var theme
     var entry: CatalogueEntry
+    /// Whether the row's firmware is showing beside the list.
+    var isSelected = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -167,8 +188,9 @@ private struct CatalogueRow: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PixelBox().fill(theme.surface))
-        .overlay(PixelBox().strokeBorder(theme.faint, lineWidth: 2))
+        .overlay(PixelBox().strokeBorder(isSelected ? theme.bright : theme.faint, lineWidth: 2))
         .contentShape(Rectangle())
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private var title: some View {

@@ -10,17 +10,19 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 22) {
                 ScreenHeader(title: "SETUP")
 
-                PixelPanel(title: "SAFETY + RECOVERY") {
-                    MonoText(SafetyNotice.text, size: 14)
-                    MonoText(SafetyNotice.recovery, size: 14)
+                AdaptiveColumns {
+                    PixelPanel(title: "SAFETY + RECOVERY") {
+                        MonoText(SafetyNotice.text, size: 14)
+                        MonoText(SafetyNotice.recovery, size: 14)
+                    }
+
+                    PixelPanel(title: "IF IT WON'T START AT ALL") { romRecovery }
+                    PixelPanel(title: "CREDITS") { credits }
+                } trailing: {
+                    PixelPanel(title: "COLOUR + SCREEN") { lookSettings }
+                    PixelPanel(title: "CONNECTION") { connectionSettings }
+                    PixelPanel(title: "FLASHING") { flashingSettings }
                 }
-
-                PixelPanel(title: "IF IT WON'T START AT ALL") { romRecovery }
-
-                PixelPanel(title: "COLOUR + SCREEN") { lookSettings }
-                PixelPanel(title: "CONNECTION") { connectionSettings }
-                PixelPanel(title: "FLASHING") { flashingSettings }
-                PixelPanel(title: "CREDITS") { credits }
             }
             .padding(16)
         }
@@ -78,7 +80,7 @@ struct SettingsView: View {
             NoteText(
                 """
                 The iOS Simulator can't reach USB devices plugged into the Mac, so use the simulated FM-1 \
-                here, or run on a phone or as "My Mac (Designed for iPad)".
+                here, or run on a phone, an iPad or the Mac.
                 """
             )
         #endif

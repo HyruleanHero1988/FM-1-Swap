@@ -21,20 +21,22 @@ struct DeviceView: View {
                     .disabled(device.isScanning)
                 }
 
-                identityPanel
+                AdaptiveColumns {
+                    identityPanel
 
-                if let identity = device.identity {
-                    if identity.isLoader {
-                        loaderPanel(identity)
+                    if let identity = device.identity {
+                        if identity.isLoader {
+                            loaderPanel(identity)
+                        } else {
+                            installedPanel(identity)
+                        }
                     } else {
-                        installedPanel(identity)
-                        if identity == .officialV15 { voicesPanel }
+                        hintPanel
                     }
-                } else {
-                    hintPanel
+                } trailing: {
+                    if device.identity == .officialV15 { voicesPanel }
+                    portsPanel
                 }
-
-                portsPanel
             }
             .padding(16)
         }
@@ -85,7 +87,7 @@ struct DeviceView: View {
         let last = model.history.lastInstall(matching: identity.text)
         return PixelPanel(title: "PROBABLY") {
             if let last {
-                MonoText("LAST FLASHED FROM THIS PHONE:", size: 13, dim: true)
+                MonoText("LAST FLASHED FROM THIS \(ThisDevice.name.uppercased()):", size: 13, dim: true)
                 MonoText(
                     "\(last.name) \(last.version)  ·  \(last.date.formatted(date: .abbreviated, time: .shortened))",
                     size: 15)
@@ -149,7 +151,7 @@ struct DeviceView: View {
     private var hintPanel: some View {
         PixelPanel(title: "CONNECT") {
             MonoText("1. Switch the FM-1 on.", size: 15)
-            MonoText("2. Plug it into this phone's USB-C port with a data cable.", size: 15)
+            MonoText("2. Plug it into this \(ThisDevice.name)'s USB port with a data cable.", size: 15)
             MonoText("3. Close any other MIDI app using it.", size: 15)
             if model.settings.transportKind == .simulated {
                 MonoText("Using the simulated FM-1 (change in SETUP).", size: 13, dim: true)

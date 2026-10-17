@@ -1,8 +1,8 @@
 # FM-SWITCH
 
-An iOS app for swapping M-VAVE FM-1 firmwares from a phone over USB-C. Firmwares come from the
-firmware hub's catalogue merged with fm1-editor.com's list, and are saved on the phone for
-offline flashing. M-VAVE's official V15 comes with the app (from M-VAVE's open-source
+An app for iPhone, iPad and Mac for swapping M-VAVE FM-1 firmwares over USB. Firmwares come
+from the firmware hub's catalogue merged with fm1-editor.com's list, and are saved on the device
+for offline flashing. M-VAVE's official V15 comes with the app (from M-VAVE's open-source
 [fm1_open](https://github.com/m-vave/fm1_open), Apache-2.0), so it's always there to go back to.
 See `PLAN.md` for the research and the phased plan.
 
@@ -16,7 +16,9 @@ App/                     SwiftUI app (iOS 17+)
                          package discovery (GitHub releases, publisher manifests, project pages,
                          M-VAVE's downloads), live checks for newer releases and their builds
   Model/                 settings, catalogue, saved firmwares, flash history, device controller
-  Views/                 Device, Firmware (catalogue), Saved, Setup, Flash
+  Views/                 Device, Firmware (catalogue), Saved, Setup, Flash; the wide layout
+                         (sidebar and two panes) for iPad and Mac
+  Platform/iOS, macOS/   the few things done differently on each: staying awake, the clipboard
   Resources/Fonts/       Departure Mono, Silkscreen, VT323 (SIL OFL)
   Resources/Firmware/    M-VAVE's FM-1 V15, unmodified, and its Apache-2.0 notice
   Assets.xcassets/       the app icon, made by scripts/make-icon.py
@@ -51,7 +53,10 @@ xcodegen generate
 open FMSwitch.xcodeproj
 ```
 
-Pick an iPhone simulator and run. In the Simulator the app uses the simulated FM-1 (set under
+Pick an iPhone or iPad simulator, or **My Mac**, and run. iPad (landscape, or a 13-inch in
+either orientation) and the Mac get the wide layout: a sidebar, and lists with the picked item
+beside them. The Mac app is native SwiftUI, sandboxed, and talks to the FM-1 over USB MIDI like
+the iPhone. In the Simulator the app uses the simulated FM-1 (set under
 **SETUP ▸ CONNECTION**). It runs the whole protocol: install, the reboot into the loader, and
 the identity check. It can also start in USB rescue mode or "pull the cable" at 45% to test
 **RESUME**.
@@ -91,14 +96,15 @@ This runs everything CI runs, and it must pass with no warnings. It needs
 - lints (`swiftlint --strict`, `.swiftlint.yml`);
 - builds with warnings as errors, then runs the tests on the first available iPhone simulator
   (set `SIMULATOR` to choose one);
-- does an unsigned device build;
+- does an unsigned iPhone and iPad device build;
+- builds the Mac app with warnings as errors and runs the tests on macOS;
 - builds the DocC documentation with warnings as errors;
 - looks for unused code and imports (`swiftlint analyze` and Periphery).
 
-To run only some of these, name their groups: `lint`, `build`, `test`, `device`, `docs` and
-`unused`. For example, `scripts/check.sh lint` or `scripts/check.sh build test`. `test` and
-`unused` use the results of `build`. CI runs three parallel jobs: `lint device docs`,
-`build test` and `build unused`.
+To run only some of these, name their groups: `lint`, `build`, `test`, `device`, `mac`,
+`docs` and `unused`. For example, `scripts/check.sh lint` or `scripts/check.sh build test`.
+`test` and `unused` use the results of `build`. CI runs three parallel jobs:
+`lint device mac docs`, `build test` and `build unused`.
 
 To fix formatting, run `swift format format --in-place --recursive App AppTests`. Some lint
 findings can be fixed with `swiftlint --fix`, but check what it changes: it can rewrite a

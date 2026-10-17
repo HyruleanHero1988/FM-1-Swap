@@ -26,6 +26,7 @@ struct FlashView: View {
                 Spacer(minLength: 0)
             }
             .padding(20)
+            .frame(maxWidth: WideLayout.readableWidth)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(theme.background.ignoresSafeArea())
             .accessibilityAddTraits(.isModal)
@@ -116,7 +117,7 @@ struct FlashView: View {
         default:
             PixelPanel(title: "KEEP THIS SCREEN OPEN") {
                 MonoText(
-                    "Auto-lock is paused. Don't lock the phone, switch apps or unplug the FM-1 until this finishes.",
+                    keepOpenMessage,
                     size: 14
                 )
                 NoteText(
@@ -135,5 +136,16 @@ struct FlashView: View {
         case .failed: "INTERRUPTED"
         default: "FLASHING"
         }
+    }
+
+    private var keepOpenMessage: String {
+        #if os(macOS)
+            "Sleep is paused. Don't quit FM-SWITCH or unplug the FM-1 until this finishes."
+        #else
+            """
+            Auto-lock is paused. Don't lock the \(ThisDevice.name), switch apps or unplug the FM-1 until \
+            this finishes.
+            """
+        #endif
     }
 }

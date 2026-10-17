@@ -8,9 +8,12 @@ struct FirmwareDetailView: View {
     @State private var errorMessage: String?
     @State private var confirming: StoredFirmware?
     let listed: CatalogueEntry
+    /// Whether it's showing beside a list (the wide layout) rather than in a sheet of its own.
+    let isInPane: Bool
 
-    init(entry: CatalogueEntry) {
+    init(entry: CatalogueEntry, isInPane: Bool = false) {
         listed = entry
+        self.isInPane = isInPane
     }
 
     /// The listed release, or a newer one found at the firmware's source.
@@ -44,15 +47,17 @@ struct FirmwareDetailView: View {
         }
         .scrollIndicators(.hidden)
         .background(theme.background.ignoresSafeArea())
-        .overlay { CRTOverlay() }
+        // In a pane, the window's own screen effects already cover it.
+        .overlay { if !isInPane { CRTOverlay() } }
         .task { await model.catalogue.checkSource(of: listed.id) }
         .sheet(item: $confirming) { item in
             FlashConfirmView(target: item, requiresOfficial: entry.requiresOfficialFirmware) {
-                dismiss()
+                // The flash covers the screen; a sheet of its own closes, a pane stays.
+                if !isInPane { dismiss() }
             }
             .environment(model)
             .environment(\.phosphor, theme)
-            .presentationDetents([.medium, .large])
+            .pixelSheetSize()
             .presentationBackground(theme.background)
         }
     }
@@ -60,8 +65,10 @@ struct FirmwareDetailView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
-                Button("◂ BACK") { dismiss() }
-                    .buttonStyle(.pixelCompact)
+                if !isInPane {
+                    Button("◂ BACK") { dismiss() }
+                        .buttonStyle(.pixelCompact)
+                }
                 Spacer()
                 if entry.isOfficial { PixelTag(text: "OFFICIAL") }
                 if entry.beta { PixelTag(text: "BETA", inverted: false) }
@@ -169,7 +176,7 @@ struct FirmwareDetailView: View {
             if let stored {
                 Button("FLASH TO FM-1") { confirming = stored }
                     .buttonStyle(.pixelProminent)
-                Button("REMOVE FROM PHONE") { model.library.remove(stored) }
+                Button("REMOVE FROM \(ThisDevice.name.uppercased())") { model.library.remove(stored) }
                     .buttonStyle(.pixel)
             } else if entry.isDownloadable {
                 Button(saveTitle) {
@@ -204,7 +211,7 @@ struct FirmwareDetailView: View {
         if let build = entry.build, model.library.otherBuild(for: entry) != nil {
             return "SAVE \(build.uppercased()) BUILD"
         }
-        return "SAVE TO PHONE"
+        return "SAVE TO \(ThisDevice.name.uppercased())"
     }
 
     /// The release's builds, when it comes in several (e.g. standard and single-core).

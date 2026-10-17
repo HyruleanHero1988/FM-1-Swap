@@ -17,8 +17,10 @@ App/                     SwiftUI app (iOS 17+)
   Model/                 settings, catalogue, saved firmwares, flash history, device controller
   Views/                 Device, Firmware (catalogue), Saved, Setup, Flash
   Resources/Fonts/       Departure Mono, Silkscreen, VT323 (SIL OFL)
+  Assets.xcassets/       the app icon, made by scripts/make-icon.py
 AppTests/                firmware list and flashing tests (Swift Testing)
 scripts/check.sh         every check CI runs
+scripts/make-icon.py     draws the app icon from its 32 x 32 pixel map (standard and tinted)
 ```
 
 Talking to the FM-1 (the update protocol, `.fwsc` packages, CoreMIDI and a simulated FM-1)

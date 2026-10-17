@@ -89,11 +89,13 @@ struct CatalogueBuilder: Sendable {
                 }
                 entries[index] = entry
             } else {
-                let isOfficial =
-                    listed.anchor == "stock" || listed.links.contains { $0.url.host()?.contains("m-vave.com") == true }
+                let isOfficial = isOfficialV15(listed)
+                let id = isOfficial ? "mvave-official" : "fm1-editor-\(listed.anchor)"
+                // Each entry needs its own ID: two the same would show as a blank row.
+                guard !entries.contains(where: { $0.id == id }) else { continue }
                 entries.append(
                     CatalogueEntry(
-                        id: isOfficial ? "mvave-official" : "fm1-editor-\(listed.anchor)",
+                        id: id,
                         name: isOfficial ? "M-VAVE official firmware" : listed.name,
                         author: listed.author,
                         what: listed.blurb,
@@ -107,6 +109,16 @@ struct CatalogueBuilder: Sendable {
             }
         }
         return entries
+    }
+
+    /// Whether an editor listing is M-VAVE's V15: the "stock" entry, or one linking to m-vave.com.
+    ///
+    /// M-VAVE's open-source firmware (FM1 Open) links there too, but isn't V15, so it's listed as
+    /// a firmware of its own.
+    static func isOfficialV15(_ listed: EditorListing.Entry) -> Bool {
+        if listed.anchor == "stock" { return true }
+        let isOpen = [listed.anchor, listed.name].contains { $0.localizedCaseInsensitiveContains("open") }
+        return !isOpen && listed.links.contains { $0.url.host()?.contains("m-vave.com") == true }
     }
 
     /// The same firmware: a shared GitHub repository, or the same name once punctuation is ignored.

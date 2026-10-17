@@ -97,6 +97,28 @@ struct CatalogueTests {
         #expect(baudGirl.version == "FM-1_101")
     }
 
+    @Test func keepsM_VAVEsOpenFirmwareApartFromV15() throws {
+        let html = """
+            <article class="firmware-entry" id="stock" data-updated="2026-07-30">
+              <h2 class="firmware-title">Stock firmware</h2>
+              <p class="firmware-status"><span>Latest V15</span></p>
+              <ul class="firmware-links"><li><a href="https://www.m-vave.com/download">Downloads</a></li></ul>
+            </article>
+            <article class="firmware-entry" id="official-open" data-updated="2026-10-14">
+              <h2 class="firmware-title">Official Open</h2>
+              <p class="firmware-status"><span>Latest V12</span></p>
+              <ul class="firmware-links">
+                <li><a href="https://open.m-vave.com/fm1-workbench">FM1 Workbench</a></li>
+                <li><a href="https://www.m-vave.com/download">Downloads</a></li>
+              </ul>
+            </article>
+            """
+        let editor = EditorListing(html: html).entries
+        let merged = CatalogueBuilder.merge(hub: [], editor: editor, editorURL: EditorListing.defaultURL)
+        #expect(merged.map(\.id) == ["mvave-official", "fm1-editor-official-open"])
+        #expect(merged.map(\.isOfficial) == [true, false])
+    }
+
     @Test func picksTheCurrentReleaseFromAPublisherManifest() throws {
         let html = """
             <script type="application/json" id="fi-releases">[

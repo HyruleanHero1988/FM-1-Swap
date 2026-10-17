@@ -1,0 +1,10 @@
+# project.yml, but with FM1Kit from a local checkout at ../FM1Kit, for changing both together:
+#   xcodegen generate --spec project.local.yml
+# or FM1KIT=local scripts/check.sh. Run plain `xcodegen generate` to go back to the release.
+include:
+  - project.yml
+packages:
+  FM1Kit:
+    url: null
+    minorVersion: null
+    path: ../FM1Kit

@@ -20,9 +20,9 @@ Then, only when asked:
    runs.
 4. ~~Give FM-SWITCH its own GitHub repository and push it.~~ Done 2026-10-16:
    github.com/ocean/FM-SWITCH (public).
-5. Once FM1Kit is published, point `project.yml` at the GitHub URL and a version instead of
-   `../FM1Kit`. FM1Kit is pushed but not tagged yet: Drew has more of it to test first
-   (maybe over the weekend of 2026-10-17).
+5. ~~Once FM1Kit is published, point `project.yml` at the GitHub URL and a version instead of
+   `../FM1Kit`.~~ Done 2026-10-17: FM1Kit 0.1.0 (`minorVersion: 0.1.0`). `project.local.yml`
+   switches back to `../FM1Kit`.
 6. Write `fm1probe install` (hardware stage D). In progress in the FM1Kit session since
    2026-10-16.
 7. **fm1_open follow-ups** (see PLAN.md). Done 2026-10-17, against FM1Kit c3bebbf:

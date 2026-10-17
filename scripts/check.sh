@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Runs every check CI runs: formatting, lint, a warnings-as-errors build, tests, a device build,
 # documentation and unused-code analysis. Needs Xcode, XcodeGen, SwiftLint and Periphery
-# (`brew install xcodegen swiftlint periphery`), and FM1Kit checked out at ../FM1Kit.
+# (`brew install xcodegen swiftlint periphery`).
+#
+# FM1Kit comes from its tagged release on GitHub. Set FM1KIT=local to build against a checkout
+# at ../FM1Kit instead (project.local.yml).
 #
 # With no arguments it runs every group. Name groups to run only those, in the order given:
 #   lint    formatting and SwiftLint
@@ -56,7 +59,7 @@ check_build() {
     step "Build with warnings as errors (${destination##*name=})"
     xcodebuild clean build-for-testing -project FMSwitch.xcodeproj -scheme FMSwitch -destination "$destination" \
         -derivedDataPath .build/xcode COMPILER_INDEX_STORE_ENABLE=YES \
-        SWIFT_TREAT_WARNINGS_AS_ERRORS=YES GCC_TREAT_WARNINGS_AS_ERRORS=YES \
+        FMSWITCH_STRICT=YES \
         > .build/logs/xcodebuild.log 2>&1 || fail_with_log .build/logs/xcodebuild.log
 }
 
@@ -70,7 +73,7 @@ check_test() {
 check_device() {
     step "Device build (unsigned)"
     xcodebuild build -project FMSwitch.xcodeproj -scheme FMSwitch -destination 'generic/platform=iOS' \
-        -derivedDataPath .build/device CODE_SIGNING_ALLOWED=NO SWIFT_TREAT_WARNINGS_AS_ERRORS=YES -quiet
+        -derivedDataPath .build/device CODE_SIGNING_ALLOWED=NO FMSWITCH_STRICT=YES -quiet
 }
 
 check_docs() {
@@ -103,9 +106,18 @@ for group in "${groups[@]}"; do
     esac
 done
 
+case "${FM1KIT:-release}" in
+    release) spec=project.yml ;;
+    local) spec=project.local.yml ;;
+    *)
+        echo "FM1KIT must be release or local, not ${FM1KIT}." >&2
+        exit 1
+        ;;
+esac
+
 mkdir -p .build/logs
-step "Project (XcodeGen)"
-xcodegen generate --quiet
+step "Project (XcodeGen, FM1Kit from ${spec})"
+xcodegen generate --quiet --spec "$spec"
 
 for group in "${groups[@]}"; do
     "check_$group"

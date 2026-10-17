@@ -5,8 +5,18 @@ options:
     iOS: "17.0"
   createIntermediateGroups: true
 packages:
+  # The tagged release, taking 0.1.x fixes but not 0.2.0, which may change the API. To work
+  # against a local checkout at ../FM1Kit instead, generate from project.local.yml.
   FM1Kit:
-    path: ../FM1Kit
+    url: https://github.com/ocean/FM1Kit.git
+    minorVersion: 0.1.0
+settings:
+  base:
+    # scripts/check.sh sets FMSWITCH_STRICT=YES to fail on warnings in the app's own targets.
+    # Setting the warnings options themselves on the command line would reach FM1Kit too, and
+    # Xcode builds a fetched package with warnings suppressed, which clashes.
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: $(FMSWITCH_STRICT)
+    GCC_TREAT_WARNINGS_AS_ERRORS: $(FMSWITCH_STRICT)
 targets:
   FMSwitch:
     type: application

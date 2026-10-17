@@ -27,8 +27,22 @@ scripts/make-icon.py     draws the app icon from its 32 x 32 pixel map (standard
 
 Talking to the FM-1 (the update protocol, `.fwsc` packages, CoreMIDI and a simulated FM-1)
 is [FM1Kit](https://github.com/ocean/FM1Kit), an open-source Swift package. `project.yml`
-uses a local checkout at `../FM1Kit` (that is, `~/code/FM1Kit`); switch it to the GitHub URL and a version once
-it's published.
+uses its tagged release from GitHub, taking 0.1.x fixes but not 0.2.0, which may change the API.
+
+### Working on FM1Kit and the app together
+
+To build against a local FM1Kit checkout at `../FM1Kit` (that is, `~/code/FM1Kit`), generate
+the project from `project.local.yml`. It's `project.yml` with FM1Kit's source swapped for that
+path:
+
+```bash
+xcodegen generate --spec project.local.yml   # use ../FM1Kit
+FM1KIT=local scripts/check.sh                # run the checks against ../FM1Kit
+xcodegen generate                            # back to the tagged release
+```
+
+Before pushing app changes that need unreleased FM1Kit changes, tag a new FM1Kit release and
+raise `minorVersion` in `project.yml`. CI always uses the release.
 
 ## Running it
 
@@ -69,7 +83,8 @@ scripts/check.sh
 ```
 
 This runs everything CI runs, and it must pass with no warnings. It needs
-`brew install xcodegen swiftlint periphery` and FM1Kit at `../FM1Kit`. In order, it:
+`brew install xcodegen swiftlint periphery`, and fetches FM1Kit's release (set
+`FM1KIT=local` to use `../FM1Kit`). In order, it:
 
 - regenerates the project;
 - checks formatting (`swift format`, `.swift-format`);
@@ -94,8 +109,7 @@ version ordering and build names) and flashing against the simulated FM-1 (insta
 a pulled cable, and refusing to reinstall the running firmware). FM1Kit has its own tests and
 checks in its repository.
 
-CI (`.github/workflows/ci.yml`) checks out FM1Kit from `ocean/FM1Kit` next to the app, so it
-can't pass until FM1Kit is published there.
+CI (`.github/workflows/ci.yml`) runs the same checks against FM1Kit's tagged release.
 
 ## Staying alive during a flash
 

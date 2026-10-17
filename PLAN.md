@@ -107,8 +107,12 @@ and `I18n.js` are GPLv3, so read them for facts and copy no code. What it change
   is one. The confirmation then asks for SWITCH FIRMWARE? and an "I've backed up" tick, and
   turns away a reinstall of what's running. FM1Kit can't tell custom firmwares apart, so
   custom to custom counts as a switch.
-- **Factory voices:** M-VAVE's "restore V15" also rewrites the four voice banks (128 factory
-  voices) from the V15 package. Not done yet: the wire part belongs in FM1Kit.
+- **Factory voices:** M-VAVE's "restore V15" also rewrites the four voice banks from the V15
+  package. That's on hold, with Drew's agreement (2026-10-17). On Drew's FM-1, installing V15
+  after Ghoulbox, SLOOP, Melodee and Felucca brought back the factory voices by itself, and
+  the install never reads the package's voice data. So V15 probably resets banks it can't read.
+  Leaving Open hasn't been tested; it's FM1Kit's HARDWARE_TESTING stage E4. The app doesn't
+  promise a voice restore.
 - **Recovery:** fm1_open says nothing about OCT− or the ROM route. For firmware without the
   USB-MIDI update protocol it says to use that firmware's own recovery tool.
 

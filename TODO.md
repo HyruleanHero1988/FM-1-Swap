@@ -31,5 +31,5 @@ Then, only when asked:
    - recognise Open identities and keep Open V12 apart from the official V15;
    - check before flashing, with SWITCH FIRMWARE? and a backup tick;
    - move the tests to `FwscPackage.sampleFile`.
-   Not started, waiting for Drew's priority call and an FM1Kit API: restoring V15's factory
-   voices after installing V15.
+   On hold (2026-10-17): restoring V15's factory voices. V15 brought them back by itself
+   after custom firmwares; it's revisited only if leaving Open (FM1Kit stage E4) doesn't.

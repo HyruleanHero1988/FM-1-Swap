@@ -10,6 +10,7 @@ struct LibraryView: View {
     /// The saved firmware showing beside the list, in the wide layout.
     @State private var selectedID: String?
     @State private var officialLink = ""
+    @FocusState private var isLinkFocused: Bool
     @State private var message: String?
     @State private var busy = false
     @State private var confirmingClear = false
@@ -183,10 +184,13 @@ struct LibraryView: View {
                 .foregroundStyle(theme.ink)
                 .tint(theme.bright)
                 .plainTextEntry(forLinks: true)
+                .focused($isLinkFocused)
+                // The box shows focus instead of the system's rounded ring.
+                .focusEffectDisabled()
                 .padding(.horizontal, 8)
                 .padding(.vertical, 8)
                 .background(PixelBox(step: 2).fill(theme.background))
-                .overlay(PixelBox(step: 2).strokeBorder(theme.dim, lineWidth: 2))
+                .overlay(PixelBox(step: 2).strokeBorder(isLinkFocused ? theme.bright : theme.dim, lineWidth: 2))
             Button(busy ? "…" : "GET") { Task { await fetchOfficial() } }
                 .buttonStyle(.pixelCompact)
                 .disabled(busy || URL(string: officialLink)?.scheme == nil)

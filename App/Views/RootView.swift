@@ -43,6 +43,11 @@ struct RootView: View {
         #endif
     }
 
+    /// Whether the flash screen or the safety notice is covering the app.
+    private var isCovered: Bool {
+        model.device.job != nil || model.settings.needsSafetyNotice
+    }
+
     var body: some View {
         GeometryReader { geometry in
             let isWide = geometry.size.width >= WideLayout.minimumWidth
@@ -60,6 +65,10 @@ struct RootView: View {
             }
             .environment(\.isWideLayout, isWide)
         }
+        // Covered screens are switched off, so they can't keep keyboard focus: the Mac draws a
+        // focused field's ring above everything, through the cover.
+        .disabled(isCovered)
+        .accessibilityHidden(isCovered)
         .background(theme.background.ignoresSafeArea())
         .overlay {
             // An overlay rather than a cover, so it appears even while a sheet is closing.

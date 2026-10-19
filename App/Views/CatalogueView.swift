@@ -8,6 +8,7 @@ struct CatalogueView: View {
     @Environment(\.isWideLayout) private var isWide
     @State private var search = ""
     @State private var selected: CatalogueEntry?
+    @FocusState private var isSearchFocused: Bool
 
     private var visibleEntries: [CatalogueEntry] {
         matchingEntries.filter { model.settings.showLinksOnly || isFlashable($0) }
@@ -93,11 +94,14 @@ struct CatalogueView: View {
                 .foregroundStyle(theme.ink)
                 .tint(theme.bright)
                 .plainTextEntry()
+                .focused($isSearchFocused)
+                // The box shows focus instead of the system's rounded ring.
+                .focusEffectDisabled()
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 9)
         .background(PixelBox().fill(theme.surface))
-        .overlay(PixelBox().strokeBorder(theme.dim, lineWidth: 2))
+        .overlay(PixelBox().strokeBorder(isSearchFocused ? theme.bright : theme.dim, lineWidth: 2))
     }
 
     private var firmwareList: some View {

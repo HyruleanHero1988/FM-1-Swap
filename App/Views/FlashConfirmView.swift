@@ -2,7 +2,8 @@ import FM1Kit
 import SwiftUI
 
 /// Shows exactly what will be flashed (including any official-first step) before starting, and
-/// asks for confirmation when that switches the FM-1 to a different firmware.
+/// asks for confirmation when that switches the FM-1 to a different firmware, or installs the
+/// identity its custom firmware already reports.
 struct FlashConfirmView: View {
     /// What the check before flashing found.
     private enum Checked: Equatable {
@@ -32,8 +33,9 @@ struct FlashConfirmView: View {
             (requiresOfficial || model.settings.alwaysViaOfficial) && target.source != .official
             && model.library.official == nil
         let switching = isSwitching(steps)
+        let sameIdentity = !switching && checked == .found(.sameIdentity)
         VStack(alignment: .leading, spacing: 16) {
-            ScreenHeader(title: switching ? "SWITCH FIRMWARE?" : "FLASH?")
+            ScreenHeader(title: switching ? "SWITCH FIRMWARE?" : sameIdentity ? "REINSTALL OR UPDATE?" : "FLASH?")
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
@@ -49,21 +51,33 @@ struct FlashConfirmView: View {
                 }
             }
             .scrollIndicators(.hidden)
-            HStack(spacing: 10) {
-                Button("CANCEL") { dismiss() }
-                    .buttonStyle(.pixel)
-                Button(switching ? "SWITCH" : "START") {
-                    model.device.flash(steps, confirmsSwitchingFirmware: switching && backedUp)
-                    dismiss()
-                    onStart()
-                }
-                .buttonStyle(.pixelProminent)
-                .disabled(missingOfficial || !canStart(steps, switching: switching))
-            }
+            buttons(steps, switching: switching, sameIdentity: sameIdentity, missingOfficial: missingOfficial)
         }
         .padding(20)
         .overlay { CRTOverlay() }
         .task(id: "\(steps.first?.id ?? "")|\(model.device.identity?.text ?? "")") { await check(steps.first) }
+    }
+
+    /// CANCEL, and the button that starts: SWITCH, INSTALL for the same identity, or START.
+    private func buttons(
+        _ steps: [StoredFirmware], switching: Bool, sameIdentity: Bool, missingOfficial: Bool
+    ) -> some View {
+        HStack(spacing: 10) {
+            Button("CANCEL") { dismiss() }
+                .buttonStyle(.pixel)
+            // Starting from the REINSTALL OR UPDATE? question is the confirmation it asks for.
+            Button(switching ? "SWITCH" : sameIdentity ? "INSTALL" : "START") {
+                model.device.flash(
+                    steps,
+                    confirmsSwitchingFirmware: switching && backedUp,
+                    confirmsSameIdentity: sameIdentity
+                )
+                dismiss()
+                onStart()
+            }
+            .buttonStyle(.pixelProminent)
+            .disabled(missingOfficial || !canStart(steps, switching: switching))
+        }
     }
 
     /// Whether these steps move the FM-1 to a different firmware: always for a chain through the
@@ -121,7 +135,8 @@ struct FlashConfirmView: View {
         }
     }
 
-    /// What the check found: a reinstall, a switch to confirm, or why it couldn't check.
+    /// What the check found: a reinstall, a switch or the same identity to confirm, or why it
+    /// couldn't check.
     @ViewBuilder private func checkNotes(switching: Bool) -> some View {
         switch checked {
         case .checking where model.device.identity != nil:
@@ -130,6 +145,16 @@ struct FlashConfirmView: View {
             MonoText(reason, size: 14)
         case .found(.reinstall) where !switching:
             MonoText("The FM-1 is already running this firmware, so there's nothing to install.", size: 14)
+        case .found(.sameIdentity) where !switching:
+            if let identity = model.device.identity {
+                MonoText(
+                    """
+                    The FM-1 already reports \(identity.text), the same as this package. Installing it \
+                    reinstalls that firmware, or updates it to this release.
+                    """,
+                    size: 14
+                )
+            }
         default:
             EmptyView()
         }

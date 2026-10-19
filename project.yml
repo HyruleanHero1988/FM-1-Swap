@@ -6,11 +6,11 @@ options:
     macOS: "14.0"
   createIntermediateGroups: true
 packages:
-  # The tagged release, taking 0.1.x fixes but not 0.2.0, which may change the API. To work
+  # The tagged release, taking 0.2.x fixes but not 0.3.0, which may change the API. To work
   # against a local checkout at ../FM1Kit instead, generate from project.local.yml.
   FM1Kit:
     url: https://github.com/ocean/FM1Kit.git
-    minorVersion: 0.1.0
+    minorVersion: 0.2.0
 settings:
   base:
     # scripts/check.sh sets FMSWITCH_STRICT=YES to fail on warnings in the app's own targets.

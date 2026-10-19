@@ -50,6 +50,9 @@ final class DeviceController {
         /// Whether the person confirmed that these steps switch the FM-1 to a different firmware,
         /// which can erase its projects and samples.
         var confirmsSwitchingFirmware = false
+        /// Whether the person confirmed installing the identity a custom firmware already reports:
+        /// a reinstall, or another release of the same firmware.
+        var confirmsSameIdentity = false
         var index = 0
         var phase = FlashPhase.preparing
 
@@ -188,10 +191,16 @@ final class DeviceController {
     ///   - steps: The firmwares to install, in order.
     ///   - confirmsSwitchingFirmware: Set once the person has confirmed a switch to a different
     ///     firmware; FM1Kit refuses one otherwise.
-    func flash(_ steps: [StoredFirmware], confirmsSwitchingFirmware: Bool = false) {
+    ///   - confirmsSameIdentity: Set once the person has confirmed installing the identity a
+    ///     custom firmware already reports; FM1Kit refuses one otherwise.
+    func flash(_ steps: [StoredFirmware], confirmsSwitchingFirmware: Bool = false, confirmsSameIdentity: Bool = false) {
         guard !steps.isEmpty, !isWriting else { return }
         log = []
-        job = FlashJob(steps: steps, confirmsSwitchingFirmware: confirmsSwitchingFirmware)
+        job = FlashJob(
+            steps: steps,
+            confirmsSwitchingFirmware: confirmsSwitchingFirmware,
+            confirmsSameIdentity: confirmsSameIdentity
+        )
         Task { await run(from: 0) }
     }
 
@@ -210,7 +219,10 @@ final class DeviceController {
 
     private func run(from startIndex: Int) async {
         guard let steps = job?.steps else { return }
-        let options = InstallOptions(confirmsSwitchingFirmware: job?.confirmsSwitchingFirmware ?? false)
+        let options = InstallOptions(
+            confirmsSwitchingFirmware: job?.confirmsSwitchingFirmware ?? false,
+            confirmsSameIdentity: job?.confirmsSameIdentity ?? false
+        )
         setKeepAwake(true)
         defer { setKeepAwake(false) }
 

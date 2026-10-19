@@ -98,19 +98,30 @@ struct FlashingTests {
         #expect(setup.controller.job?.phase == .succeeded("FM-1_916"))
     }
 
-    @Test func refusesToReinstallTheRunningFirmware() async throws {
+    @Test func refusesToInstallTheSameIdentityUnconfirmed() async throws {
         let setup = try await Self.setUp()
         let item = try Self.save("FM-1_900", in: setup.library)
+        #expect(try await setup.controller.check(item).kind == .sameIdentity)
 
         setup.controller.flash([item], confirmsSwitchingFirmware: true)
         try await Self.waitUntil(seconds: 90) { setup.controller.job?.isRunning == false }
         guard case .failed(let message, let canResume) = setup.controller.job?.phase else {
-            Issue.record("Expected the device to refuse its own firmware.")
+            Issue.record("Expected the unconfirmed install of the same identity to be refused.")
             return
         }
         #expect(!canResume)
-        #expect(message.contains("already running FM-1_900"))
+        #expect(message.contains("already reports FM-1_900"))
         #expect(setup.controller.identity?.text == "FM-1_900")
+    }
+
+    @Test func installsTheSameIdentityOnceConfirmed() async throws {
+        let setup = try await Self.setUp()
+        let item = try Self.save("FM-1_900", in: setup.library)
+
+        setup.controller.flash([item], confirmsSameIdentity: true)
+        try await Self.waitUntil(seconds: 90) { setup.controller.job?.isRunning == false }
+        #expect(setup.controller.job?.phase == .succeeded("FM-1_900"))
+        #expect(setup.history.last?.product == "FM-1_900")
     }
 
     @Test func refusesToSwitchFirmwareUnconfirmed() async throws {
@@ -136,6 +147,8 @@ struct FlashingTests {
         setup.controller.flash([official], confirmsSwitchingFirmware: true)
         try await Self.waitUntil(seconds: 120) { setup.controller.job?.isRunning == false }
         #expect(setup.controller.job?.phase == .succeeded("FM-1_015"))
+        // V15 over V15 is the one install that's never made.
+        #expect(try await setup.controller.check(official).kind == .reinstall)
 
         await setup.controller.restoreFactoryVoices()
         #expect(setup.controller.voiceRestore == .succeeded)

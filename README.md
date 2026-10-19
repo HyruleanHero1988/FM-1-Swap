@@ -29,7 +29,7 @@ scripts/make-icon.py     draws the app icon from its 32 x 32 pixel map (standard
 
 Talking to the FM-1 (the update protocol, `.fwsc` packages, CoreMIDI and a simulated FM-1)
 is [FM1Kit](https://github.com/ocean/FM1Kit), an open-source Swift package. `project.yml`
-uses its tagged release from GitHub, taking 0.1.x fixes but not 0.2.0, which may change the API.
+uses its tagged release from GitHub, taking 0.2.x fixes but not 0.3.0, which may change the API.
 
 ### Working on FM1Kit and the app together
 
@@ -112,8 +112,8 @@ closure inside `#require` into a key path, which doesn't compile.
 
 The app's tests cover the firmware list (reading both lists, merging, finding packages,
 version ordering and build names) and flashing against the simulated FM-1 (install, resume after
-a pulled cable, and refusing to reinstall the running firmware). FM1Kit has its own tests and
-checks in its repository.
+a pulled cable, confirming the same identity and refusing V15 over V15). FM1Kit has its own tests
+and checks in its repository.
 
 CI (`.github/workflows/ci.yml`) runs the same checks against FM1Kit's tagged release.
 

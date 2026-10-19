@@ -107,8 +107,12 @@ and `I18n.js` are GPLv3, so read them for facts and copy no code. What it change
   M-VAVE's updater, with a warning that it may erase projects and samples. FM1Kit refuses a
   switch the app hasn't confirmed, and `FM1Updater.check` says beforehand whether an install
   is one. The confirmation then asks for SWITCH FIRMWARE? and an "I've backed up" tick, and
-  turns away a reinstall of what's running. FM1Kit can't tell custom firmwares apart, so
-  custom to custom counts as a switch.
+  turns away V15 over V15. FM1Kit can't tell custom firmwares apart, so custom to custom
+  counts as a switch, except a package with the identity the FM-1 already reports: from
+  FM1Kit 0.2.0 that's `sameIdentity`, a reinstall or another release of the same firmware.
+  On Drew's FM-1 (2026-10-19), Estampie 0.1 (`FM-1_378001`) over itself was `sameIdentity`
+  and took 31 s. The confirmation asks REINSTALL OR UPDATE?, without the backup tick, and
+  INSTALL confirms it.
 - **Factory voices:** M-VAVE's "restore V15" also rewrites the four voice banks from the V15
   package. Installing V15 over custom firmwares brought the factory voices back by itself on
   Drew's FM-1. But after Open V12 (stage E, 2026-10-17), presets 096–127 still held earlier

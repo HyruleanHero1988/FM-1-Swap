@@ -95,6 +95,7 @@ struct FirmwareDetailView: View {
             detailRow("REPORTS", entry.product ?? stored?.product ?? "Known once saved")
             if let size = entry.size ?? stored?.size { detailRow("SIZE", formattedBytes(size)) }
             if let date = entry.date { detailRow("RELEASED", date) }
+            if let stored { detailRow("SAVED", stored.savedAt.formatted(date: .abbreviated, time: .shortened)) }
             if !entry.kinds.isEmpty { detailRow("KIND", entry.kinds.joined(separator: ", ")) }
             if let stars = entry.stars { detailRow("STARS", "★ \(stars)") }
             detailRow("RECOVERY", entry.rescueMode?.summary ?? "Not known")

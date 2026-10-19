@@ -116,6 +116,7 @@ struct LibraryView: View {
                 .foregroundStyle(theme.bright)
                 .phosphorGlow(0.7)
             MonoText(summary(of: item), size: 17, dim: true)
+            MonoText("Saved \(item.savedAt.formatted(date: .abbreviated, time: .omitted))", size: 13, dim: true)
         }
         if isWide {
             Button {

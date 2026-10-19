@@ -11,6 +11,10 @@ packages:
   FM1Kit:
     url: https://github.com/ocean/FM1Kit.git
     minorVersion: 0.2.0
+# Each developer's signing team, from the git-ignored Signing.local.xcconfig.
+configFiles:
+  Debug: Signing.xcconfig
+  Release: Signing.xcconfig
 settings:
   base:
     # scripts/check.sh sets FMSWITCH_STRICT=YES to fail on warnings in the app's own targets.

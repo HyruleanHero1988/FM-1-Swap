@@ -5,3 +5,4 @@
 DerivedData/
 xcuserdata/
 *.xcodeproj/
+Signing.local.xcconfig

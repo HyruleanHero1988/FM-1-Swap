@@ -65,8 +65,15 @@ If Xcode says *"CoreSimulator is out of date"*, the Simulator components behind 
 updating. Open Xcode once and let it install them (or run `xcodebuild -runFirstLaunch`), then
 reboot if it still complains.
 
-On a real iPhone, set your team under Signing & Capabilities. A free Apple ID works for
-personal installs.
+On a real iPhone or iPad, or for **My Mac**, put your signing team in
+`Signing.local.xcconfig` at the repo root (it's git-ignored). A free Apple ID works for personal
+installs, and Xcode shows its team ID under Settings ▸ Accounts:
+
+```
+DEVELOPMENT_TEAM = <your team ID>
+```
+
+A team picked under Signing & Capabilities works too, but `xcodegen generate` forgets it.
 
 ## Phase 0 with real hardware
 

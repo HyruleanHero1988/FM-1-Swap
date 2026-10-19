@@ -212,6 +212,26 @@ struct CatalogueTests {
         #expect(entry.mainLinks.isEmpty)
         #expect(entry.moreLinks.count == 1)
     }
+
+    @MainActor @Test func dropsARepeatedIDFromAListSavedByAnOlderBuild() throws {
+        let directory = URL.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let saved = MergedCatalogue(
+            builtAt: .now,
+            entries: [
+                CatalogueEntry(
+                    id: "mvave-official", name: "M-VAVE official firmware", listing: .editor, isOfficial: true),
+                CatalogueEntry(id: "mvave-official", name: "Official Open", listing: .editor, isOfficial: true),
+                CatalogueEntry(id: "amb-1", name: "AMB-1", listing: .hub),
+            ],
+            problems: []
+        )
+        try JSONEncoder().encode(saved).write(to: directory.appending(path: "catalogue.json"))
+
+        let store = CatalogueStore(directory: directory)
+        #expect(store.entries.map(\.id) == ["mvave-official", "amb-1"])
+        #expect(store.entries.first?.name == "M-VAVE official firmware")
+    }
 }
 
 struct ReleaseCheckTests {

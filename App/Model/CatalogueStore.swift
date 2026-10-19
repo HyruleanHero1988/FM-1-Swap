@@ -121,8 +121,13 @@ final class CatalogueStore {
     }
 
     private func loadCached() {
-        guard let data = try? Data(contentsOf: cacheURL) else { return }
-        catalogue = try? JSONDecoder().decode(MergedCatalogue.self, from: data)
+        guard let data = try? Data(contentsOf: cacheURL),
+            var cached = try? JSONDecoder().decode(MergedCatalogue.self, from: data)
+        else { return }
+        // Lists saved before 17 October 2026 could hold an ID twice, which shows as a blank row.
+        var seenIDs: Set<String> = []
+        cached.entries = cached.entries.filter { seenIDs.insert($0.id).inserted }
+        catalogue = cached
     }
 }
 

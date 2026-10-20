@@ -7,7 +7,7 @@ flashing. M-VAVE's official V15 ships with the app (from
 [fm1_open](https://github.com/m-vave/fm1_open), Apache-2.0), so it's always there to go back to.
 
 This is a Kotlin / Jetpack Compose rewrite, not a wrapper around the iOS app. Behaviour, protocol,
-catalogue, phosphor UI, and bundled V15 follow ocean's original. Use that project if you want the
+catalogue, phosphor UI, and bundled V15 follow ocean's first. Use that project if you want the
 iPhone, iPad, or Mac build.
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
@@ -22,7 +22,7 @@ but that zip is easy to miss and is not the repo homepage.
 
 ## What it does
 
-- Lists the firmware hub catalogue merged with [fm1-editor.com](https://fm1-editor.com/firmware/), with official V15 first. Firmwares the hub doesn't carry still show up, including Baud Girl's FM-1+VA, isod89's Clipper 1.0 (from the makers of SLOOP), and M-VAVE Official Open. Their `.fwsc` is found from GitHub releases or the publisher's own page. Clipper is marked experimental, so it sits with the other beta listings (shown unless **SETUP** hides them).
+- Lists the firmware hub catalogue merged with [fm1-editor.com](https://fm1-editor.com/firmware/). Official V15 is first; the rest are ranked by GitHub stars (and hub installs), so SLOOP, Felucca, X0X, JIANT and Melodee sit at the top instead of drowning alphabetically. Each row shows a representative shot from fm1-editor.com when they have one. Firmwares the hub doesn't carry still show up, including Baud Girl's FM-1+VA, isod89's Clipper 1.0 (from the makers of SLOOP), and M-VAVE Official Open. Their `.fwsc` is found from GitHub releases or the publisher's own page. Clipper is marked experimental, so it sits with the other beta listings (shown unless **SETUP** hides them).
 - Downloads `.fwsc` packages, checks SHA-256, and keeps them offline
 - Talks to a real FM-1 over class-compliant USB MIDI (Android MIDI API)
 - Stages, writes, and resumes interrupted flashes using the same protocol as FM1Kit

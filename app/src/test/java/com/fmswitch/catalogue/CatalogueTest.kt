@@ -7,6 +7,16 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+class HtmlVoidTagTest {
+    @Test
+    fun readsImgWithoutAClosingTag() {
+        val img = Html.voids("img", """<img alt="SLOOP" src="/shot.webp" srcset="/shot-460.webp 460w">""").single()
+        assertEquals("SLOOP", img.attributes["alt"])
+        assertEquals("/shot.webp", img.attributes["src"])
+        assertEquals("/shot-460.webp 460w", img.attributes["srcset"])
+    }
+}
+
 class EditorListingTest {
     @Test
     fun readsBaudGirlFromFm1EditorHtml() {
@@ -26,6 +36,16 @@ class EditorListingTest {
         assertEquals("1.0", clipper.latest)
         assertTrue(clipper.experimental)
         assertTrue(clipper.links.any { it.url.contains("isod89/clipper-fm1") })
+        assertEquals(
+            "https://fm1-editor.com/assets/firmware-sloop-460.webp",
+            listing.entries.single { it.anchor == "sloop" }.photoURL,
+        )
+        assertEquals("SLOOP's tracks screen, with its four tracks playing", listing.entries.single { it.anchor == "sloop" }.photoAlt)
+        assertNull(clipper.photoURL)
+        assertEquals(
+            "https://fm1-editor.com/assets/firmware-fm1-va.webp",
+            listing.entries.single { it.anchor == "baud-girl" }.photoURL,
+        )
     }
 
     @Test
@@ -42,7 +62,13 @@ class CatalogueBuilderTest {
     @Test
     fun addsBaudGirlWhenTheHubDoesNotCarryIt() {
         val editor = EditorListing.parse(EDITOR_HTML)
-        val merged = CatalogueBuilder.merge(listOf(officialCatalogueEntry()), editor.entries)
+        val merged = CatalogueBuilder.merge(
+            listOf(
+                officialCatalogueEntry(),
+                CatalogueEntry(id = "sloop", name = "SLOOP", author = "isod89", stars = 567, installs = 2803),
+            ),
+            editor.entries,
+        )
         val baud = merged.single { it.id == "fm1-editor-baud-girl" }
         assertEquals("Baud Girl (FM-1+VA)", baud.name)
         assertEquals("Baud Girl", baud.author)
@@ -56,6 +82,25 @@ class CatalogueBuilderTest {
         assertEquals("1.0", clipper.version)
         assertTrue(clipper.beta)
         assertEquals("isod89", clipper.author)
+        val sloop = merged.single { it.id == "sloop" }
+        assertEquals("https://fm1-editor.com/assets/firmware-sloop-460.webp", sloop.photoURL)
+        assertEquals(567, sloop.stars)
+        assertTrue(merged.single { it.id == "fm1-editor-baud-girl" }.pinned)
+    }
+
+    @Test
+    fun listsSloopNearTheTopByStars() {
+        val ordered = CatalogueRank.ordered(
+            listOf(
+                CatalogueEntry(id = "obscure", name = "BEETLE", stars = 2),
+                CatalogueEntry(id = "sloop", name = "SLOOP", stars = 567, installs = 2803),
+                officialCatalogueEntry(),
+                CatalogueEntry(id = "felucca", name = "Felucca", stars = 543, installs = 1124),
+                CatalogueEntry(id = "fm1-editor-baud-girl", name = "Baud Girl (FM-1+VA)", pinned = true),
+                CatalogueEntry(id = "fm1-editor-clipper", name = "Clipper", stars = 1, beta = true),
+            ),
+        )
+        assertEquals(listOf("mvave-official", "sloop", "felucca", "fm1-editor-baud-girl", "obscure", "fm1-editor-clipper"), ordered.map { it.id })
     }
 
     @Test
@@ -136,7 +181,27 @@ private const val EDITOR_HTML = """
     <li><a href="https://www.m-vave.com/download">M-VAVE downloads</a></li>
   </ul>
 </article>
+<article class="firmware-entry synthwave-panel" id="sloop" data-updated="2026-10-16" data-stars="556">
+  <figure class="firmware-photo crt-inset dither-well">
+    <img
+      alt="SLOOP's tracks screen, with its four tracks playing"
+      src="/assets/firmware-sloop-BW1MIVma.webp"
+      srcset="/assets/firmware-sloop-460.webp 460w, /assets/firmware-sloop-BW1MIVma.webp 972w"
+      width="972"
+    />
+  </figure>
+  <p class="synthwave-kicker">isod89</p>
+  <h2>SLOOP</h2>
+  <p class="firmware-status"><span>Latest 2.7.1</span></p>
+  <p class="firmware-blurb">A live groovebox.</p>
+  <ul class="firmware-links">
+    <li><a href="https://github.com/isod89/sloop-fm1">Source</a></li>
+  </ul>
+</article>
 <article class="firmware-entry synthwave-panel" id="baud-girl" data-pinned data-updated="2026-10-12">
+  <figure class="firmware-photo">
+    <img alt="Baud Girl's FM1 render, with her name on the screen" src="/assets/firmware-fm1-va.webp" />
+  </figure>
   <p class="synthwave-kicker">Baud Girl</p>
   <h2>Baud Girl (FM-1+VA)</h2>
   <p class="firmware-status"><span>Latest FM-1_101</span></p>
@@ -151,6 +216,7 @@ private const val EDITOR_HTML = """
   </ul>
 </article>
 <article class="firmware-entry synthwave-panel" id="clipper" data-updated="2026-10-19" data-stars="1">
+  <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true"><span>Clipper</span></figure>
   <p class="synthwave-kicker">isod89</p>
   <h2>Clipper</h2>
   <p class="firmware-status"><span>Experimental · Latest 1.0</span></p>

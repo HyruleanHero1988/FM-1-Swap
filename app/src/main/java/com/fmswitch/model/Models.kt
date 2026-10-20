@@ -19,6 +19,8 @@ import com.fmswitch.theme.PhosphorPreset
 import com.fmswitch.theme.PhosphorTheme
 import com.fmswitch.theme.invoke
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -287,20 +289,23 @@ class CatalogueStore(context: Context) {
 
     fun entriesMatching(product: String): List<CatalogueEntry> = entries.filter { it.product == product }
 
-    suspend fun refresh() {
+    suspend fun refresh(onUpdate: () -> Unit = {}) {
         if (isRefreshing) return
         isRefreshing = true
         errorMessage = null
         try {
             val previous = catalogue?.entries.orEmpty()
-            val hubText = withContext(Dispatchers.IO) {
-                runCatching { String(fetchBytes(HubFeed.DEFAULT_URL), Charsets.UTF_8) }.getOrNull()
-            }
-            val editorHtml = withContext(Dispatchers.IO) {
-                runCatching { String(fetchBytes(EditorListing.DEFAULT_URL), Charsets.UTF_8) }.getOrNull()
-            }
-            val redtailHtml = withContext(Dispatchers.IO) {
-                runCatching { String(fetchBytes(RedtailListing.DEFAULT_URL), Charsets.UTF_8) }.getOrNull()
+            val (hubText, editorHtml, redtailHtml) = coroutineScope {
+                val hub = async(Dispatchers.IO) {
+                    runCatching { String(fetchBytes(HubFeed.DEFAULT_URL), Charsets.UTF_8) }.getOrNull()
+                }
+                val editor = async(Dispatchers.IO) {
+                    runCatching { String(fetchBytes(EditorListing.DEFAULT_URL), Charsets.UTF_8) }.getOrNull()
+                }
+                val redtail = async(Dispatchers.IO) {
+                    runCatching { String(fetchBytes(RedtailListing.DEFAULT_URL), Charsets.UTF_8) }.getOrNull()
+                }
+                Triple(hub.await(), editor.await(), redtail.await())
             }
             val hub = hubText?.let { runCatching { HubFeed.decode(it) }.getOrNull() }
             val editor = editorHtml?.let { runCatching { EditorListing.parse(it) }.getOrNull() }
@@ -318,12 +323,15 @@ class CatalogueStore(context: Context) {
                 editor?.entries.orEmpty(),
                 redtail = redtail?.entries.orEmpty(),
             )
+            catalogue = MergedCatalogue(hub?.first, merged, problems)
+            if (problems.isNotEmpty()) errorMessage = problems.joinToString(" ")
+            onUpdate()
             val resolved = PackageDiscovery.discoverMissing(merged, previous)
             val built = MergedCatalogue(hub?.first, resolved, problems)
             catalogue = built
             withContext(Dispatchers.IO) { cacheFile.writeText(json.encodeToString(built)) }
             if (problems.isNotEmpty()) errorMessage = problems.joinToString(" ")
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
             errorMessage = if (catalogue == null) {
                 "Couldn't fetch the firmware list. Check your connection and try again."
             } else {

@@ -33,6 +33,8 @@ data class DiscoveredPackage(
 object PackageDiscovery {
     private val json = Json { ignoreUnknownKeys = true }
     private val fm1Identity = Regex("^FM-1_[0-9]+$")
+    private const val HTML_PAGE_LIMIT = 256 * 1024
+    private const val WORKBENCH_HEAD_LIMIT = 12 * 1024
 
     @Serializable
     data class ManifestRelease(
@@ -76,7 +78,8 @@ object PackageDiscovery {
         while (pages.isNotEmpty() && visited.size < 6) {
             val page = pages.removeFirst()
             if (!visited.add(page)) continue
-            val html = runCatching { String(fetchBytes(page), Charsets.UTF_8) }.getOrNull() ?: continue
+            val html = runCatching { String(fetchBytes(page, maxBytes = HTML_PAGE_LIMIT), Charsets.UTF_8) }.getOrNull()
+                ?: continue
             val clean = Html.withoutComments(html)
             installerMetaPackage(clean, page)?.takeIf { words.isEmpty() || isRelevant(it.url, words) }?.let { return it }
             workbenchPackage(clean, page)?.let { return it }
@@ -134,9 +137,9 @@ object PackageDiscovery {
         if (!pageUrl.startsWith("http")) return null
         val head = html.substring(start, minOf(html.length, start + 3000))
         fun quoted(name: String): String? =
-            Regex("\"$name\"[ \t\n\r]*:[ \t\n\r]*\"([^\"]+)\"").find(head)?.groupValues?.get(1)
+            Regex("\"$name\"[ \\t\\n\\r]*:[ \\t\\n\\r]*\"([^\"]+)\"").find(head)?.groupValues?.get(1)
         fun number(name: String): Int? =
-            Regex("\"$name\"[ \t\n\r]*:[ \t\n\r]*([0-9]+)").find(head)?.groupValues?.get(1)?.toIntOrNull()
+            Regex("\"$name\"[ \\t\\n\\r]*:[ \\t\\n\\r]*([0-9]+)").find(head)?.groupValues?.get(1)?.toIntOrNull()
         val product = quoted("product")?.takeIf { fm1Identity.matches(it) } ?: return null
         return DiscoveredPackage(
             url = pageUrl,
@@ -162,7 +165,7 @@ object PackageDiscovery {
     }
 
     fun installerMetaPackage(html: String, pageUrl: String): DiscoveredPackage? {
-        val match = Regex("(?s)const[ \t\n\r]+meta[ \t\n\r]*=[ \t\n\r]*(\\{.*?\\});").find(html) ?: return null
+        val match = Regex("(?s)const[ \\t\\n\\r]+meta[ \\t\\n\\r]*=[ \\t\\n\\r]*(\\{.*?\\});").find(html) ?: return null
         val obj = runCatching { json.parseToJsonElement(match.groupValues[1]) }.getOrNull()
             as? kotlinx.serialization.json.JsonObject ?: return null
         val pkg = obj.str("pkg") ?: return null
@@ -306,7 +309,11 @@ object PackageDiscovery {
             val workbench = if (words.isEmpty()) workbenches.firstOrNull()
             else workbenches.firstOrNull { isRelevant(it, words) } ?: workbenches.firstOrNull()
             if (workbench != null) {
-                val html = runCatching { String(fetchBytes(workbench), Charsets.UTF_8) }.getOrNull()
+                // The Workbench HTML is megabytes (Base64 firmware). Only the FM1_PACKAGE
+                // header is needed to list it; SAVE downloads the rest and unwraps it.
+                val html = runCatching {
+                    String(fetchBytes(workbench, maxBytes = WORKBENCH_HEAD_LIMIT), Charsets.UTF_8)
+                }.getOrNull()
                 val embedded = html?.let { workbenchPackage(it, workbench) }
                 return DiscoveredPackage(
                     url = workbench,

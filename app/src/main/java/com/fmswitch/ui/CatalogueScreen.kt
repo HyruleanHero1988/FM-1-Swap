@@ -142,7 +142,7 @@ fun CatalogueScreen(model: AppViewModel) {
             NoteText("Hub rebuilt $it · listed by GitHub stars, official first")
         }
         if (model.catalogue.catalogue?.hubUpdated == null) {
-            NoteText("Listed by GitHub stars, official V15 first. Shots from fm1-editor.com.")
+            NoteText("Listed by GitHub stars, official V15 first. Shots from fm1-editor.com and the publishers.")
         }
     }
 }
@@ -167,7 +167,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PixelButton("\u25C2 BACK", compact = true, onClick = onBack)
+            PixelButton("\u25c2 BACK", compact = true, onClick = onBack)
             Spacer(Modifier.weight(1f))
             if (entry.isOfficial) PixelTag("OFFICIAL")
             if (entry.beta) PixelTag("BETA", inverted = false)
@@ -208,7 +208,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
             PixelPanel(title = "LINKS") {
                 entry.links.forEach { link ->
                     BasicText(
-                        "\u25B8 ${link.label.uppercase()}",
+                        "\u25b8 ${link.label.uppercase()}",
                         style = pixelText(11.sp, bold = true, color = theme.bright),
                         modifier = Modifier
                             .padding(vertical = 4.dp)

@@ -159,11 +159,11 @@ fun SettingsScreen(model: AppViewModel) {
         }
         PixelPanel(title = "CREDITS") {
             MonoText(
-                "Android port of FM-SWITCH, the iOS/Mac firmware switcher for the M-VAVE FM-1. Protocol from FM1Kit (MIT) and the FM-1-RE notes (WTFPL). Bundled V15 is M-VAVE's, Apache-2.0, unmodified from fm1_open. Pixel fonts: Silkscreen, Departure Mono and VT323 (SIL OFL). Not affiliated with M-VAVE.",
+                "Android port of ocean's FM-SWITCH for the M-VAVE FM-1. Protocol from FM1Kit (MIT) and the FM-1-RE notes (WTFPL). Bundled V15 is M-VAVE's, Apache-2.0, unmodified from fm1_open. Pixel fonts: Silkscreen, Departure Mono and VT323 (SIL OFL). Not affiliated with M-VAVE.",
                 size = 14,
             )
             BasicText(
-                "▸ FM-SWITCH (iOS)",
+                "▸ FM-SWITCH",
                 style = pixelText(11.sp, bold = true, color = theme.bright),
                 modifier = Modifier
                     .padding(top = 8.dp)

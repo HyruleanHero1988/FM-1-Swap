@@ -1,14 +1,13 @@
 # FM-SWITCH for Android
 
-An Android port of [ocean](https://github.com/ocean)'s [FM-SWITCH](https://github.com/ocean/FM-SWITCH)
-for iPhone, iPad, and Mac. Same job: swap M-VAVE FM-1 firmwares over USB MIDI. Firmwares come from
+An Android port of [ocean](https://github.com/ocean)'s [FM-SWITCH](https://github.com/ocean/FM-SWITCH).
+Same job: swap M-VAVE FM-1 firmwares over USB MIDI. Firmwares come from
 [the firmware hub](https://thefirmwarehub.com/catalog.json) and are saved on the phone for offline
 flashing. M-VAVE's official V15 ships with the app (from
 [fm1_open](https://github.com/m-vave/fm1_open), Apache-2.0), so it's always there to go back to.
 
-This is a Kotlin / Jetpack Compose rewrite, not a wrapper around the iOS app. Behaviour, protocol,
-catalogue, phosphor UI, and bundled V15 follow ocean's original. Use that project if you want the
-iPhone, iPad, or Mac build.
+This is a Kotlin / Jetpack Compose rewrite, not a wrapper around ocean's original. Behaviour, protocol,
+catalogue, phosphor UI, and bundled V15 follow that project.
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
@@ -74,8 +73,8 @@ sdk.dir=/path/to/Android/sdk
 
 CI vendors the Gradle wrapper, bundled V15, and fonts (from the original
 [FM-SWITCH](https://github.com/ocean/FM-SWITCH) tree) before it runs Gradle, then uploads
-`app-debug`. On `main` it also strips leftover iOS sources from a replaced fork and commits
-those Android assets. Enable Actions on the GitHub repo if the workflow is waiting for approval.
+`app-debug`. On `main` it also commits those Android assets. Enable Actions on the GitHub
+repo if the workflow is waiting for approval.
 
 ## First flash on hardware
 
@@ -103,7 +102,7 @@ app/        Jetpack Compose UI (API 26+)
 ## Credits
 
 This Android app exists because of [ocean](https://github.com/ocean)'s original
-[FM-SWITCH](https://github.com/ocean/FM-SWITCH) (MIT) for iOS and macOS, and the
+[FM-SWITCH](https://github.com/ocean/FM-SWITCH) (MIT), and the
 [FM1Kit](https://github.com/ocean/FM1Kit) protocol library that talks to the FM-1.
 
 Also:
@@ -117,6 +116,6 @@ Also:
 ## Licences
 
 - App and `fm1kit`: MIT
-- Original iOS/macOS FM-SWITCH and FM1Kit: MIT, ocean
+- Original FM-SWITCH and FM1Kit: MIT, ocean
 - Bundled `FM-1_015.fwsc`: Apache-2.0, M-VAVE, unmodified from fm1_open
 - Fonts: SIL Open Font License

@@ -7,7 +7,7 @@ flashing. M-VAVE's official V15 ships with the app (from
 [fm1_open](https://github.com/m-vave/fm1_open), Apache-2.0), so it's always there to go back to.
 
 This is a Kotlin / Jetpack Compose rewrite, not a wrapper around the iOS app. Behaviour, protocol,
-catalogue, phosphor UI, and bundled V15 follow ocean's first. Use that project if you want the
+catalogue, phosphor UI, and bundled V15 follow ocean's original. Use that project if you want the
 iPhone, iPad, or Mac build.
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.

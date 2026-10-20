@@ -61,7 +61,7 @@ data class EditorListing(val entries: List<Entry>) {
             if (!srcset.isNullOrBlank()) {
                 val candidates = ArrayList<Pair<Int, String>>()
                 for (part in srcset.split(',')) {
-                    val bits = part.trim().split(Regex("[ \\t\\n\\r]+")).filter { it.isNotEmpty() }
+                    val bits = part.trim().split(Regex("[ \t\n\r]+")).filter { it.isNotEmpty() }
                     if (bits.size < 2 || !bits.last().endsWith("w")) continue
                     val width = bits.last().dropLast(1).toIntOrNull() ?: continue
                     candidates += width to bits[0]
@@ -102,7 +102,7 @@ data class EditorListing(val entries: List<Entry>) {
                 val href = anchorElement.attributes["href"] ?: continue
                 val url = runCatching { page.resolve(href).toString() }.getOrNull() ?: continue
                 if (!url.startsWith("http")) continue
-                val label = Html.text(anchorElement.inner).replace("\u2197", "").trim().ifEmpty {
+                val label = Html.text(anchorElement.inner).replace("↗", "").trim().ifEmpty {
                     URI(url).host ?: "Link"
                 }
                 val link = CatalogueLink(label, url)

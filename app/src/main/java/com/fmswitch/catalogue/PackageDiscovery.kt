@@ -54,7 +54,7 @@ object PackageDiscovery {
         val gate = Semaphore(6)
         entries.map { entry ->
             async {
-                if (entry.packageURL != null || entry.isOfficial) return@async entry
+                if (entry.packageURL != null) return@async entry
                 gate.withPermit {
                     val found = withContext(Dispatchers.IO) { discover(entry.name, entry.links) }
                     found?.let { apply(it, entry) } ?: CatalogueBuilder.fallBack(entry, previousById[entry.id])
@@ -95,15 +95,20 @@ object PackageDiscovery {
         return null
     }
 
-    fun apply(found: DiscoveredPackage, entry: CatalogueEntry): CatalogueEntry = entry.copy(
-        packageURL = found.url,
-        version = found.version ?: entry.version,
-        date = found.date ?: entry.date,
-        beta = entry.beta || found.beta,
-        product = found.product ?: entry.product,
-        size = found.size ?: entry.size,
-        sha256 = found.sha256 ?: entry.sha256,
-    )
+    fun apply(found: DiscoveredPackage, entry: CatalogueEntry): CatalogueEntry {
+        if (entry.product != null && found.product != null && found.product != entry.product) {
+            return entry
+        }
+        return entry.copy(
+            packageURL = found.url,
+            version = found.version ?: entry.version,
+            date = found.date ?: entry.date,
+            beta = entry.beta || found.beta,
+            product = found.product ?: entry.product,
+            size = found.size ?: entry.size,
+            sha256 = found.sha256 ?: entry.sha256,
+        )
+    }
 
     fun gitHubRepos(links: List<CatalogueLink>): List<Pair<String, String>> {
         val repos = ArrayList<Pair<String, String>>()
@@ -307,7 +312,7 @@ object PackageDiscovery {
                 item.str("browser_download_url")
             }
             val workbench = if (words.isEmpty()) workbenches.firstOrNull()
-            else workbenches.firstOrNull { isRelevant(it, words) } ?: workbenches.firstOrNull()
+            else workbenches.firstOrNull { isRelevant(it, words) }
             if (workbench != null) {
                 // The Workbench HTML is megabytes (Base64 firmware). Only the FM1_PACKAGE
                 // header is needed to list it; SAVE downloads the rest and unwraps it.

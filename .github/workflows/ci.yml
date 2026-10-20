@@ -2,42 +2,59 @@ name: CI
 
 on:
   push:
-    branches: [main]
   pull_request:
+  workflow_dispatch:
 
-permissions: {}
-
-# A newer push to the same branch or pull request cancels the run still going.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+permissions:
+  contents: write
 
 jobs:
-  check:
-    name: ${{ matrix.name }}
-    runs-on: macos-26
-    permissions:
-      contents: read # To check out the code.
-    strategy:
-      # Let every job finish, so one push shows every problem.
-      fail-fast: false
-      # The groups of scripts/check.sh, split so the long test run isn't waited on by the rest.
-      matrix:
-        include:
-          - name: Lint, device and Mac builds, and docs
-            groups: lint device mac docs
-          - name: Build and test
-            groups: build test
-          - name: Unused code
-            groups: build unused
+  build:
+    name: Test and assemble
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      # FM1Kit comes from its tagged release, which Xcode fetches.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v4
+
+      - name: Vendor binaries and drop leftover iOS sources
+        run: STRIP_IOS=1 bash scripts/vendor-binaries.sh
+
+      - uses: actions/setup-java@v4
         with:
-          persist-credentials: false
-      - name: Install XcodeGen, SwiftLint and Periphery
-        run: brew install xcodegen swiftlint periphery
-      - name: Run the checks
-        env:
-          GROUPS: ${{ matrix.groups }}
-        run: scripts/check.sh $GROUPS # Unquoted, to split the groups into arguments.
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      # Puts cmdline-tools on PATH and accepts SDK licences so Gradle can
+      # download platforms;android-35 / build-tools as AGP asks for them.
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android platform
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Protocol tests
+        run: ./gradlew :fm1kit:test --stacktrace --no-daemon
+
+      - name: Assemble debug APK
+        run: ./gradlew :app:assembleDebug --stacktrace --no-daemon
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Commit the Android tree
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No leftover iOS sources to strip."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Replace iOS sources with the Android port."
+          git push

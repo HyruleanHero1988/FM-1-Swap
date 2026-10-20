@@ -121,6 +121,7 @@ object CatalogueBuilder {
         hub: List<CatalogueEntry>,
         editor: List<EditorListing.Entry>,
         editorUrl: String = EditorListing.DEFAULT_URL,
+        redtail: List<RedtailListing.Entry> = emptyList(),
     ): List<CatalogueEntry> {
         val entries = hub.toMutableList()
         val page = URI(editorUrl)
@@ -162,6 +163,37 @@ object CatalogueBuilder {
                     photoURL = listed.photoURL,
                     photoAlt = listed.photoAlt,
                     isOfficial = official,
+                )
+            }
+        }
+        for (listed in redtail) {
+            val index = entries.indexOfFirst { normalisedName(it.name) == normalisedName(listed.name) }
+            val extraLinks = listed.links
+            if (index >= 0) {
+                val entry = entries[index]
+                val extra = extraLinks.filter { link ->
+                    entry.links.none { it.comparable == link.comparable }
+                }
+                entries[index] = entry.copy(
+                    what = entry.what ?: listOfNotNull(listed.tagline, listed.blurb).joinToString(". ").ifEmpty { null },
+                    author = entry.author ?: RedtailListing.AUTHOR,
+                    photoURL = entry.photoURL ?: listed.photoURL,
+                    photoAlt = entry.photoAlt ?: listed.photoAlt,
+                    links = entry.links + extra,
+                )
+            } else {
+                val id = "redtail-${listed.slug}"
+                if (entries.any { it.id == id }) continue
+                entries += CatalogueEntry(
+                    id = id,
+                    name = listed.name,
+                    author = RedtailListing.AUTHOR,
+                    kinds = listOf("groove"),
+                    what = listOfNotNull(listed.tagline, listed.blurb).joinToString(". ").ifEmpty { null },
+                    beta = listed.experimental,
+                    links = extraLinks,
+                    photoURL = listed.photoURL,
+                    photoAlt = listed.photoAlt,
                 )
             }
         }

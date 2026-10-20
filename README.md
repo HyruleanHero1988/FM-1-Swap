@@ -1,10 +1,14 @@
 # FM-SWITCH for Android
 
-An Android port of [FM-SWITCH](https://github.com/HyruleanHero1988/FM-SWITCH): swap M-VAVE FM-1
-firmwares over USB MIDI. Firmwares come from
+An Android port of [ocean](https://github.com/ocean)'s [FM-SWITCH](https://github.com/ocean/FM-SWITCH)
+for iPhone, iPad, and Mac. Same job: swap M-VAVE FM-1 firmwares over USB MIDI. Firmwares come from
 [the firmware hub](https://thefirmwarehub.com/catalog.json) and are saved on the phone for offline
 flashing. M-VAVE's official V15 ships with the app (from
 [fm1_open](https://github.com/m-vave/fm1_open), Apache-2.0), so it's always there to go back to.
+
+This is a Kotlin / Jetpack Compose rewrite, not a wrapper around the iOS app. Behaviour, protocol,
+catalogue, phosphor UI, and bundled V15 follow ocean's original. Use that project if you want the
+iPhone, iPad, or Mac build.
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
@@ -23,7 +27,7 @@ Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 The FM-1 is flashed entirely over USB-MIDI SysEx, not DFU or a vendor driver. Android's MIDI
 service enumerates class-compliant USB-MIDI devices, which is what the FM-1 is.
 
-The protocol library in `fm1kit/` is a Kotlin port of [FM1Kit](https://github.com/ocean/FM1Kit)
+The protocol library in `fm1kit/` is a Kotlin port of ocean's [FM1Kit](https://github.com/ocean/FM1Kit)
 (MIT), written from the [FM-1-RE](https://github.com/AL-255/FM-1-RE) notes (WTFPL). It contains
 no GPL installer code.
 
@@ -82,8 +86,21 @@ app/        Jetpack Compose UI (API 26+)
   java/com/fmswitch  screens, catalogue, USB MIDI transport
 ```
 
+## Credits
+
+This Android app exists because of [ocean](https://github.com/ocean)'s original
+[FM-SWITCH](https://github.com/ocean/FM-SWITCH) (MIT) for iOS and macOS, and the
+[FM1Kit](https://github.com/ocean/FM1Kit) protocol library that talks to the FM-1.
+
+Also:
+
+- [FM-1-RE](https://github.com/AL-255/FM-1-RE) (WTFPL) for the protocol notes
+- [the firmware hub](https://thefirmwarehub.com) catalogue
+- [fm1_open](https://github.com/m-vave/fm1_open) (Apache-2.0) for official V15
+
 ## Licences
 
 - App and `fm1kit`: MIT
+- Original iOS/macOS FM-SWITCH and FM1Kit: MIT, ocean
 - Bundled `FM-1_015.fwsc`: Apache-2.0, M-VAVE, unmodified from fm1_open
 - Fonts: SIL Open Font License

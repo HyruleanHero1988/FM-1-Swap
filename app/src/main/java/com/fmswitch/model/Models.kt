@@ -48,6 +48,9 @@ class AppSettings(private val prefs: SharedPreferences) {
     var flicker: Boolean
         get() = prefs.getBoolean("flicker", false)
         set(value) { prefs.edit().putBoolean("flicker", value).apply() }
+    var phosphorPanel: Boolean
+        get() = prefs.getBoolean("phosphorPanel", true)
+        set(value) { prefs.edit().putBoolean("phosphorPanel", value).apply() }
     var transportKind: TransportKind
         get() = TransportKind.entries.firstOrNull { it.id == prefs.getString("transport", TransportKind.USB_MIDI.id) }
             ?: TransportKind.USB_MIDI
@@ -90,6 +93,7 @@ class AppSettings(private val prefs: SharedPreferences) {
         glow = 0.25f
         scanlines = false
         flicker = false
+        phosphorPanel = true
     }
 }
 

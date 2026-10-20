@@ -46,6 +46,7 @@ class SimulatedFM1(
     private var voices: ByteArray = options.initialVoices
         ?: ByteArray(FwscPackage.FACTORY_VOICES_LENGTH) { i -> ((i * 7) and 0xFF).toByte() }
     private var voiceSteps = 0
+    private val baudGirl = SimulatedBaudGirl()
     private val eventLog = CopyOnWriteArrayList<String>()
     private val observers = CopyOnWriteArrayList<() -> Unit>()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -114,6 +115,8 @@ class SimulatedFM1(
                     (parsed.first == FM1Message.VOICE_ERASE_COMMAND || parsed.first == FM1Message.VOICE_WRITE_COMMAND)
                 ) {
                     handleVoiceCommand(parsed.first, parsed.second, from)
+                } else if (isBaudGirlLibrarian(sysex)) {
+                    handleBaudGirl(sysex, from)
                 } else {
                     from.fromHost.deliver(sysex)
                 }
@@ -266,6 +269,58 @@ class SimulatedFM1(
             return
         }
         from.toHost.deliver(FM1Message.command(FM1Message.ACKNOWLEDGEMENT_COMMAND, byteArrayOf(reply.toUByte())))
+    }
+
+    private fun isBaudGirlLibrarian(sysex: ByteArray): Boolean =
+        sysex.size >= 6 &&
+            sysex[0].toUInt8() == 0xF0 &&
+            sysex[1].toUInt8() == 0x43 &&
+            sysex[3].toUInt8() == BaudGirlSysex.SUB_ID &&
+            sysex.last().toUInt8() == 0xF7
+
+    private fun handleBaudGirl(sysex: ByteArray, from: SimulatedConnection) {
+        val command = sysex[4].toUInt8()
+        val reply = synchronized(lock) {
+            when (command) {
+                BaudGirlSysex.CMD_PRESET_READ -> {
+                    val slot = sysex[5].toUInt8()
+                    val preset = baudGirl.preset(slot)
+                    BaudGirlSysex.encodeReply(
+                        BaudGirlSysex.KIND_PRESET,
+                        0,
+                        slot,
+                        preset.voice + preset.record,
+                    )
+                }
+                BaudGirlSysex.CMD_PRESET_WRITE -> {
+                    val decoded = BaudGirlSysex.decodePresetWrite(sysex)
+                        ?: return@synchronized BaudGirlSysex.encodeReply(BaudGirlSysex.KIND_PRESET, 1, 0, ByteArray(0))
+                    baudGirl.writePreset(BaudGirlPreset(decoded.first, decoded.second, decoded.third))
+                    BaudGirlSysex.encodeReply(BaudGirlSysex.KIND_PRESET, 0, decoded.first, ByteArray(0))
+                }
+                BaudGirlSysex.CMD_MEMORY_READ -> {
+                    val body = sysex.copyOfRange(4, sysex.size - 2)
+                    var address = 0L
+                    for (i in 0 until 5) address = address or ((body[1 + i].toUInt8().toLong()) shl (7 * i))
+                    val length = body[6].toUInt8() or (body[7].toUInt8() shl 7)
+                    BaudGirlSysex.encodeReply(BaudGirlSysex.KIND_MEMORY, 0, 0, baudGirl.readMemory(address, length))
+                }
+                BaudGirlSysex.CMD_STEPS -> {
+                    val decoded = BaudGirlSysex.decodeStepPart(sysex)
+                        ?: return@synchronized BaudGirlSysex.encodeReply(BaudGirlSysex.KIND_PATTERN, 1, 0, ByteArray(0))
+                    baudGirl.writeStepPart(decoded)
+                    BaudGirlSysex.encodeReply(BaudGirlSysex.KIND_PATTERN, 0, 0, ByteArray(0))
+                }
+                BaudGirlSysex.CMD_LOCKS -> {
+                    val decoded = BaudGirlSysex.decodeLockEighth(sysex)
+                        ?: return@synchronized BaudGirlSysex.encodeReply(BaudGirlSysex.KIND_PATTERN, 1, 0, ByteArray(0))
+                    baudGirl.writeLockEighth(decoded)
+                    BaudGirlSysex.encodeReply(BaudGirlSysex.KIND_PATTERN, 0, 0, ByteArray(0))
+                }
+                else -> null
+            }
+        }
+        if (reply != null) from.toHost.deliver(reply)
     }
 
     fun log(text: String) {

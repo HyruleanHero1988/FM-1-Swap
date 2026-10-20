@@ -143,6 +143,15 @@ sealed class FM1UpdateError(message: String) : Exception(message) {
     data class BadRequest(val address: Long, val length: Int) : FM1UpdateError(
         "The FM-1 asked for data outside the package ($length bytes at 0x${address.toString(16)}), so the update was stopped without answering. Check the package is complete.",
     )
+    data class BackupUnavailable(val identity: String) : FM1UpdateError(
+        "The FM-1 reports $identity, which has no FM-1+VA preset and pattern dump. Use that firmware's own editor to back up first, or confirm the switch.",
+    )
+    data class BackupFailed(val detail: String) : FM1UpdateError(
+        "Couldn't back up the presets and patterns before writing ($detail). The flash was not started.",
+    )
+    data class BackupRestoreMismatch(val what: String) : FM1UpdateError(
+        "Restoring the backup stopped because the FM-1's copy of $what didn't match what was sent. Reconnect and try again.",
+    )
     data class UnexpectedFinish(val phase: Phase) : FM1UpdateError(
         if (phase == Phase.STAGING) {
             "The FM-1 asked to finish writing while it was still checking the package, so the update was stopped. Switch it off and on again. If it starts in its update loader, resume the update; otherwise install again."

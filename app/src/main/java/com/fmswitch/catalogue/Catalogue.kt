@@ -55,8 +55,15 @@ data class CatalogueEntry(
 data class MergedCatalogue(
     val hubUpdated: String?,
     val entries: List<CatalogueEntry>,
-    val problems: List<String>,
-)
+    val problems: List<String> = emptyList(),
+    val snapshotVersion: Int = 0,
+    val bundled: Boolean = false,
+) {
+    companion object {
+        const val BUNDLED_VERSION = 1
+        const val ASSET_PATH = "catalogue/snapshot.json"
+    }
+}
 
 object HubFeed {
     const val DEFAULT_URL = "https://thefirmwarehub.com/catalog.json"

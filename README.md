@@ -1,9 +1,9 @@
 # FM-SWITCH for Android
 
 An Android port of [ocean](https://github.com/ocean)'s [FM-SWITCH](https://github.com/ocean/FM-SWITCH).
-Same job: swap M-VAVE FM-1 firmwares over USB MIDI. Firmwares come from
-[the firmware hub](https://thefirmwarehub.com/catalog.json) and are saved on the phone for offline
-flashing. M-VAVE's official V15 ships with the app (from
+Same job: swap M-VAVE FM-1 firmwares over USB MIDI. The firmware list ships in the
+app (hub, fm1-editor.com, and RedtailWorks, captured when this build was made). REFRESH
+pulls a newer copy. Firmwares you save stay on the phone for offline flashing. M-VAVE's official V15 ships with the app (from
 [fm1_open](https://github.com/m-vave/fm1_open), Apache-2.0), so it's always there to go back to.
 
 This is a Kotlin / Jetpack Compose rewrite, not a wrapper around ocean's original. Behaviour, protocol,
@@ -21,7 +21,7 @@ but that zip is easy to miss and is not the repo homepage.
 
 ## What it does
 
-- Lists the firmware hub catalogue merged with [fm1-editor.com](https://fm1-editor.com/firmware/) and [RedtailWorks' FM-1 pack](https://rustypawz.github.io/fm1-HYP1/). Official V15 is first; the rest are ranked by GitHub stars (and hub installs), so SLOOP, Felucca, X0X, JIANT and Melodee sit at the top instead of drowning alphabetically. Each row shows a representative shot from fm1-editor.com or the publisher when they have one. Firmwares the hub doesn't carry still show up, including Baud Girl's FM-1+VA, isod89's Clipper 1.0 (from the makers of SLOOP), M-VAVE's Official Open (the eight-track groovebox they ship as [FM1 Open](https://github.com/m-vave/fm1_open) — currently V14, whose `.fwsc` is inside the Workbench HTML), and RedtailWorks' LOF-1, ECO-1 and GRAV-1 (HYP-1 is already on the hub). Other `.fwsc` files are found from GitHub releases or the publisher's own page. Clipper and the experimental RedtailWorks machines are marked beta, so they sit with the other beta listings (shown unless **SETUP** hides them). OPEN-1 is a different synth, not an FM-1 firmware, so it is not listed.
+- Opens on a firmware list baked into the app (no network required to see it). Official V15 is first; the rest are ranked by GitHub stars (and hub installs), so SLOOP, Felucca, X0X, JIANT and Melodee sit at the top instead of drowning alphabetically. Each row shows a representative shot from fm1-editor.com or the publisher when they have one. The snapshot includes Baud Girl's FM-1+VA, isod89's Clipper 1.0, M-VAVE's Official Open (the eight-track groovebox they ship as [FM1 Open](https://github.com/m-vave/fm1_open) — currently V14, whose `.fwsc` is inside the Workbench HTML), and RedtailWorks' LOF-1, ECO-1 and GRAV-1 (HYP-1 is already on the hub). **REFRESH** re-pulls the hub, fm1-editor.com, and the RedtailWorks pack. Clipper and the experimental RedtailWorks machines are marked beta (shown unless **SETUP** hides them). OPEN-1 is a different synth, not an FM-1 firmware, so it is not listed.
 - Downloads `.fwsc` packages, checks SHA-256, and keeps them offline
 - Talks to a real FM-1 over class-compliant USB MIDI (Android MIDI API)
 - Stages, writes, and resumes interrupted flashes using the same protocol as FM1Kit
@@ -50,6 +50,8 @@ You need JDK 17+ and the Android SDK (compile SDK 35).
 ```bash
 ./gradlew :fm1kit:test          # protocol + simulated-device tests (no Android SDK UI)
 ./gradlew :app:assembleDebug    # APK at app/build/outputs/apk/debug/
+BAKE_CATALOGUE=true ./gradlew :app:testDebugUnitTest --tests com.fmswitch.catalogue.BakeCatalogue
+                                # rebuild the shipped firmware list from the live hub
 ```
 
 Open the folder in Android Studio (Ladybug / Koala or later), let Gradle sync, and run on a

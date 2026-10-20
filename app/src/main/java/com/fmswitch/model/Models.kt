@@ -2,9 +2,12 @@ package com.fmswitch.model
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.fmswitch.catalogue.CatalogueBuilder
 import com.fmswitch.catalogue.CatalogueEntry
+import com.fmswitch.catalogue.EditorListing
 import com.fmswitch.catalogue.HubFeed
 import com.fmswitch.catalogue.MergedCatalogue
+import com.fmswitch.catalogue.PackageDiscovery
 import com.fmswitch.catalogue.fetchBytes
 import com.fmswitch.catalogue.officialCatalogueEntry
 import com.fmswitch.fm1kit.FwscFailure
@@ -16,6 +19,7 @@ import com.fmswitch.theme.invoke
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -257,6 +261,7 @@ class FirmwareLibrary(private val context: Context) {
 }
 
 class CatalogueStore(context: Context) {
+    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val cacheFile = File(context.filesDir, "catalogue.json")
     var catalogue: MergedCatalogue? = null
         private set
@@ -287,11 +292,31 @@ class CatalogueStore(context: Context) {
         isRefreshing = true
         errorMessage = null
         try {
-            val text = withContext(Dispatchers.IO) { String(fetchBytes(HubFeed.DEFAULT_URL), Charsets.UTF_8) }
-            val (updated, hub) = HubFeed.decode(text)
-            val merged = listOf(officialCatalogueEntry()) + hub.filterNot { it.isOfficial || it.id == "mvave-official" }
-            catalogue = MergedCatalogue(updated, merged, emptyList())
-            cacheFile.writeText(text)
+            val previous = catalogue?.entries.orEmpty()
+            val hubText = withContext(Dispatchers.IO) {
+                runCatching { String(fetchBytes(HubFeed.DEFAULT_URL), Charsets.UTF_8) }.getOrNull()
+            }
+            val editorHtml = withContext(Dispatchers.IO) {
+                runCatching { String(fetchBytes(EditorListing.DEFAULT_URL), Charsets.UTF_8) }.getOrNull()
+            }
+            val hub = hubText?.let { runCatching { HubFeed.decode(it) }.getOrNull() }
+            val editor = editorHtml?.let { runCatching { EditorListing.parse(it) }.getOrNull() }
+            val problems = ArrayList<String>()
+            if (hub == null) problems += "The firmware hub couldn't be read."
+            if (editor == null || editor.entries.isEmpty()) problems += "fm1-editor.com couldn't be read."
+            if (hub == null && (editor == null || editor.entries.isEmpty())) {
+                error("Couldn't reach the firmware hub or fm1-editor.com.")
+            }
+            val hubEntries = hub?.second.orEmpty().filterNot { it.isOfficial || it.id == "mvave-official" }
+            val merged = CatalogueBuilder.merge(
+                listOf(officialCatalogueEntry()) + hubEntries,
+                editor?.entries.orEmpty(),
+            )
+            val resolved = PackageDiscovery.discoverMissing(merged, previous)
+            val built = MergedCatalogue(hub?.first, resolved, problems)
+            catalogue = built
+            withContext(Dispatchers.IO) { cacheFile.writeText(json.encodeToString(built)) }
+            if (problems.isNotEmpty()) errorMessage = problems.joinToString(" ")
         } catch (_: Exception) {
             errorMessage = if (catalogue == null) {
                 "Couldn't fetch the firmware list. Check your connection and try again."
@@ -305,8 +330,14 @@ class CatalogueStore(context: Context) {
 
     private fun loadCached() {
         if (!cacheFile.exists()) return
+        val text = cacheFile.readText()
+        val stored = runCatching { json.decodeFromString<MergedCatalogue>(text) }.getOrNull()
+        if (stored != null) {
+            catalogue = stored
+            return
+        }
         runCatching {
-            val (updated, hub) = HubFeed.decode(cacheFile.readText())
+            val (updated, hub) = HubFeed.decode(text)
             catalogue = MergedCatalogue(updated, listOf(officialCatalogueEntry()) + hub, emptyList())
         }
     }

@@ -1,5 +1,6 @@
 package com.fmswitch.catalogue
 
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -13,6 +14,7 @@ import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
 
+@Serializable
 data class CatalogueLink(val label: String, val url: String) {
     val comparable: String
         get() = url.lowercase()
@@ -22,6 +24,7 @@ data class CatalogueLink(val label: String, val url: String) {
             .trimEnd('/')
 }
 
+@Serializable
 data class CatalogueEntry(
     val id: String,
     val name: String,
@@ -44,6 +47,7 @@ data class CatalogueEntry(
     val isDownloadable: Boolean get() = packageURL != null
 }
 
+@Serializable
 data class MergedCatalogue(
     val hubUpdated: String?,
     val entries: List<CatalogueEntry>,
@@ -115,7 +119,9 @@ object HubFeed {
 object RescueMode {
     fun summary(id: String): String? = when (id) {
         "choralroot" -> "Hold OCT− while switching on (from 0.16)"
-        "dinghy", "etch", "floyd", "ghoulbox", "jangada", "sloop", "sloopbanks", "sloopdx", "winampfm", "zp12" ->
+        "dinghy", "etch", "floyd", "ghoulbox", "jangada", "sloop", "sloopbanks", "sloopdx", "winampfm", "zp12",
+        "fm1-editor-clipper",
+        ->
             "Hold OCT− while switching on"
         "melodee" -> "Hold OCT− while switching on (from 1.3.5)"
         "fimba", "fumi" -> "Hold OCT− and OCT+ for 5 s while it runs"
@@ -146,6 +152,9 @@ fun fetchBytes(url: String): ByteArray {
         instanceFollowRedirects = true
         requestMethod = "GET"
         setRequestProperty("User-Agent", "FM-SWITCH-Android/0.1")
+        if (url.contains("api.github.com")) {
+            setRequestProperty("Accept", "application/vnd.github+json")
+        }
     }
     connection.inputStream.use { input ->
         val code = connection.responseCode

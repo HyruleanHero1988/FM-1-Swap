@@ -64,6 +64,15 @@ if [[ ! -f gradle/wrapper/gradle-wrapper.jar ]]; then
     gradle/wrapper/gradle-wrapper.jar
 fi
 
+mkdir -p app/src/main/assets/licenses
+if [[ -f App/Resources/Firmware/FM-1_015-LICENCE.txt ]]; then
+  cp App/Resources/Firmware/FM-1_015-LICENCE.txt app/src/main/assets/licenses/FM-1_015-LICENCE.txt
+fi
+fetch "$OCEAN_RAW/App/Resources/Firmware/FM-1_015-LICENCE.txt" app/src/main/assets/licenses/FM-1_015-LICENCE.txt
+fetch "$OCEAN_RAW/App/Resources/Fonts/OFL-DepartureMono.txt" app/src/main/assets/licenses/OFL-DepartureMono.txt
+fetch "$OCEAN_RAW/App/Resources/Fonts/OFL-Silkscreen.txt" app/src/main/assets/licenses/OFL-Silkscreen.txt
+fetch "$OCEAN_RAW/App/Resources/Fonts/OFL-VT323.txt" app/src/main/assets/licenses/OFL-VT323.txt
+
 if [[ ! -f app/src/main/res/mipmap-mdpi/ic_launcher.png ]]; then
   python3 scripts/make-icon.py
 fi

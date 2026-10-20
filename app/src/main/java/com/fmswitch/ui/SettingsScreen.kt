@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fmswitch.BuildConfig
 import com.fmswitch.catalogue.SafetyNotice
 import com.fmswitch.model.AppViewModel
 import com.fmswitch.model.TransportKind
@@ -156,6 +157,11 @@ fun SettingsScreen(model: AppViewModel) {
                 model.settings.showLinksOnly = it
                 model.bumpTheme()
             }
+        }
+        PixelPanel(title = "BUILD") {
+            MonoText("FM-SWITCH  ${BuildConfig.VERSION_NAME}", size = 14)
+            MonoText("versionCode  ${BuildConfig.VERSION_CODE}", size = 14, dim = true)
+            NoteText("If a new APK says App not installed, uninstall this one once, then install the new file. After that, later APKs overlay.")
         }
         PixelPanel(title = "CREDITS") {
             MonoText(

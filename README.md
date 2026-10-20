@@ -24,12 +24,13 @@ but that zip is easy to miss and is not the repo homepage.
 - Opens on a firmware list baked into the app (no network required to see it). Official V15 is first; the rest are ranked by GitHub stars (and hub installs), so SLOOP, Felucca, X0X, JIANT and Melodee sit at the top instead of drowning alphabetically. Each row shows a representative shot from fm1-editor.com or the publisher when they have one. The snapshot includes Baud Girl's FM-1+VA, isod89's Clipper 1.0, M-VAVE's Official Open (the eight-track groovebox they ship as [FM1 Open](https://github.com/m-vave/fm1_open) — currently V14, whose `.fwsc` is inside the Workbench HTML), and RedtailWorks' LOF-1, ECO-1 and GRAV-1 (HYP-1 is already on the hub). **REFRESH** re-pulls the hub, fm1-editor.com, and the RedtailWorks pack. Clipper and the experimental RedtailWorks machines are marked beta (shown unless **SETUP** hides them). OPEN-1 is a different synth, not an FM-1 firmware, so it is not listed.
 - Downloads `.fwsc` packages, checks SHA-256, and keeps them offline
 - Talks to a real FM-1 over class-compliant USB MIDI (Android MIDI API)
+- On **DEVICE**, **PLAY TEST NOTES** sends a C–E–G–C arpeggio on channels 1 and 2, then handshakes again so you can hear whether notes arrive and whether the USB-MIDI port stayed up. Hold C–B to send live notes. Stock firmware listens on channel 2; Felucca on 1–4. Grooveboxes such as SLOOP may stay quiet on a plain note-on — the handshake after is the cable test.
+- **TRY** on a firmware opens a playable virtual FM-1 in the app: the author's own emulator when they publish one (RedtailWorks HYP-1 / LOF-1 / ECO-1 / GRAV-1, X0X, AMB-1, and the hub `/play/` pages), otherwise [Joakim Eriksson's FM-1 chip emulator](https://joakimeriksson.github.io/fm1-emu/), which runs the same `.fwsc` on a virtual JieLi AC791N. This is how you audition a firmware before flashing. It needs a network connection. **SETUP ▸ SIMULATED FM-1** remains a protocol dummy for flash tests and makes no sound.
 - Stages, writes, and resumes interrupted flashes using the same protocol as FM1Kit
-- Offers a simulated FM-1 under **SETUP ▸ CONNECTION**, including cable-pull at 45% to test **RESUME**
 - Before a flash, automatically dumps the running firmware the same way Baud Girl's Device Manager does: 128 presets and 16 patterns as `.syx` files, plus a copy of that `.fwsc` if this phone already has it. The write does not start if that dump fails. Other firmwares (Felucca, SLOOP, V15, the loader) still ask you to confirm you've backed up, because they have no FM-1+VA librarian.
 - Restores those backups later from **SAVED**, and restores V15 factory voices after installing official firmware
 - Keeps the 8-bit phosphor look: Silkscreen, Departure Mono, VT323, CRT overlay, colour presets
-- System / hardware BACK pops firmware detail, clears search, dismisses dialogs, and returns to DEVICE before leaving the app. It does not abort a write in progress.
+- System / hardware BACK closes the emulator, pops firmware detail, clears search, dismisses dialogs, and returns to DEVICE before leaving the app. It does not abort a write in progress.
 
 ## Talking to the FM-1
 
@@ -42,6 +43,9 @@ the identity sticks, the MIDI port is held open.
 The protocol library in `fm1kit/` is a Kotlin port of ocean's [FM1Kit](https://github.com/ocean/FM1Kit)
 (MIT), written from the [FM-1-RE](https://github.com/AL-255/FM-1-RE) notes (WTFPL). It contains
 no GPL installer code.
+
+Once the identity sticks, **DEVICE ▸ PLAY TEST NOTES** is the check that USB MIDI is
+actually carrying channel-voice messages, not only SysEx handshakes.
 
 ## Building
 
@@ -57,7 +61,8 @@ BAKE_CATALOGUE=true ./gradlew :app:testDebugUnitTest --tests com.fmswitch.catalo
 Open the folder in Android Studio (Ladybug / Koala or later), let Gradle sync, and run on a
 phone or emulator.
 
-On the emulator there is no USB MIDI, so use **SETUP ▸ CONNECTION ▸ SIMULATED FM-1**. On a
+On the Android emulator there is no USB MIDI, so use **SETUP ▸ CONNECTION ▸ SIMULATED FM-1**
+for flashing tests, or **FIRMWARE ▸ TRY** to play a firmware in the virtual device. On a
 phone, plug the FM-1 into USB-C (OTG). Grant USB permission if Android asks.
 
 `local.properties` should point at your SDK (copy `local.properties.example`):
@@ -113,7 +118,8 @@ Also:
 - [FM-1-RE](https://github.com/AL-255/FM-1-RE) (WTFPL) for the protocol notes
 - [the firmware hub](https://thefirmwarehub.com) catalogue
 - [fm1-editor.com](https://fm1-editor.com/firmware/) listings and screenshots
-- [RedtailWorks](https://rustypawz.github.io/fm1-HYP1/) for HYP-1, LOF-1, ECO-1 and GRAV-1
+- [RedtailWorks](https://rustypawz.github.io/fm1-HYP1/) for HYP-1, LOF-1, ECO-1 and GRAV-1, and their in-browser emulators
+- [Joakim Eriksson / fm1-emu](https://github.com/joakimeriksson/fm1-emu) for the JieLi AC791N chip emulator used by **TRY**
 - [fm1_open](https://github.com/m-vave/fm1_open) (Apache-2.0) for official V15
 
 ## Licences

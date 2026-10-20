@@ -1,59 +1,27 @@
 package com.fmswitch.catalogue
 
 /**
- * Where to try a firmware before flashing it.
+ * How TRY plays a firmware before it is flashed.
  *
- * Many publishers already ship a playable browser emulator (RedtailWorks'
- * rustypawz pages, AMB-1, X0X, and the hub's `/play/` links). Those run the
- * author's own UI. Everything else falls through to Joakim Eriksson's FM-1
- * chip emulator, which executes the same `.fwsc` on a virtual JieLi AC791N.
+ * The APK carries Joakim Eriksson's FM-1 emulator (fm1-emu, MIT) as native code
+ * (`libfm1emu.so`, built from `native/fm1-jni`): the same `.fwsc` the app would
+ * flash boots on an emulated JieLi AC791N, with sound through the phone and the
+ * panel drawn in Compose.
+ *
+ * Some publishers also ship their own browser emulator (RedtailWorks' rustypawz
+ * pages, hub `/play/` links); [authorEmulator] finds those as an extra option.
  */
 object FirmwareEmulator {
     const val CHIP_EMU = "https://joakimeriksson.github.io/fm1-emu/"
     const val CHIP_SOURCE = "https://github.com/joakimeriksson/fm1-emu"
 
-    data class Launch(
-        val url: String,
-        val credit: String,
-        val hint: String,
-        val dedicated: Boolean,
-    )
-
-    fun launch(entry: CatalogueEntry): Launch {
-        dedicatedUrl(entry)?.let { url ->
-            return Launch(
-                url = url,
-                credit = "Author's own emulator (same code the FM-1 would run).",
-                hint = "Tap Start if it asks, then play the on-screen keys and knobs. Sound comes from this phone, not the hardware.",
-                dedicated = true,
-            )
-        }
-        playLink(entry)?.let { url ->
-            return Launch(
-                url = url,
-                credit = "Publisher's in-browser emulator.",
-                hint = "Tap Start if it asks, then play the on-screen keys and knobs. Sound comes from this phone, not the hardware.",
-                dedicated = true,
-            )
-        }
-        val slug = chipSlug(entry)
-        val url = buildString {
-            append(CHIP_EMU)
-            append("?embed=1")
-            if (slug != null) append("&fw=").append(slug)
-        }
-        val officialHint = entry.isOfficial
-        return Launch(
-            url = url,
-            credit = "Joakim Eriksson's FM-1 chip emulator (github.com/joakimeriksson/fm1-emu).",
-            hint = if (officialHint) {
-                "M-VAVE's stock package isn't fetched automatically. On the next screen pick M-VAVE stock firmware, or open a saved V15 .fwsc, then press Start."
-            } else {
-                "Press Start, then play the on-screen panel. It downloads the same .fwsc you would flash and runs it on a virtual AC791N. Turn the phone sideways for bigger controls."
-            },
-            dedicated = false,
-        )
+    /** fm1-emu's public page for this firmware, for opening in a browser. */
+    fun onlineUrl(entry: CatalogueEntry): String = buildString {
+        append(CHIP_EMU)
+        chipSlug(entry)?.let { append("?fw=").append(it) }
     }
+
+    fun authorEmulator(entry: CatalogueEntry): String? = dedicatedUrl(entry) ?: playLink(entry)
 
     fun playLink(entry: CatalogueEntry): String? {
         val ranked = entry.links.mapNotNull { link ->

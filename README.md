@@ -24,7 +24,7 @@ Tapping a new APK used to fail with **App not installed** because every CI run s
 - Downloads `.fwsc` packages, checks SHA-256, and keeps them offline
 - Talks to a real FM-1 over class-compliant USB MIDI (Android MIDI API)
 - On **DEVICE**, **PLAY TEST NOTES** sends a C–E–G–C arpeggio on channels 1 and 2, then handshakes again so you can hear whether notes arrive and whether the USB-MIDI port stayed up. Hold C–B to send live notes. Stock firmware listens on channel 2; Felucca on 1–4. Grooveboxes such as SLOOP may stay quiet on a plain note-on — the handshake after is the cable test.
-- **TRY** on a firmware opens a playable virtual FM-1 in the app: the author's own emulator when they publish one (RedtailWorks HYP-1 / LOF-1 / ECO-1 / GRAV-1, X0X, AMB-1, and the hub `/play/` pages), otherwise [Joakim Eriksson's FM-1 chip emulator](https://joakimeriksson.github.io/fm1-emu/), which runs the same `.fwsc` on a virtual JieLi AC791N. This is how you audition a firmware before flashing. It needs a network connection. **SETUP ▸ SIMULATED FM-1** remains a protocol dummy for flash tests and makes no sound.
+- **TRY** boots the exact `.fwsc` you would flash on a virtual FM-1 built into the app: [Joakim Eriksson's fm1-emu](https://github.com/joakimeriksson/fm1-emu) (MIT), which emulates the FM-1's JieLi AC791N, compiled to native code for Android (`native/fm1-jni`). Sound comes out of the phone, the screen and LEDs are the firmware's own, and the panel is drawn in Compose: tap keys and buttons (multi-touch), drag knobs up or down. What you save on the emulated FM-1 (patches, patterns, settings) is kept per package. TRY saves the package to your library first, so it plays offline afterwards. Firmwares whose authors also publish a browser emulator (RedtailWorks HYP-1 / LOF-1 / ECO-1 / GRAV-1, X0X, AMB-1, hub `/play/` pages) get an **AUTHOR'S EMU** button too. **SETUP ▸ SIMULATED FM-1** remains a protocol dummy for flash tests and makes no sound.
 - Stages, writes, and resumes interrupted flashes using the same protocol as FM1Kit
 - Before a flash, automatically dumps the running firmware the same way Baud Girl's Device Manager does: 128 presets and 16 patterns as `.syx` files, plus a copy of that `.fwsc` if this phone already has it. The write does not start if that dump fails. Other firmwares (Felucca, SLOOP, V15, the loader) still ask you to confirm you've backed up, because they have no FM-1+VA librarian.
 - Restores those backups later from **SAVED**, and restores V15 factory voices after installing official firmware
@@ -48,9 +48,12 @@ actually carrying channel-voice messages, not only SysEx handshakes.
 
 ## Building
 
-You need JDK 17+ and the Android SDK (compile SDK 35).
+You need JDK 17+ and the Android SDK (compile SDK 35). TRY's emulator also needs Rust
+(1.87 or newer) with the Android targets, and the Android NDK:
 
 ```bash
+rustup target add aarch64-linux-android x86_64-linux-android
+scripts/build-fm1-native.sh     # fm1-emu at a pinned commit -> app/src/main/jniLibs/*/libfm1emu.so
 ./gradlew :fm1kit:test          # protocol + simulated-device tests (no Android SDK UI)
 ./gradlew :app:assembleDebug    # APK at app/build/outputs/apk/debug/
 BAKE_CATALOGUE=true ./gradlew :app:testDebugUnitTest --tests com.fmswitch.catalogue.BakeCatalogue
@@ -72,8 +75,8 @@ sdk.dir=/path/to/Android/sdk
 
 ## GitHub Actions
 
-`.github/workflows/ci.yml` runs on every push and pull request: protocol tests, then
-`assembleDebug`. On `main` it publishes `FM-SWITCH-debug.apk` to
+`.github/workflows/ci.yml` runs on every push and pull request: it builds the native emulator,
+runs its tests and the protocol tests, then `assembleDebug`. On `main` it publishes `FM-SWITCH-debug.apk` to
 [Releases](https://github.com/HyruleanHero1988/FM-SWITCH/releases) and also uploads the
 `app-debug` Actions artifact. You can retrigger it from the Actions tab with **Run workflow**.
 
@@ -91,7 +94,7 @@ file is missing. Enable Actions on the GitHub repo if the workflow is waiting fo
    ready as a fallback.
 4. Unplug mid-write on purpose and confirm **RESUME** finishes it.
 
-If the FM-1 won't start, some firmwares boot USB recovery with **OCT\u2212** held at power-on.
+If the FM-1 won't start, some firmwares boot USB recovery with **OCT−** held at power-on.
 That is a firmware feature, not a ROM one. Official V15 and Felucca 1.6.1 do not offer it.
 A bricked chip that shows up as `WL80UBOOT` needs a computer and jl-uboot-tool;
 FM-SWITCH cannot help there.
@@ -102,8 +105,9 @@ FM-SWITCH cannot help there.
 fm1kit/     Kotlin port of the FM-1 protocol, packages, updater, simulated device
 app/        Jetpack Compose UI (API 26+)
   assets/firmware/   bundled M-VAVE V15 + Apache-2.0 notice
-  assets/licenses/   font OFL notices
-  java/com/fmswitch  screens, catalogue, USB MIDI transport
+  assets/licenses/   font OFL and fm1-emu MIT notices
+  java/com/fmswitch  screens, catalogue, USB MIDI transport, emu/ (TRY's engine and panel)
+native/fm1-jni/      JNI wrapper around fm1-emu's machine (Rust), built into libfm1emu.so
 ```
 
 ## Credits
@@ -118,7 +122,7 @@ Also:
 - [the firmware hub](https://thefirmwarehub.com) catalogue
 - [fm1-editor.com](https://fm1-editor.com/firmware/) listings and screenshots
 - [RedtailWorks](https://rustypawz.github.io/fm1-HYP1/) for HYP-1, LOF-1, ECO-1 and GRAV-1, and their in-browser emulators
-- [Joakim Eriksson / fm1-emu](https://github.com/joakimeriksson/fm1-emu) for the JieLi AC791N chip emulator used by **TRY**
+- [Joakim Eriksson / fm1-emu](https://github.com/joakimeriksson/fm1-emu) for the FM-1 emulator that **TRY** runs natively (MIT)
 - [fm1_open](https://github.com/m-vave/fm1_open) (Apache-2.0) for official V15
 
 ## Licences
@@ -127,3 +131,4 @@ Also:
 - Original FM-SWITCH and FM1Kit: MIT, ocean
 - Bundled `FM-1_015.fwsc`: Apache-2.0, M-VAVE, unmodified from fm1_open
 - Fonts: SIL Open Font License
+- fm1-emu (compiled into `libfm1emu.so`): MIT, Joakim Eriksson

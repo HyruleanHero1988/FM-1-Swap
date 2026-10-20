@@ -35,6 +35,8 @@ import com.fmswitch.midi.AndroidMidiTransport
 import com.fmswitch.theme.PhosphorTheme
 import android.os.Handler
 import android.os.Looper
+import java.io.File
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -120,6 +122,13 @@ sealed class MidiCheck {
     data class Failed(val message: String) : MidiCheck()
 }
 
+/** The package TRY hands to the bundled emulator: the same file a flash would write. */
+sealed class EmulatorPackage {
+    data object Preparing : EmulatorPackage()
+    data class Ready(val file: File, val sha256: String) : EmulatorPackage()
+    data class Failed(val message: String) : EmulatorPackage()
+}
+
 class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = application.getSharedPreferences("fmswitch", Context.MODE_PRIVATE)
     val settings = AppSettings(prefs)
@@ -160,6 +169,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     var isCheckingMidi by mutableStateOf(false)
         private set
     var playingFirmware by mutableStateOf<CatalogueEntry?>(null)
+        private set
+    var emulatorPackage by mutableStateOf<EmulatorPackage>(EmulatorPackage.Preparing)
+        private set
+    private var emulatorJob: Job? = null
 
     val theme: PhosphorTheme get() = settings.theme.also { themeTick }
     val isWriting: Boolean get() = job?.phase?.isRunning == true || voiceRestore.isRunning || backupRestore.isRunning
@@ -606,11 +619,29 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun openEmulator(entry: CatalogueEntry) {
+        emulatorJob?.cancel()
         playingFirmware = entry
+        emulatorPackage = EmulatorPackage.Preparing
+        emulatorJob = viewModelScope.launch {
+            val prepared = try {
+                val item = (if (entry.isOfficial) library.official else null)
+                    ?: library.stored(entry)
+                    ?: save(entry).getOrThrow()
+                EmulatorPackage.Ready(library.file(item), item.sha256)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                EmulatorPackage.Failed(error.userMessage())
+            }
+            if (playingFirmware?.id == entry.id) emulatorPackage = prepared
+        }
     }
 
     fun closeEmulator() {
+        emulatorJob?.cancel()
+        emulatorJob = null
         playingFirmware = null
+        emulatorPackage = EmulatorPackage.Preparing
     }
 
     fun probablyRunning(identity: FM1Identity): String {

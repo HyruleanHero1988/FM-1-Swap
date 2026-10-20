@@ -93,7 +93,12 @@ fun RootScreen(model: AppViewModel) {
                         .background(theme.background)
                         .windowInsetsPadding(WindowInsets.navigationBars),
                 ) {
-                    EmulatorScreen(entry) { model.closeEmulator() }
+                    EmulatorScreen(
+                        entry = entry,
+                        prepared = model.emulatorPackage,
+                        onRetry = { model.openEmulator(entry) },
+                        onBack = { model.closeEmulator() },
+                    )
                 }
             }
         }

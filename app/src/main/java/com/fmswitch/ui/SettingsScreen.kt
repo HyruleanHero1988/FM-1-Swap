@@ -165,7 +165,7 @@ fun SettingsScreen(model: AppViewModel) {
         }
         PixelPanel(title = "CREDITS") {
             MonoText(
-                "Android port of ocean's FM-SWITCH for the M-VAVE FM-1. Protocol from FM1Kit (MIT) and the FM-1-RE notes (WTFPL). Bundled V15 is M-VAVE's, Apache-2.0, unmodified from fm1_open. Pixel fonts: Silkscreen, Departure Mono and VT323 (SIL OFL). Not affiliated with M-VAVE.",
+                "Android port of ocean's FM-SWITCH for the M-VAVE FM-1. Protocol from FM1Kit (MIT) and the FM-1-RE notes (WTFPL). Bundled V15 is M-VAVE's, Apache-2.0, unmodified from fm1_open. TRY runs Joakim Eriksson's fm1-emu (MIT), compiled into the app. Pixel fonts: Silkscreen, Departure Mono and VT323 (SIL OFL). Not affiliated with M-VAVE.",
                 size = 14,
             )
             BasicText(
@@ -187,7 +187,7 @@ fun SettingsScreen(model: AppViewModel) {
                     },
             )
             BasicText(
-                "▸ FM-1 CHIP EMULATOR",
+                "▸ FM1-EMU (TRY)",
                 style = pixelText(11.sp, bold = true, color = theme.bright),
                 modifier = Modifier
                     .padding(top = 8.dp)

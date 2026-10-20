@@ -200,7 +200,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
                 PixelButton("FLASH", prominent = true) { confirming = stored }
             }
         }
-        NoteText("TRY opens a playable virtual FM-1 in this app — the author's emulator when they have one, otherwise the FM-1 chip emulator. It is not a flash.")
+        NoteText("TRY plays this exact package on a virtual FM-1 built into the app (fm1-emu, compiled for Android): sound, screen and saves, offline once the package is saved. It is not a flash.")
         error?.let { MonoText(it, size = 14) }
         PixelPanel(title = "DETAILS") {
             MonoText("Identity  ${entry.product ?: "unknown"}", size = 14)

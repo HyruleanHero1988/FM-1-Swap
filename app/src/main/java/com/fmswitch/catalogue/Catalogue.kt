@@ -149,7 +149,7 @@ object SafetyNotice {
     const val TEXT =
         "Not affiliated with M-Vave. Though this utility makes every attempt to correctly reset and safely flash your device, flashing custom firmware is at your own risk."
     const val RECOVERY =
-        "If your FM-1 won't start, some firmwares can start it in USB recovery mode if you hold down the \"OCT−\" key while switching it on. Then connect it and flash a firmware from the SAVED screen. Not every firmware does this, and if yours doesn't, recovery needs a computer: SETUP says more."
+        "If your FM-1 won't start, some firmwares can start it in USB recovery mode if you hold down the \"OCT\u2212\" key while switching it on. Then connect it and flash a firmware from the SAVED screen. Not every firmware does this, and if yours doesn't, recovery needs a computer: SETUP says more."
     const val ROM_RECOVERY =
         "If the FM-1 won't start at all, not even in USB recovery mode, FM-SWITCH can't help. If a computer sees a USB device with UBOOT in its name (such as WL80UBOOT), the FM-1's chip is in its own download mode, and tools built on jl-uboot-tool can put the official firmware back. Some firmwares (Melodee, FuMi-1 and Hortator among them) publish one with instructions. If it never gets that far, recovery needs an FM-1 Transporter. FM-SWITCH hasn't tried any of these."
     val ROM_LINKS = listOf(
@@ -167,6 +167,10 @@ fun fetchBytes(url: String, maxBytes: Int? = null): ByteArray {
         setRequestProperty("User-Agent", "FM-SWITCH-Android/0.1")
         if (url.contains("api.github.com")) {
             setRequestProperty("Accept", "application/vnd.github+json")
+            val token = System.getenv("GITHUB_TOKEN") ?: System.getenv("GH_TOKEN")
+            if (!token.isNullOrBlank()) {
+                setRequestProperty("Authorization", "Bearer $token")
+            }
         }
     }
     try {

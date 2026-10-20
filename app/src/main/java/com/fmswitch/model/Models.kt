@@ -66,6 +66,9 @@ class AppSettings(private val prefs: SharedPreferences) {
     var showLinksOnly: Boolean
         get() = prefs.getBoolean("showLinksOnly", false)
         set(value) { prefs.edit().putBoolean("showLinksOnly", value).apply() }
+    var autoSaveTried: Boolean
+        get() = prefs.getBoolean("autoSaveTried", true)
+        set(value) { prefs.edit().putBoolean("autoSaveTried", value).apply() }
     /** Catalogue ids, first in this list is the top of MY CURATION. */
     var curation: List<String>
         get() = prefs.getString("curation", null).orEmpty().lineSequence().filter { it.isNotBlank() }.toList()
@@ -130,7 +133,7 @@ data class StoredFirmware(
 )
 
 /** A package ready to boot in TRY. It may live in the saved library or only in the try cache. */
-data class StagedFirmware(val file: File, val sha256: String)
+data class StagedFirmware(val file: File, val sha256: String, val savedNow: Boolean = false)
 
 @Serializable
 data class FlashRecord(
@@ -141,9 +144,21 @@ data class FlashRecord(
     val date: Long,
 )
 
-class FirmwareLibrary(private val context: Context) {
+class FirmwareLibrary internal constructor(
+    filesDir: File,
+    private val cacheDir: File,
+    private val bundledOfficial: () -> ByteArray,
+    private val fetch: (String) -> ByteArray,
+) {
+    constructor(context: Context) : this(
+        context.filesDir,
+        context.cacheDir,
+        { context.assets.open("firmware/FM-1_015.fwsc").use { it.readBytes() } },
+        ::fetchBytes,
+    )
+
     private val json = Json { ignoreUnknownKeys = true }
-    private val directory = File(context.filesDir, "firmware").apply { mkdirs() }
+    private val directory = File(filesDir, "firmware").apply { mkdirs() }
     private val indexFile = File(directory, "library.json")
     var items: List<StoredFirmware> = emptyList()
         private set
@@ -182,42 +197,54 @@ class FirmwareLibrary(private val context: Context) {
     fun loadPackage(item: StoredFirmware): FwscPackage = FwscPackage.read(file(item).readBytes())
 
     /**
-     * Bytes TRY can boot. A package already in SAVED is reused. Otherwise the file is
-     * downloaded into a cache and is not added to the library.
+     * Bytes TRY can boot. A package already in SAVED, or already fetched into the try cache, is
+     * reused without touching the network. Otherwise it is downloaded once: into SAVED when
+     * [keep] is set, else into the try cache only.
      */
-    suspend fun stageForPlay(entry: CatalogueEntry): StagedFirmware = withContext(Dispatchers.IO) {
+    suspend fun stageForPlay(entry: CatalogueEntry, keep: Boolean = false): StagedFirmware = withContext(Dispatchers.IO) {
         stored(entry)?.let { return@withContext StagedFirmware(file(it), it.sha256) }
         if (entry.isOfficial) {
             official?.let { return@withContext StagedFirmware(file(it), it.sha256) }
         }
-        val (bytes, package_) = fetchChecked(entry)
-        StagedFirmware(writeTryCache(bytes, package_.sha256), package_.sha256)
+        val cached = entry.sha256?.let { cachedPackage(it) }
+        if (cached != null && !keep) return@withContext StagedFirmware(tryCacheFile(cached.second.sha256), cached.second.sha256)
+        val (bytes, package_) = cached ?: fetchChecked(entry)
+        if (keep) {
+            val item = saveFromCatalogue(entry, bytes, package_)
+            StagedFirmware(file(item), item.sha256, savedNow = true)
+        } else {
+            StagedFirmware(writeTryCache(bytes, package_.sha256), package_.sha256)
+        }
     }
 
     suspend fun download(entry: CatalogueEntry): StoredFirmware = withContext(Dispatchers.IO) {
-        val url = entry.packageURL ?: error("No downloadable file is known for this firmware.")
         downloading = downloading + entry.id
         try {
             val cached = entry.sha256?.let { cachedPackage(it) }
-            val (bytes, package_) = if (cached != null) cached else fetchChecked(entry)
-            save(
-                bytes,
-                package_,
-                name = entry.name,
-                version = entry.version ?: package_.product,
-                author = entry.author,
-                source = if (entry.isOfficial) "official" else "catalogue",
-                catalogueID = entry.id,
-                packageURL = url,
-            )
+            val (bytes, package_) = cached ?: fetchChecked(entry)
+            saveFromCatalogue(entry, bytes, package_)
         } finally {
             downloading = downloading - entry.id
         }
     }
 
+    private fun saveFromCatalogue(entry: CatalogueEntry, bytes: ByteArray, package_: FwscPackage): StoredFirmware {
+        val url = entry.packageURL ?: error("No downloadable file is known for this firmware.")
+        return save(
+            bytes,
+            package_,
+            name = entry.name,
+            version = entry.version ?: package_.product,
+            author = entry.author,
+            source = if (entry.isOfficial) "official" else "catalogue",
+            catalogueID = entry.id,
+            packageURL = url,
+        )
+    }
+
     private fun fetchChecked(entry: CatalogueEntry): Pair<ByteArray, FwscPackage> {
         val url = entry.packageURL ?: error("No downloadable file is known for this firmware.")
-        val bytes = PackageDiscovery.firmwareBytes(fetchBytes(url))
+        val bytes = PackageDiscovery.firmwareBytes(fetch(url))
         val package_ = FwscPackage.read(bytes)
         if (entry.sha256 != null && (bytes.size != (entry.size ?: bytes.size) || package_.sha256 != entry.sha256)) {
             error("The downloaded file doesn't match its published size or checksum, so it was not saved.")
@@ -229,7 +256,7 @@ class FirmwareLibrary(private val context: Context) {
     }
 
     private fun tryCacheFile(sha256: String): File =
-        File(File(context.cacheDir, "try-packages"), "$sha256.fwsc")
+        File(File(cacheDir, "try-packages"), "$sha256.fwsc")
 
     /** A complete try-cache file whose checksum matches [sha256], or null. */
     private fun cachedPackage(sha256: String): Pair<ByteArray, FwscPackage>? {
@@ -242,7 +269,7 @@ class FirmwareLibrary(private val context: Context) {
     }
 
     private fun writeTryCache(bytes: ByteArray, sha256: String): File {
-        val dir = File(context.cacheDir, "try-packages").apply { mkdirs() }
+        val dir = File(cacheDir, "try-packages").apply { mkdirs() }
         val out = File(dir, "$sha256.fwsc")
         val partial = File(dir, "$sha256.fwsc.part")
         partial.writeBytes(bytes)
@@ -283,7 +310,7 @@ class FirmwareLibrary(private val context: Context) {
     }
 
     private fun saveBundledOfficial() {
-        val bytes = context.assets.open("firmware/FM-1_015.fwsc").use { it.readBytes() }
+        val bytes = bundledOfficial()
         val package_ = FwscPackage.read(bytes)
         if (OfficialFirmware.matching(package_) != OfficialFirmware.V15) error("bundled V15 is not official")
         save(bytes, package_, "FM-1 V15", "V15", "M-VAVE", "official", "mvave-official", null)

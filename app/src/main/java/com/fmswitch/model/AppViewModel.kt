@@ -653,14 +653,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         emulatorJob?.cancel()
         playingFirmware = entry
         emulatorPackage = EmulatorPackage.Preparing
+        val keep = settings.autoSaveTried && entry.isDownloadable
         emulatorJob = viewModelScope.launch {
+            if (keep) downloadingIds = downloadingIds + entry.id
             val prepared = try {
-                val staged = library.stageForPlay(entry)
+                val staged = library.stageForPlay(entry, keep)
+                if (staged.savedNow) libraryTick++
                 EmulatorPackage.Ready(staged.file, staged.sha256)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
                 EmulatorPackage.Failed(error.userMessage())
+            } finally {
+                if (keep) downloadingIds = downloadingIds - entry.id
             }
             if (playingFirmware?.id == entry.id) emulatorPackage = prepared
         }

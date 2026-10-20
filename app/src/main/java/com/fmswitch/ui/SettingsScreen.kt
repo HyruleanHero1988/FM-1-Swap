@@ -162,6 +162,11 @@ fun SettingsScreen(model: AppViewModel) {
                 model.settings.showLinksOnly = it
                 model.bumpTheme()
             }
+            PixelToggle("SAVE WHAT YOU TRY", model.settings.autoSaveTried) {
+                model.settings.autoSaveTried = it
+                model.bumpTheme()
+            }
+            NoteText("On, a package TRY downloads goes straight into SAVED, so playing it again or flashing it later costs no more data. Off, TRY keeps it only in a cache Android may clear. Either way, a package already on the phone is never downloaded twice.")
         }
         PixelPanel(title = "BUILD") {
             MonoText("FM-SWITCH  ${BuildConfig.VERSION_NAME}", size = 14)

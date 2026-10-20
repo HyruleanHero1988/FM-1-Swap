@@ -222,8 +222,8 @@ private fun statusLine(status: Fm1Engine.Status): String = when (status) {
     Fm1Engine.Status.Booting -> "BOOTING…"
     is Fm1Engine.Status.Running -> {
         val load = (status.load * 100).toInt()
-        if (status.load > 0.95f) "RUNNING \u00b7 LOAD $load% \u00b7 THIS PHONE IS STRUGGLING, SOUND MAY BREAK UP"
-        else "RUNNING \u00b7 100 MHz \u00b7 LOAD $load%"
+        if (status.load > 0.95f) "RUNNING · LOAD $load% · THIS PHONE IS STRUGGLING, SOUND MAY BREAK UP"
+        else "RUNNING · 100 MHz · LOAD $load%"
     }
     is Fm1Engine.Status.Stopped -> status.message
 }

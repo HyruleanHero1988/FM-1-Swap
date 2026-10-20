@@ -1,21 +1,28 @@
 package com.fmswitch.emu
 
-import com.fmswitch.catalogue.CatalogueEntry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class EmulatorClockTest {
     @Test
-    fun redtailWorksSynthsStartFasterThanTheRest() {
-        assertEquals(EmulatorClock.HEAVY, EmulatorClock.defaultFor(CatalogueEntry(id = "hub-hyp1", name = "HYP-1", author = "RedtailWorks")))
-        assertEquals(EmulatorClock.HEAVY, EmulatorClock.defaultFor(CatalogueEntry(id = "redtail-lof", name = "LOF-1")))
-        assertEquals(EmulatorClock.DEFAULT, EmulatorClock.defaultFor(CatalogueEntry(id = "felucca", name = "Felucca", author = "isod89")))
+    fun theRealFm1SpeedIsTheDefaultAndAChoice() {
+        assertEquals(240, EmulatorClock.DEFAULT)
+        assertEquals(listOf(100, 160, 240), EmulatorClock.CHOICES)
+        assertTrue(EmulatorClock.DEFAULT in EmulatorClock.CHOICES)
     }
 
     @Test
-    fun everyDefaultIsOnTheClockRow() {
-        assertTrue(EmulatorClock.DEFAULT in EmulatorClock.CHOICES)
-        assertTrue(EmulatorClock.HEAVY in EmulatorClock.CHOICES)
+    fun clockStaysAt240UntilChangesAreAllowed() {
+        assertEquals(240, EmulatorClock.effective(saved = 100, allowChanges = false))
+        assertEquals(240, EmulatorClock.effective(saved = null, allowChanges = false))
+    }
+
+    @Test
+    fun anAllowedChangeUsesTheRememberedChoice() {
+        assertEquals(100, EmulatorClock.effective(saved = 100, allowChanges = true))
+        assertEquals(160, EmulatorClock.effective(saved = 160, allowChanges = true))
+        assertEquals(240, EmulatorClock.effective(saved = null, allowChanges = true))
+        assertEquals(240, EmulatorClock.effective(saved = 90, allowChanges = true))
     }
 }

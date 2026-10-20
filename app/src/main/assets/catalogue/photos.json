@@ -1,0 +1,286 @@
+{
+  "sloop": {
+    "photoURL": "https://raw.githubusercontent.com/isod89/sloop-fm1/main/assets/screens/sloop-2.6-screens.png",
+    "photoAlt": "SLOOP 2.6 screens on the FM-1"
+  },
+  "x0x": {
+    "photoURL": "https://img.youtube.com/vi/cZLYrZaLDUk/maxresdefault.jpg",
+    "photoAlt": "X0X running on the FM-1 (watch on YouTube)"
+  },
+  "jiant": {
+    "photoURL": "https://raw.githubusercontent.com/juanjiant-bit/JIANT/main/docs/jiant-hero.png",
+    "photoAlt": "JIANT FM: the signature, the screens in the COLORS skin and what's new through 0.9.2: six navigation rules, three skins, EXPLORE, VOICE words, ANIMAL, DRUM-X octaves, REC in 64ths, the DJ FILTER and USB stems"
+  },
+  "amb": {
+    "photoURL": "https://raw.githubusercontent.com/charlesvestal/fm1-amb/main/docs/img/screen-garden.png",
+    "photoAlt": "AMB-1's screen: the garden"
+  },
+  "ghoulbox": {
+    "photoURL": "https://raw.githubusercontent.com/jasonpersinger/ghoulbox-fm1-dungeon-synth/main/docs/felucca-1.0.png",
+    "photoAlt": "Felucca 1.0"
+  },
+  "skiff": {
+    "photoURL": "https://raw.githubusercontent.com/illuminus5/skiff/main/docs/img/video_1_3.jpg",
+    "photoAlt": "Skiff 1.3 on YouTube: the FM-1's second core, 12 voices, MIDI LEARN"
+  },
+  "fomni": {
+    "photoURL": "https://img.youtube.com/vi/pahaM6nzucE/maxresdefault.jpg",
+    "photoAlt": "FoMni running on the FM-1 (watch on YouTube)"
+  },
+  "obervave": {
+    "photoURL": "https://raw.githubusercontent.com/zvenson/obervave/main/docs/screen.png",
+    "photoAlt": "OberVave's screen: program 01 DARK ARP, the ARP page with four knobs, the scope, eight voice LEDs"
+  },
+  "sloopdx": {
+    "photoURL": "https://img.youtube.com/vi/qas9XWBgpL4/maxresdefault.jpg",
+    "photoAlt": "sloopDX 2.5 in a minute (YouTube)"
+  },
+  "zp12": {
+    "photoURL": "https://raw.githubusercontent.com/zvenson/zp12/main/web/img/home.png",
+    "photoAlt": "the faders"
+  },
+  "fart": {
+    "photoURL": "https://raw.githubusercontent.com/adamcharleswilsonmusic-code/Fart-Machine-One/main/docs/images/screen-playing.png",
+    "photoAlt": "Fart Machine One screen"
+  },
+  "maku": {
+    "photoURL": "https://raw.githubusercontent.com/okumurari2/maku/main/docs/screenshot-pulse.png",
+    "photoAlt": "MAKU's screen on the FM-1: part 1 (pulse) has focus; four volume bars, BPM, and the DENS / TONE / WASH macros"
+  },
+  "jangada": {
+    "photoURL": "https://raw.githubusercontent.com/zednaked/jangada/main/docs/jangada.gif",
+    "photoAlt": "Jangada"
+  },
+  "dinghy": {
+    "photoURL": "https://raw.githubusercontent.com/zvenson/dinghy/main/docs/screen.png",
+    "photoAlt": "Dinghy's screen: the name, the note played, a keyboard with the keys that sound"
+  },
+  "fimba": {
+    "photoURL": "https://raw.githubusercontent.com/jadamsowers/fm1-fimba/main/docs/img/ringing.png",
+    "photoAlt": "The tines ringing"
+  },
+  "hortator": {
+    "photoURL": "https://raw.githubusercontent.com/deadactive/hortator/main/docs/panel.jpg",
+    "photoAlt": "FM-1 controls"
+  },
+  "rainbow": {
+    "photoURL": "https://raw.githubusercontent.com/joshbartlettband-web/felucca-rainbow/main/docs/felucca-1.0.png",
+    "photoAlt": "Felucca 1.0"
+  },
+  "orbit": {
+    "photoURL": "https://raw.githubusercontent.com/dspaudio/orbit/main/docs/orbit-preview-0.2.png",
+    "photoAlt": "Event Tape, synth, envelope, mixer and sampler screens"
+  },
+  "fumi": {
+    "photoURL": "https://raw.githubusercontent.com/cartesive/fumi-1/main/docs/img/screen-home.png",
+    "photoAlt": "FuMi-1's HOME screen: 1\u672c, A3, SUIKO tuning, the in scale, and the koto \u7434 large"
+  },
+  "chord": {
+    "photoURL": "https://raw.githubusercontent.com/math0ne/fm1-chord/main/screenshots/home_c7.png",
+    "photoAlt": "home"
+  },
+  "dub": {
+    "photoURL": "https://raw.githubusercontent.com/sbegueria/fm1-dub/main/docs/img/screen-main.png",
+    "photoAlt": "DUB-1's main screen: the piece Basic, F Dorian, 122; FULL top left, the stabs' ripples round the chord Fm7, the lanes below"
+  },
+  "coralflower": {
+    "photoURL": "https://raw.githubusercontent.com/ficusficusov/CoralFlower/main/docs/images/grow.gif",
+    "photoAlt": "A pink pixel flower growing and changing as chords are played"
+  },
+  "grimm": {
+    "photoURL": "https://raw.githubusercontent.com/grimmbient/grimm/main/docs/screens/home.png",
+    "photoAlt": "GR!MM on the FM-1: the HOME screen"
+  },
+  "bubba": {
+    "photoURL": "https://raw.githubusercontent.com/erbubar23/bubba-machine/main/assets/screens/00-home.png",
+    "photoAlt": "HOME: la consola BX-1 con las seis m\u00e1quinas"
+  },
+  "tribe": {
+    "photoURL": "https://raw.githubusercontent.com/apiel/fm1-tribe/main/docs/img/screen-splash.png",
+    "photoAlt": "TRIBE"
+  },
+  "ctl": {
+    "photoURL": "https://raw.githubusercontent.com/charlesvestal/fm1-ctl/main/docs/img/screen-play.png",
+    "photoAlt": "The Play page"
+  },
+  "waveloop": {
+    "photoURL": "https://raw.githubusercontent.com/eli7vh/Felucca/main/docs/felucca-1.0.png",
+    "photoAlt": "Felucca 1.0"
+  },
+  "vector37": {
+    "photoURL": "https://raw.githubusercontent.com/genkigenki/Vector37/main/docs/img/readme-banner.png",
+    "photoAlt": "Vector37: an orbiting overtone synth for the SMK-37, its orbit screen"
+  },
+  "sloopbanks": {
+    "photoURL": "https://raw.githubusercontent.com/majnikool/sloop-fm1/main/assets/screens/sloop-2.3-screens.png",
+    "photoAlt": "SLOOP 2.3 screens on the FM-1"
+  },
+  "salt": {
+    "photoURL": "https://raw.githubusercontent.com/ChanceTheMaker/Felucca/main/web/screenshots/stage.jpg",
+    "photoAlt": "Felucca Salt Studio in Stage Red, with browser audio and oscilloscope"
+  },
+  "noizdemons": {
+    "photoURL": "https://raw.githubusercontent.com/SPIKE-the-Percussionist/noiz_demons/main/docs/img/splash.gif",
+    "photoAlt": "The NOIZ DEMONS boot splash"
+  },
+  "floyd": {
+    "photoURL": "https://raw.githubusercontent.com/renebohne/sloop-fm1/main/assets/screens/sloop-2.3-screens.png",
+    "photoAlt": "SLOOP 2.3 screens on the FM-1"
+  },
+  "min1": {
+    "photoURL": "https://raw.githubusercontent.com/reytian/fm1-min1/main/docs/images/min1.png",
+    "photoAlt": "MIN-1 in the browser emulator: the FM-1, and its screen at twice the size"
+  },
+  "fm1-editor-april-os": {
+    "photoURL": "https://raw.githubusercontent.com/beashoko/april-os/main/assets/readme/hero.webp",
+    "photoAlt": "April"
+  },
+  "gammawave": {
+    "photoURL": "https://raw.githubusercontent.com/fvalente/GammaWave-FM1/main/docs/gw1-screens.png",
+    "photoAlt": "Pocket GammaWave (GW-1) Hardware Screens"
+  },
+  "frodhes": {
+    "photoURL": "https://raw.githubusercontent.com/leonardoMirabal/frodhes/main/docs/manual/img/thumbnail.png?v=23c51997",
+    "photoAlt": "Frodhes: the start screen (FRODHES, ELECTRIC PIANO + VIBES + MARIMBA)"
+  },
+  "zen": {
+    "photoURL": "https://raw.githubusercontent.com/aceyprime/zen-1/main/docs/img/gallery/sakura-night.png",
+    "photoAlt": "Sakura at night"
+  },
+  "mycelium": {
+    "photoURL": "https://raw.githubusercontent.com/megagott/mycelium-fm1/main/mycelium-fm1-display-original.jpg",
+    "photoAlt": "MYCELIUM running on a real FM-1"
+  },
+  "fm1-editor-araminta": {
+    "photoURL": "https://raw.githubusercontent.com/wulgaren/Araminta/main/docs/araminta.png?v=2",
+    "photoAlt": "Araminta"
+  },
+  "purplemonkey": {
+    "photoURL": "https://raw.githubusercontent.com/quixotic7/PurpleMonkeyFM1/main/docs/img/pm_screens.png",
+    "photoAlt": "screens"
+  },
+  "mc1": {
+    "photoURL": "https://raw.githubusercontent.com/dspaudio/mc-1/main/site/assets/screens/v1-home.png",
+    "photoAlt": "MC-1 home: four pattern rows, note pitches and playback cursor"
+  },
+  "golana": {
+    "photoURL": "https://raw.githubusercontent.com/Gadlele/Golana/gh-pages/img/splash.gif",
+    "photoAlt": "Golana's power-on animation"
+  },
+  "fm1-editor-melodee-tess": {
+    "photoURL": "https://raw.githubusercontent.com/rastapopolix/melodee-tess/main/docs/media/splash_tess.png",
+    "photoAlt": "Melodee (Tess) boot splash: MELODEE, TESS, MULTI-ENGINE SYNTH"
+  },
+  "fm1-editor-fm-lab": {
+    "photoURL": "https://raw.githubusercontent.com/jsmith13/fm_lab/main/docs/screen.png",
+    "photoAlt": "FM Lab drawing algorithm 16 with a note held: operator 1 at the bottom as the only carrier, fed by operators 2, 3 and 5, with 4 above 3 and 6 above 5 carrying the feedback, and every box part filled to show how loud that operator is at this instant"
+  },
+  "fm1-editor-monk-1": {
+    "photoURL": "https://raw.githubusercontent.com/charlesvestal/fm1-monk/main/docs/img/screen-singing.png",
+    "photoAlt": "Jerry the monk singing, mouth wide open, in front of mountains and prayer flags"
+  },
+  "fm1-editor-trumpagotchi": {
+    "photoURL": "https://raw.githubusercontent.com/adamcharleswilsonmusic-code/Trumpagotchi/main/docs/trumpagotchi-quick-start.png",
+    "photoAlt": "Trumpagotchi controls"
+  },
+  "fmel": {
+    "photoURL": "https://raw.githubusercontent.com/antonioaltea/fmel-1/main/web/emu/img/choir.png",
+    "photoAlt": "The choir tape"
+  },
+  "386dx": {
+    "photoURL": "https://img.youtube.com/vi/pwLnpyxqBS4/maxresdefault.jpg",
+    "photoAlt": "The 386DX trailer"
+  },
+  "fm1-editor-lcd-4": {
+    "photoURL": "https://raw.githubusercontent.com/devrvega/LCD-4/main/docs/img/lcd4.gif",
+    "photoAlt": "LCD-4 on the FM-1's screen: the drummer, the lab, the sunset, the platform game, the monster, the rocket, the submarine"
+  },
+  "minitone": {
+    "photoURL": "https://raw.githubusercontent.com/eldontyrellcorp/Mini-Tone/main/docs/controls.jpg",
+    "photoAlt": "FM-1 controls with Felucca"
+  },
+  "fm1gm": {
+    "photoURL": "https://raw.githubusercontent.com/jartificer/fm1-gm/main/docs/fm1gm-collage.png",
+    "photoAlt": "FM1-GM in the web emulator: a white FM-1 panel in the Song view, with the Bar, Track, Mix, Songs and Setup screens and the LIGHT colour scheme"
+  },
+  "fm1-editor-mocky": {
+    "photoURL": "https://raw.githubusercontent.com/charlesvestal/fm1-mocky/main/docs/img/welcome.png",
+    "photoAlt": "The welcome screen"
+  },
+  "beetle": {
+    "photoURL": "https://raw.githubusercontent.com/sikkenworks/BEETLE/main/BEETLE.png",
+    "photoAlt": "BEETLE"
+  },
+  "x0xrmx": {
+    "photoURL": "https://img.youtube.com/vi/cZLYrZaLDUk/maxresdefault.jpg",
+    "photoAlt": "X0X running on the FM-1 (watch on YouTube)"
+  },
+  "niagara": {
+    "photoURL": "https://raw.githubusercontent.com/evanyerburgh/niagara-drift/main/docs/img/panel.png",
+    "photoAlt": "The FM-1 with what every control does in Niagara Drift written on it"
+  },
+  "fm1-editor-fantasma": {
+    "photoURL": "https://raw.githubusercontent.com/Gadlele/Fantasma/gh-pages/img/splash.gif",
+    "photoAlt": "Fantasma's power-on animation"
+  },
+  "fmini": {
+    "photoURL": "https://raw.githubusercontent.com/ruppert/fmini-1/main/assets/readme/screen-splash.png",
+    "photoAlt": "Splash screen"
+  },
+  "shineon": {
+    "photoURL": "https://raw.githubusercontent.com/zvenson/shineon/main/docs/screen.png",
+    "photoAlt": "Shine On's screen: program 01 ENSEMBLE, the PERFORM page with four knobs, the scope, sixteen keyer LEDs"
+  },
+  "fm1-editor-doom-fm1-smk": {
+    "photoURL": "https://raw.githubusercontent.com/chancethemaker/doom-fm1-smk/main/site/screenshots/splash.png",
+    "photoAlt": "Native Doom splash"
+  },
+  "emb": {
+    "photoURL": "https://raw.githubusercontent.com/MikeTsak/Evanders-Music-Box--FM-1-LARP-firmware/main/assets/screenshots/web_emulator.png",
+    "photoAlt": "Evander's Box Web Emulator Interface"
+  },
+  "fm1-editor-gator": {
+    "photoURL": "https://raw.githubusercontent.com/npi3pak/fm1-gator/main/docs/img/gator.jpg",
+    "photoAlt": "GATOR"
+  },
+  "ketch": {
+    "photoURL": "https://raw.githubusercontent.com/risseraka/fm1-tracker-ketch/main/docs/screens/guide-S.png",
+    "photoAlt": "The song screen"
+  },
+  "fm1-editor-bop-1": {
+    "photoURL": "https://raw.githubusercontent.com/devrvega/BOP-1/main/docs/img/bop1.gif",
+    "photoAlt": "BOP-1 on the FM-1's screen: a friend singing, changing shape and place, then the Make and Lab doors"
+  },
+  "kawa": {
+    "photoURL": "https://raw.githubusercontent.com/guizmoh/Kawa-Tracker-Fm1/main/manual/img/kawa-preview.png",
+    "photoAlt": "KAWA, Pocket Tracker for the M-VAVE FM-1"
+  },
+  "fm1-editor-loom-fm-1": {
+    "photoURL": "https://raw.githubusercontent.com/Co-oscillator/Loom-FM-1/main/docs/5%20Track%20Mixer.png",
+    "photoAlt": "5-Track Mixer"
+  },
+  "morpheus": {
+    "photoURL": "https://raw.githubusercontent.com/benbadio/morpheus-fm1/main/assets/morpheus_banner.png",
+    "photoAlt": "MORPHEUS 8-Track Groovebox Banner"
+  },
+  "fm1-editor-mutable-dreams": {
+    "photoURL": "https://raw.githubusercontent.com/kidbee85-beep/mutable-dreams/main/Screen-Live.png",
+    "photoAlt": "Actual firmware live display"
+  },
+  "opn1": {
+    "photoURL": "https://raw.githubusercontent.com/putchdev/opn-1/main/docs/screens/fm1-sound.png",
+    "photoAlt": "The FM-1 play screen: patch B1 04, its algorithm and the sound knobs"
+  },
+  "fm1-editor-prysm": {
+    "photoURL": "https://raw.githubusercontent.com/nicholaspratt/Prysm/main/docs/screen.png",
+    "photoAlt": "Prysm's OSC 1 page: a VOCAL carrier modulated by a CMPLX wave"
+  },
+  "fm1-editor-rom-1": {
+    "photoURL": "https://raw.githubusercontent.com/devrvega/ROM-1/main/docs/img/rom1.gif",
+    "photoAlt": "ROM-1 on the FM-1's screen: the sixteen parts' levels, the preset's name in big dots, the part's knobs"
+  },
+  "sid1": {
+    "photoURL": "https://raw.githubusercontent.com/putchdev/sid-1/main/docs/images/fm1-sound.png",
+    "photoAlt": "The FM-1's SOUND page: SWEEP PAD's pulse wave, its filter and the main knobs"
+  }
+}

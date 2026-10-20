@@ -16,8 +16,7 @@ Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 The debug APK is on [Releases](https://github.com/HyruleanHero1988/FM-SWITCH/releases)
 (`FM-SWITCH-debug.apk`). Sideload it on a phone; USB MIDI to the FM-1 does not work on an emulator.
 
-GitHub Actions also attaches `app-debug` on each green [CI run](https://github.com/HyruleanHero1988/FM-SWITCH/actions),
-but that zip is easy to miss and is not the repo homepage.
+Tapping a new APK used to fail with **App not installed** because every CI run signed with a throwaway debug key and `versionCode` never left 1. Builds now share one committed debug key and a rising versionCode. **Uninstall FM-SWITCH once**, then install this APK; after that, the next download updates in place. GitHub Actions also attaches `app-debug` on each green [CI run](https://github.com/HyruleanHero1988/FM-SWITCH/actions).
 
 ## What it does
 
@@ -92,7 +91,7 @@ file is missing. Enable Actions on the GitHub repo if the workflow is waiting fo
    ready as a fallback.
 4. Unplug mid-write on purpose and confirm **RESUME** finishes it.
 
-If the FM-1 won't start, some firmwares boot USB recovery with **OCT−** held at power-on.
+If the FM-1 won't start, some firmwares boot USB recovery with **OCT\u2212** held at power-on.
 That is a firmware feature, not a ROM one. Official V15 and Felucca 1.6.1 do not offer it.
 A bricked chip that shows up as `WL80UBOOT` needs a computer and jl-uboot-tool;
 FM-SWITCH cannot help there.

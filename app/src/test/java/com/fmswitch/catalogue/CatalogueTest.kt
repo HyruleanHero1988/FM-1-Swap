@@ -42,6 +42,10 @@ class EditorListingTest {
         )
         assertEquals("SLOOP's tracks screen, with its four tracks playing", listing.entries.single { it.anchor == "sloop" }.photoAlt)
         assertNull(clipper.photoURL)
+        val open = listing.entries.single { it.anchor == "official-open" }
+        assertTrue(open.pinned)
+        assertEquals(151, open.stars)
+        assertTrue(open.links.any { it.url == "https://open.m-vave.com/fm1-workbench" })
         assertEquals(
             "https://fm1-editor.com/assets/firmware-fm1-va.webp",
             listing.entries.single { it.anchor == "baud-girl" }.photoURL,
@@ -76,7 +80,13 @@ class CatalogueBuilderTest {
         assertNull(baud.packageURL)
         assertTrue(baud.links.any { it.label == "fm1-editor.com listing" })
         assertEquals(1, merged.count { it.isOfficial })
-        assertTrue(merged.any { it.id == "fm1-editor-official-open" })
+        val open = merged.single { it.id == "fm1-editor-official-open" }
+        assertEquals("Official Open", open.name)
+        assertEquals("M-VAVE", open.author)
+        assertTrue(open.pinned)
+        assertEquals(151, open.stars)
+        assertFalse(open.isOfficial)
+        assertNull(open.packageURL)
         val clipper = merged.single { it.id == "fm1-editor-clipper" }
         assertEquals("Clipper", clipper.name)
         assertEquals("1.0", clipper.version)
@@ -142,7 +152,7 @@ class CatalogueBuilderTest {
         assertEquals("redtail-eco", merged.single { it.name == "ECO-1" }.id)
         assertEquals("redtail-grav", merged.single { it.name == "GRAV-1" }.id)
         assertTrue(merged.none { it.name.contains("OPEN-1") })
-        assertEquals("Hold OCT\u2212 and OCT+ for 5 s while it runs", RescueMode.summary("redtail-lof"))
+        assertEquals("Hold OCT− and OCT+ for 5 s while it runs", RescueMode.summary("redtail-lof"))
         assertEquals(RescueMode.summary("hyp1"), RescueMode.summary("redtail-grav"))
     }
 }
@@ -220,6 +230,23 @@ class PackageDiscoveryTest {
     }
 
     @Test
+    fun unwrapsOfficialOpenFwscEmbeddedInTheWorkbench() {
+        val html = """
+            <script>FM1_PACKAGE = {"schema":1,"product":"FM-1_8000014","profile":"dx7","release_version":"V14","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","bytes":4,"data":"AQIDBA=="};</script>
+        """.trimIndent()
+        val found = PackageDiscovery.workbenchPackage(html, "https://github.com/m-vave/fm1_open/releases/download/V14/FM1-Open-V14-Workbench.html")
+        assertNotNull(found)
+        assertEquals("https://github.com/m-vave/fm1_open/releases/download/V14/FM1-Open-V14-Workbench.html", found!!.url)
+        assertEquals("V14", found.version)
+        assertEquals("FM-1_8000014", found.product)
+        assertEquals(4, found.size)
+        assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", found.sha256)
+        assertEquals(byteArrayOf(1, 2, 3, 4).toList(), PackageDiscovery.firmwareBytes(html.toByteArray()).toList())
+        val plain = byteArrayOf(0x46, 0x4d, 0x2d, 0x31)
+        assertEquals(plain.toList(), PackageDiscovery.firmwareBytes(plain).toList())
+    }
+
+    @Test
     fun readsRedtailInstallerMetaAndIgnoresSiblingPackFiles() {
         val found = PackageDiscovery.installerMetaPackage(
             """<script>const meta = {"version": "0.0.77", "product": "FM-1_7000077", "pkg": "../firmware/lof1-0.0.77.fwsc"};</script>""",
@@ -250,14 +277,17 @@ class PackageDiscoveryTest {
 }
 
 private const val EDITOR_HTML = """
-<article class="firmware-entry synthwave-panel" id="official-open" data-updated="2026-10-14">
+<article class="firmware-entry synthwave-panel" id="official-open" data-pinned data-updated="2026-10-14">
   <p class="synthwave-kicker">M-VAVE</p>
   <h2>Official Open</h2>
-  <p class="firmware-status"><span>Latest V12</span></p>
+  <p class="firmware-status">
+    <span>Latest V12</span>
+    <span class="firmware-stars" title="151 stars on GitHub">151</span>
+  </p>
   <p class="firmware-blurb">M-VAVE's own open-source firmware.</p>
   <ul class="firmware-links">
+    <li><a href="https://open.m-vave.com/fm1-workbench">FM1 Workbench</a></li>
     <li><a href="https://github.com/m-vave/fm1_open">Source</a></li>
-    <li><a href="https://www.m-vave.com/download">FM1 Workbench</a></li>
   </ul>
 </article>
 <article class="firmware-entry synthwave-panel" id="stock" data-updated="2026-07-30">
@@ -307,7 +337,7 @@ private const val EDITOR_HTML = """
   <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true"><span>Clipper</span></figure>
   <p class="synthwave-kicker">isod89</p>
   <h2>Clipper</h2>
-  <p class="firmware-status"><span>Experimental \u00b7 Latest 1.0</span></p>
+  <p class="firmware-status"><span>Experimental · Latest 1.0</span></p>
   <p class="firmware-blurb">A synthesizer from SLOOP, with 23 engines and 407 sounds.</p>
   <ul class="firmware-links">
     <li><a href="https://isod89.github.io/clipper-fm1/webapp/installer/">Install</a></li>

@@ -189,6 +189,9 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         }
     }
     confirming?.let { item ->
-        FlashConfirmSheet(model, item, entry.requiresOfficialFirmware) { confirming = null }
+        FlashConfirmSheet(model, item, entry.requiresOfficialFirmware) {
+            confirming = null
+            if (!model.isWriting) model.scan(force = true)
+        }
     }
 }

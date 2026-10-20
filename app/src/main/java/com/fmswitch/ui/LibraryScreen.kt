@@ -113,7 +113,10 @@ fun LibraryScreen(model: AppViewModel) {
     }
     flashing?.let { item ->
         val requires = item.catalogueID?.let { model.catalogue.entry(it)?.requiresOfficialFirmware } ?: false
-        FlashConfirmSheet(model, item, requires) { flashing = null }
+        FlashConfirmSheet(model, item, requires) {
+            flashing = null
+            if (!model.isWriting) model.scan(force = true)
+        }
     }
 }
 

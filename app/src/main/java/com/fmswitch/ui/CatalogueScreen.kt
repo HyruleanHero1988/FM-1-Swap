@@ -96,6 +96,10 @@ fun CatalogueScreen(model: AppViewModel) {
             Spacer(Modifier.height(8.dp))
             MonoText(it, size = 13)
         }
+        if (model.catalogue.isRefreshing && visible.size <= 1) {
+            Spacer(Modifier.height(16.dp))
+            MonoText("Fetching the catalogue…", size = 14, dim = true)
+        }
         if (visible.isEmpty() && !model.catalogue.isRefreshing) {
             Spacer(Modifier.height(16.dp))
             MonoText("No firmwares match. Refresh the list, or turn on LINKS-ONLY under SETUP if you want listings without a package.", size = 14, dim = true)
@@ -122,7 +126,7 @@ fun CatalogueScreen(model: AppViewModel) {
                         BasicText(entry.name.uppercase(), style = pixelText(13.sp, bold = true, color = theme.bright))
                         MonoText("${entry.author ?: "unknown"}  ·  ${entry.version ?: ""}", size = 13, dim = true)
                         val rankBits = buildList {
-                            entry.stars?.takeIf { it > 0 }?.let { add("\u2605 $it") }
+                            entry.stars?.takeIf { it > 0 }?.let { add("★ $it") }
                             if (entry.pinned) add("PINNED")
                         }
                         if (rankBits.isNotEmpty()) MonoText(rankBits.joinToString("  ·  "), size = 12, dim = true)
@@ -167,7 +171,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PixelButton("\u25c2 BACK", compact = true, onClick = onBack)
+            PixelButton("◂ BACK", compact = true, onClick = onBack)
             Spacer(Modifier.weight(1f))
             if (entry.isOfficial) PixelTag("OFFICIAL")
             if (entry.beta) PixelTag("BETA", inverted = false)
@@ -198,7 +202,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         PixelPanel(title = "DETAILS") {
             MonoText("Identity  ${entry.product ?: "unknown"}", size = 14)
             MonoText("Size  ${entry.size?.let { formattedBytes(it) } ?: "unknown"}", size = 14)
-            entry.sha256?.let { MonoText("SHA-256  ${it.take(16)}\u2026", size = 14) }
+            entry.sha256?.let { MonoText("SHA-256  ${it.take(16)}…", size = 14) }
             if (entry.requiresOfficialFirmware) MonoText("Needs official firmware running first.", size = 14)
             RescueMode.summary(entry.id)?.let { MonoText("USB recovery  $it", size = 14) }
             entry.stars?.takeIf { it > 0 }?.let { MonoText("GitHub stars  $it", size = 14) }
@@ -208,7 +212,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
             PixelPanel(title = "LINKS") {
                 entry.links.forEach { link ->
                     BasicText(
-                        "\u25b8 ${link.label.uppercase()}",
+                        "▸ ${link.label.uppercase()}",
                         style = pixelText(11.sp, bold = true, color = theme.bright),
                         modifier = Modifier
                             .padding(vertical = 4.dp)

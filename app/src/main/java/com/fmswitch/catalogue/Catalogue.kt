@@ -123,16 +123,16 @@ object HubFeed {
 
 object RescueMode {
     fun summary(id: String): String? = when (id) {
-        "choralroot" -> "Hold OCT\u2212 while switching on (from 0.16)"
+        "choralroot" -> "Hold OCT− while switching on (from 0.16)"
         "dinghy", "etch", "floyd", "ghoulbox", "jangada", "sloop", "sloopbanks", "sloopdx", "winampfm", "zp12",
         "fm1-editor-clipper",
         ->
-            "Hold OCT\u2212 while switching on"
-        "melodee" -> "Hold OCT\u2212 while switching on (from 1.3.5)"
+            "Hold OCT− while switching on"
+        "melodee" -> "Hold OCT− while switching on (from 1.3.5)"
         "fimba", "fumi", "hyp1", "redtail-hyp", "redtail-lof", "redtail-eco", "redtail-grav" ->
-            "Hold OCT\u2212 and OCT+ for 5 s while it runs"
-        "felucca" -> "None: OCT\u2212 at switch-on starts it as usual (tried on 1.6.1)"
-        "mvave-official" -> "None: OCT\u2212 at switch-on starts it as usual (tried on V15)"
+            "Hold OCT− and OCT+ for 5 s while it runs"
+        "felucca" -> "None: OCT− at switch-on starts it as usual (tried on 1.6.1)"
+        "mvave-official" -> "None: OCT− at switch-on starts it as usual (tried on V15)"
         else -> null
     }
 }
@@ -142,7 +142,7 @@ object SafetyNotice {
     const val TEXT =
         "Not affiliated with M-Vave. Though this utility makes every attempt to correctly reset and safely flash your device, flashing custom firmware is at your own risk."
     const val RECOVERY =
-        "If your FM-1 won't start, some firmwares can start it in USB recovery mode if you hold down the \"OCT\u2212\" key while switching it on. Then connect it and flash a firmware from the SAVED screen. Not every firmware does this, and if yours doesn't, recovery needs a computer: SETUP says more."
+        "If your FM-1 won't start, some firmwares can start it in USB recovery mode if you hold down the \"OCT−\" key while switching it on. Then connect it and flash a firmware from the SAVED screen. Not every firmware does this, and if yours doesn't, recovery needs a computer: SETUP says more."
     const val ROM_RECOVERY =
         "If the FM-1 won't start at all, not even in USB recovery mode, FM-SWITCH can't help. If a computer sees a USB device with UBOOT in its name (such as WL80UBOOT), the FM-1's chip is in its own download mode, and tools built on jl-uboot-tool can put the official firmware back. Some firmwares (Melodee, FuMi-1 and Hortator among them) publish one with instructions. If it never gets that far, recovery needs an FM-1 Transporter. FM-SWITCH hasn't tried any of these."
     val ROM_LINKS = listOf(
@@ -151,7 +151,7 @@ object SafetyNotice {
     )
 }
 
-fun fetchBytes(url: String): ByteArray {
+fun fetchBytes(url: String, maxBytes: Int? = null): ByteArray {
     val connection = (URL(url).openConnection() as HttpURLConnection).apply {
         connectTimeout = 20_000
         readTimeout = 60_000
@@ -162,10 +162,24 @@ fun fetchBytes(url: String): ByteArray {
             setRequestProperty("Accept", "application/vnd.github+json")
         }
     }
-    connection.inputStream.use { input ->
-        val code = connection.responseCode
-        if (code !in 200..299) error("HTTP $code")
-        return input.readBytes()
+    try {
+        connection.inputStream.use { input ->
+            val code = connection.responseCode
+            if (code !in 200..299) error("HTTP $code")
+            if (maxBytes == null) return input.readBytes()
+            val out = java.io.ByteArrayOutputStream(maxBytes.coerceAtMost(64 * 1024))
+            val buf = ByteArray(8192)
+            var total = 0
+            while (total < maxBytes) {
+                val n = input.read(buf, 0, minOf(buf.size, maxBytes - total))
+                if (n <= 0) break
+                out.write(buf, 0, n)
+                total += n
+            }
+            return out.toByteArray()
+        }
+    } finally {
+        connection.disconnect()
     }
 }
 

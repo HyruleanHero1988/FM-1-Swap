@@ -65,12 +65,22 @@ fun RootScreen(model: AppViewModel) {
                 PixelTabBar(model)
             }
             if (model.job != null) {
-                Box(Modifier.fillMaxSize().background(theme.background)) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(theme.background)
+                        .windowInsetsPadding(WindowInsets.navigationBars),
+                ) {
                     FlashScreen(model)
                 }
             }
             if (model.needsSafetyNotice) {
-                Box(Modifier.fillMaxSize().background(theme.background)) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(theme.background)
+                        .windowInsetsPadding(WindowInsets.navigationBars),
+                ) {
                     SafetyNoticeScreen(model)
                 }
             }

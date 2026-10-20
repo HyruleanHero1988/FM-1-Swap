@@ -1,0 +1,25 @@
+[package]
+name = "fm1-jni"
+description = "FM-SWITCH's native FM-1 emulator: fm1-emu's machine behind a JNI surface"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[lib]
+name = "fm1emu"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# scripts/build-fm1-native.sh checks fm1-emu out at a pinned commit beside this crate.
+fm1-core = { path = "../fm1-emu-src/crates/fm1-core" }
+fm1-soc = { path = "../fm1-emu-src/crates/fm1-soc" }
+jni-sys = "0.3"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "unwind"
+
+[workspace]

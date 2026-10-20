@@ -41,6 +41,10 @@ data class CatalogueEntry(
     val loader: String? = null,
     val links: List<CatalogueLink> = emptyList(),
     val stars: Int? = null,
+    val installs: Int? = null,
+    val pinned: Boolean = false,
+    val photoURL: String? = null,
+    val photoAlt: String? = null,
     val isOfficial: Boolean = false,
 ) {
     val requiresOfficialFirmware: Boolean get() = loader?.lowercase() == "mvave"
@@ -105,6 +109,7 @@ object HubFeed {
             loader = obj.str("loader"),
             links = links,
             stars = obj["stars"]?.jsonPrimitive?.intOrNull,
+            installs = obj["installs"]?.jsonPrimitive?.intOrNull,
         )
     }
 

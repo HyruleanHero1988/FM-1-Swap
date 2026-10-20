@@ -11,6 +11,14 @@ object Html {
         }.toList()
     }
 
+    /** Void tags such as `<img>`, which have no closing tag. */
+    fun voids(tag: String, html: String): List<Element> {
+        val pattern = Regex("(?si)<$tag((?:[ \t\n\r][^>]*)?)/?>")
+        return pattern.findAll(html).map { match ->
+            Element(attributes(match.groupValues[1]), "")
+        }.toList()
+    }
+
     fun attributes(text: String): Map<String, String> {
         val pattern = Regex(
             """(?s)([A-Za-z_:][-A-Za-z0-9_:.]*)(?:[ \t\n\r]*=[ \t\n\r]*(?:"([^"]*)"|'([^']*)'|([^ \t\n\r"'>]+)))?""",

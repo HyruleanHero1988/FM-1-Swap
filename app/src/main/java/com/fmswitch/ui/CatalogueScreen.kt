@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -24,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -103,23 +106,41 @@ fun CatalogueScreen(model: AppViewModel) {
                         .fillMaxWidth()
                         .clickable { selected = entry }
                         .background(theme.surface)
-                        .padding(12.dp),
+                        .padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    FirmwarePhoto(
+                        url = entry.photoURL,
+                        alt = entry.photoAlt ?: entry.name,
+                        modifier = Modifier.size(76.dp, 56.dp),
+                        placeholder = entry.name.take(4),
+                    )
+                    Spacer(Modifier.width(10.dp))
                     Column(Modifier.weight(1f)) {
                         BasicText(entry.name.uppercase(), style = pixelText(13.sp, bold = true, color = theme.bright))
                         MonoText("${entry.author ?: "unknown"}  ·  ${entry.version ?: ""}", size = 13, dim = true)
+                        val rankBits = buildList {
+                            entry.stars?.takeIf { it > 0 }?.let { add("★ $it") }
+                            if (entry.pinned) add("PINNED")
+                        }
+                        if (rankBits.isNotEmpty()) MonoText(rankBits.joinToString("  ·  "), size = 12, dim = true)
                     }
-                    if (entry.isOfficial) PixelTag("OFFICIAL")
-                    else if (entry.beta) PixelTag("BETA", inverted = false)
-                    if (saved) {
-                        Spacer(Modifier.padding(4.dp))
-                        PixelTag("SAVED")
+                    Column(horizontalAlignment = Alignment.End) {
+                        if (entry.isOfficial) PixelTag("OFFICIAL")
+                        else if (entry.beta) PixelTag("BETA", inverted = false)
+                        if (saved) {
+                            Spacer(Modifier.height(4.dp))
+                            PixelTag("SAVED")
+                        }
                     }
                 }
             }
         }
         model.catalogue.catalogue?.hubUpdated?.let {
-            NoteText("Hub rebuilt $it")
+            NoteText("Hub rebuilt $it · listed by GitHub stars, official first")
+        }
+        if (model.catalogue.catalogue?.hubUpdated == null) {
+            NoteText("Listed by GitHub stars, official V15 first. Shots from fm1-editor.com.")
         }
     }
 }
@@ -150,6 +171,12 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         }
         BasicText(entry.name.uppercase(), style = pixelText(24.sp, bold = true, color = theme.bright, glow = true))
         MonoText("${entry.author ?: ""}  ·  ${entry.version ?: ""}  ·  ${entry.product ?: ""}", size = 14, dim = true)
+        FirmwarePhoto(
+            url = entry.photoURL,
+            alt = entry.photoAlt ?: entry.name,
+            modifier = Modifier.fillMaxWidth().height(180.dp),
+            placeholder = "NO SCREENSHOT YET",
+        )
         entry.what?.let { MonoText(it, size = 15) }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (stored == null && entry.isDownloadable) {
@@ -171,6 +198,8 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
             entry.sha256?.let { MonoText("SHA-256  ${it.take(16)}…", size = 14) }
             if (entry.requiresOfficialFirmware) MonoText("Needs official firmware running first.", size = 14)
             RescueMode.summary(entry.id)?.let { MonoText("USB recovery  $it", size = 14) }
+            entry.stars?.takeIf { it > 0 }?.let { MonoText("GitHub stars  $it", size = 14) }
+            entry.installs?.takeIf { it > 0 }?.let { MonoText("Hub installs  $it", size = 14) }
         }
         if (entry.links.isNotEmpty()) {
             PixelPanel(title = "LINKS") {

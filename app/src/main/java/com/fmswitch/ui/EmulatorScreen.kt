@@ -101,7 +101,7 @@ fun EmulatorScreen(
                     .widthIn(max = 148.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                PixelButton("\u25c2 BACK", compact = true, onClick = onBack)
+                PixelButton("◂ BACK", compact = true, onClick = onBack)
                 BasicText(entry.name.uppercase(), style = pixelText(13.sp, bold = true, color = theme.bright, glow = true))
                 if (authorEmulator != null) {
                     PixelButton("AUTHOR'S EMU", compact = true) {
@@ -121,7 +121,7 @@ fun EmulatorScreen(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            PixelButton("\u25c2 BACK", compact = true, onClick = onBack)
+            PixelButton("◂ BACK", compact = true, onClick = onBack)
             if (authorEmulator != null) {
                 PixelButton("AUTHOR'S EMU", compact = true) {
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(authorEmulator)))
@@ -130,7 +130,7 @@ fun EmulatorScreen(
         }
         BasicText(entry.name.uppercase(), style = pixelText(16.sp, bold = true, color = theme.bright, glow = true))
         when (prepared) {
-            EmulatorPackage.Preparing -> MonoText("FETCHING THE PACKAGE YOU WOULD FLASH\u2026", size = 13, dim = true)
+            EmulatorPackage.Preparing -> MonoText("FETCHING THE PACKAGE YOU WOULD FLASH…", size = 13, dim = true)
             is EmulatorPackage.Failed -> {
                 MonoText("Couldn't get this firmware's package: ${prepared.message}", size = 14)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -157,7 +157,7 @@ private fun RunningEmulator(
     }
     val running = engine
     if (running == null) {
-        MonoText("BOOTING\u2026", size = 13, dim = true)
+        MonoText("BOOTING…", size = 13, dim = true)
         return
     }
     DisposableEffect(running) { onDispose { running.close() } }
@@ -197,11 +197,11 @@ private fun RunningEmulator(
 }
 
 private fun statusLine(status: Fm1Engine.Status): String = when (status) {
-    Fm1Engine.Status.Booting -> "BOOTING\u2026"
+    Fm1Engine.Status.Booting -> "BOOTING…"
     is Fm1Engine.Status.Running -> {
         val load = (status.load * 100).toInt()
-        if (status.load > 0.95f) "RUNNING \u00b7 LOAD $load% \u00b7 THIS PHONE IS STRUGGLING, SOUND MAY BREAK UP"
-        else "RUNNING \u00b7 100 MHz \u00b7 LOAD $load%"
+        if (status.load > 0.95f) "RUNNING · LOAD $load% · THIS PHONE IS STRUGGLING, SOUND MAY BREAK UP"
+        else "RUNNING · 100 MHz · LOAD $load%"
     }
     is Fm1Engine.Status.Stopped -> status.message
 }

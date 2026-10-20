@@ -30,7 +30,7 @@ data class DiscoveredPackage(
  */
 object PackageDiscovery {
     private val json = Json { ignoreUnknownKeys = true }
-    private val fm1Identity = Regex("""^FM-1_\\d+$""")
+    private val fm1Identity = Regex("^FM-1_[0-9]+$")
 
     @Serializable
     data class ManifestRelease(
@@ -146,13 +146,23 @@ object PackageDiscovery {
     fun packageLinks(html: String, pageUrl: String): List<String> {
         val page = URI(pageUrl)
         val found = ArrayList<String>()
-        val pattern = Regex("""[\"'(=]([^\"'()<>\\s]*[A-Za-z0-9_\\-.+%].fwsc)(?=[\"'()<>\\s?#])""")
-        for (match in pattern.findAll(html)) {
-            val url = runCatching { page.resolve(match.groupValues[1]).toString() }.getOrNull() ?: continue
-            if (!url.startsWith("http")) continue
-            val file = runCatching { URI(url).path.substringAfterLast('/') }.getOrNull() ?: continue
-            if (file.equals("FM-1.fwsc", ignoreCase = true)) continue
+        fun add(relative: String) {
+            val url = runCatching { page.resolve(relative).toString() }.getOrNull() ?: return
+            if (!url.startsWith("http")) return
+            val file = runCatching { URI(url).path.substringAfterLast('/') }.getOrNull() ?: return
+            if (!file.lowercase().endsWith(".fwsc")) return
+            if (file.equals("FM-1.fwsc", ignoreCase = true)) return
             if (url !in found) found += url
+        }
+        for (anchor in Html.elements("a", html)) {
+            val href = anchor.attributes["href"] ?: continue
+            if (href.lowercase().contains(".fwsc")) add(href)
+        }
+        // No capturing group: match.value is the path. Clipper's installer uses a relative
+        // ../../firmware/clipper-1.0-experimental.fwsc href, not always a closed <a> tag.
+        val pattern = Regex("[A-Za-z0-9_./%+-]+[.]fwsc")
+        for (match in pattern.findAll(html)) {
+            add(match.value)
         }
         return found
     }

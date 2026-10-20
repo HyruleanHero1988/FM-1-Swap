@@ -24,8 +24,8 @@ class MainActivity : ComponentActivity() {
             isAppearanceLightNavigationBars = false
         }
         setContent {
-            LaunchedEffect(model.isWriting) {
-                if (model.isWriting) {
+            LaunchedEffect(model.isWriting, model.playingFirmware) {
+                if (model.isWriting || model.playingFirmware != null) {
                     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 } else {
                     window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)

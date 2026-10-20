@@ -1,14 +1,22 @@
 package com.fmswitch.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.fmswitch.fm1kit.FM1Identity
 import com.fmswitch.model.AppTab
 import com.fmswitch.model.AppViewModel
+import com.fmswitch.model.MidiCheck
 import com.fmswitch.theme.BlinkingCursor
 import com.fmswitch.theme.LocalPhosphor
 import com.fmswitch.theme.MonoText
@@ -65,7 +74,7 @@ fun DeviceScreen(model: AppViewModel) {
         if (identity == null) {
             PixelPanel(title = "CONNECT") {
                 MonoText(
-                    "Plug the FM-1 into this Android device with a USB-C cable. Class-compliant USB-MIDI is enough; no extra driver. Or pick SIMULATED FM-1 under SETUP to try the protocol without hardware.",
+                    "Plug the FM-1 into this Android device with a USB-C cable. Class-compliant USB-MIDI is enough; no extra driver. SIMULATED FM-1 under SETUP is a protocol dummy for flashing tests, not a synth. To hear a firmware before you write it, open FIRMWARE and press TRY.",
                     size = 14,
                 )
             }
@@ -94,6 +103,47 @@ fun DeviceScreen(model: AppViewModel) {
                 PixelButton("RESTORE FACTORY VOICES", enabled = !model.isWriting) { restoring = true }
             }
         }
+        if (identity != null) {
+            PixelPanel(title = "MIDI CHECK") {
+                MonoText(
+                    "Sends a short C–E–G–C on channels 1 and 2, then asks the FM-1 who it is again. If you hear it, notes are getting through. If the identity still sticks, the USB-MIDI port didn't drop. Grooveboxes like SLOOP may stay quiet on a plain note — the handshake after is the cable test.",
+                    size = 14,
+                )
+                PixelButton(
+                    if (model.isCheckingMidi) "PLAYING" else "PLAY TEST NOTES",
+                    prominent = true,
+                    enabled = !model.isWriting && !model.isCheckingMidi,
+                ) { model.playTestNotes() }
+                Spacer(Modifier.height(8.dp))
+                MonoText("HOLD A KEY", size = 12, dim = true)
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
+                    LIVE_KEYS.forEach { (label, note) ->
+                        MidiHoldKey(
+                            label = label,
+                            enabled = !model.isWriting && !model.isCheckingMidi,
+                            onDown = { model.sendLiveNote(note, true) },
+                            onUp = { model.sendLiveNote(note, false) },
+                        )
+                    }
+                }
+                when (val check = model.midiCheck) {
+                    MidiCheck.Idle -> {}
+                    is MidiCheck.Played -> {
+                        val heard = if (check.simulated) {
+                            "The protocol dummy heard ${check.notesSent} MIDI events and still answers as ${check.identity}. It makes no sound — that's expected. On a real FM-1 you should hear the notes."
+                        } else if (check.loader) {
+                            "Notes went out and the update loader still answers. You won't hear a synth in loader mode."
+                        } else if (check.stillAnswering) {
+                            "Notes went out (${check.notesSent} events) and the FM-1 still answers as ${check.identity}. If you heard the arpeggio, USB MIDI is solid."
+                        } else {
+                            "Notes were sent, but the FM-1 didn't answer the handshake afterwards. Unplug and scan again."
+                        }
+                        MonoText(heard, size = 14)
+                    }
+                    is MidiCheck.Failed -> MonoText(check.message, size = 14)
+                }
+            }
+        }
         PixelPanel(title = "PORTS") {
             if (model.ports.isEmpty()) {
                 MonoText("No MIDI ports right now.", size = 14, dim = true)
@@ -107,4 +157,51 @@ fun DeviceScreen(model: AppViewModel) {
     if (restoring) {
         VoiceRestoreSheet(model) { restoring = false }
     }
+}
+
+private val LIVE_KEYS = listOf(
+    "C" to 60,
+    "D" to 62,
+    "E" to 64,
+    "F" to 65,
+    "G" to 67,
+    "A" to 69,
+    "B" to 71,
+)
+
+@Composable
+private fun MidiHoldKey(
+    label: String,
+    enabled: Boolean,
+    onDown: () -> Unit,
+    onUp: () -> Unit,
+) {
+    val theme = LocalPhosphor.current
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    var held by remember { mutableStateOf(false) }
+    LaunchedEffect(pressed, enabled) {
+        if (!enabled) {
+            if (held) {
+                onUp()
+                held = false
+            }
+            return@LaunchedEffect
+        }
+        if (pressed && !held) {
+            held = true
+            onDown()
+        } else if (!pressed && held) {
+            held = false
+            onUp()
+        }
+    }
+    BasicText(
+        label,
+        style = lcdText(18.sp, if (pressed && enabled) theme.background else theme.bright),
+        modifier = Modifier
+            .clickable(enabled = enabled, interactionSource = interaction, indication = null) {}
+            .background(if (pressed && enabled) theme.bright else theme.surface)
+            .padding(horizontal = 8.dp, vertical = 10.dp),
+    )
 }

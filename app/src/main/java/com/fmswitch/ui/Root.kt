@@ -41,6 +41,7 @@ fun RootScreen(model: AppViewModel) {
     BackHandler(
         enabled = !model.needsSafetyNotice &&
             model.job == null &&
+            model.playingFirmware == null &&
             model.tab != AppTab.DEVICE,
     ) {
         model.tab = AppTab.DEVICE
@@ -84,7 +85,17 @@ fun RootScreen(model: AppViewModel) {
                     SafetyNoticeScreen(model)
                 }
             }
-            CRTOverlay()
+            if (model.playingFirmware == null) CRTOverlay()
+            model.playingFirmware?.let { entry ->
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(theme.background)
+                        .windowInsetsPadding(WindowInsets.navigationBars),
+                ) {
+                    EmulatorScreen(entry) { model.closeEmulator() }
+                }
+            }
         }
     }
 }

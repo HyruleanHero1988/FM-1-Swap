@@ -16,3 +16,7 @@ agent-tools/
 app/release/
 app/debug.keystore
 .kotlin/
+app/src/main/jniLibs/
+native/target/
+native/fm1-jni/target/
+native/fm1-emu-src/

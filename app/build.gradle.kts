@@ -65,6 +65,13 @@ android {
     }
 }
 
+// Unit tests load a host build of libfm1emu.so when there is one
+// (cargo build --release --manifest-path native/fm1-jni/Cargo.toml --target-dir native/target).
+tasks.withType<Test>().configureEach {
+    systemProperty("java.library.path", rootProject.file("native/target/release").absolutePath)
+    systemProperty("fm1.testPackage", rootProject.file("fm1kit/src/test/resources/FM-1_015.fwsc").absolutePath)
+}
+
 dependencies {
     implementation(project(":fm1kit"))
     implementation(libs.androidx.core.ktx)

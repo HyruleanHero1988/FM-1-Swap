@@ -66,6 +66,34 @@ jobs:
           BAKE_CATALOGUE=true ./gradlew :app:testDebugUnitTest --tests com.fmswitch.catalogue.BakeCatalogue --stacktrace --no-daemon
           test -s "$out"
 
+      # TRY's emulator: fm1-emu (MIT) at a pinned commit, compiled to libfm1emu.so per ABI.
+      - name: Rust toolchain for the native emulator
+        run: |
+          rustup update stable
+          rustup default stable
+          rustup target add aarch64-linux-android x86_64-linux-android
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            native/target
+          key: fm1-native-${{ runner.os }}-${{ hashFiles('native/fm1-jni/Cargo.lock', 'native/fm1-jni/src/**', 'scripts/build-fm1-native.sh') }}
+          restore-keys: fm1-native-${{ runner.os }}-
+
+      - name: Build the native FM-1 emulator
+        run: |
+          bash scripts/build-fm1-native.sh
+          test -s app/src/main/jniLibs/arm64-v8a/libfm1emu.so
+          test -s app/src/main/jniLibs/x86_64/libfm1emu.so
+
+      - name: Native emulator tests
+        run: |
+          cargo test --release --manifest-path native/fm1-jni/Cargo.toml --target-dir native/target
+          # a host build for the app's JNI unit test (Fm1NativeHostTest boots the bundled V15)
+          cargo build --release --manifest-path native/fm1-jni/Cargo.toml --target-dir native/target
+
       - name: Protocol tests
         run: ./gradlew :fm1kit:test :app:testDebugUnitTest --stacktrace --no-daemon
 

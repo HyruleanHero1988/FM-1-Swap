@@ -103,3 +103,25 @@ class PackageTest {
         }
     }
 }
+
+class MidiProbeTest {
+    @Test
+    fun probesGenericUsbMidiAndJieLiNames() {
+        assertTrue(FM1Updater.isProbeable(MidiPortDescriptor("1", "USB MIDI")))
+        assertTrue(FM1Updater.isProbeable(MidiPortDescriptor("1", "USB-MIDI")))
+        assertTrue(FM1Updater.isProbeable(MidiPortDescriptor("1", "JieLi AC791N")))
+        assertTrue(FM1Updater.isProbeable(MidiPortDescriptor("1", "FM-1 Midi")))
+        assertTrue(FM1Updater.isProbeable(MidiPortDescriptor("1", "clipper-fm1")))
+    }
+
+    @Test
+    fun prefersFm1NameAndFallsBackToUnnamedPorts() {
+        val mixed = listOf(
+            MidiPortDescriptor("generic", "USB-MIDI"),
+            MidiPortDescriptor("fm1", "FM-1 Midi"),
+        )
+        assertEquals("fm1", FM1Updater.portsToProbe(mixed).first().id)
+        val unnamed = listOf(MidiPortDescriptor("x", "MIDI 2"))
+        assertEquals(listOf("x"), FM1Updater.portsToProbe(unnamed).map { it.id })
+    }
+}

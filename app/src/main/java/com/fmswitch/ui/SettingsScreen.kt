@@ -123,7 +123,7 @@ fun SettingsScreen(model: AppViewModel) {
                     }
                 }
             }
-            NoteText("A real FM-1 talks class-compliant USB-MIDI. Emulators and some USB hubs hide the MIDI ports; plug straight into the phone if you can.")
+            NoteText("A real FM-1 talks class-compliant USB-MIDI. Plug straight into the phone if you can; hubs and emulators often hide the ports. Once the FM-1 answers, FM-SWITCH keeps that port open so the chip doesn't drop USB and blink on and off. Close other MIDI apps first.")
             if (model.settings.transportKind == TransportKind.SIMULATED) {
                 PixelToggle("START IN USB RECOVERY MODE", model.settings.simulatedRecoveryMode) {
                     model.settings.simulatedRecoveryMode = it

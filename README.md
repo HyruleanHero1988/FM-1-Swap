@@ -27,7 +27,8 @@ but that zip is easy to miss and is not the repo homepage.
 - Talks to a real FM-1 over class-compliant USB MIDI (Android MIDI API)
 - Stages, writes, and resumes interrupted flashes using the same protocol as FM1Kit
 - Offers a simulated FM-1 under **SETUP ▸ CONNECTION**, including cable-pull at 45% to test **RESUME**
-- Restores V15 factory voices after installing official firmware
+- Before a flash, automatically dumps the running firmware the same way Baud Girl's Device Manager does: 128 presets and 16 patterns as `.syx` files, plus a copy of that `.fwsc` if this phone already has it. The write does not start if that dump fails. Other firmwares (Felucca, SLOOP, V15, the loader) still ask you to confirm you've backed up, because they have no FM-1+VA librarian.
+- Restores those backups later from **SAVED**, and restores V15 factory voices after installing official firmware
 - Keeps the 8-bit phosphor look: Silkscreen, Departure Mono, VT323, CRT overlay, colour presets
 - System / hardware BACK pops firmware detail, clears search, dismisses dialogs, and returns to DEVICE before leaving the app. It does not abort a write in progress.
 

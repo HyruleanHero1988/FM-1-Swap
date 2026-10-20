@@ -25,13 +25,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import com.fmswitch.fm1kit.supportsBaudGirlBackup
 import com.fmswitch.model.AppViewModel
+import com.fmswitch.model.BackupRestore
 import com.fmswitch.model.StoredFirmware
 import com.fmswitch.theme.LocalPhosphor
 import com.fmswitch.theme.MonoText
 import com.fmswitch.theme.NoteText
 import com.fmswitch.theme.PixelButton
 import com.fmswitch.theme.PixelPanel
+import com.fmswitch.theme.PixelProgressBar
 import com.fmswitch.theme.PixelTag
 import com.fmswitch.theme.ScreenHeader
 import com.fmswitch.theme.formattedBytes
@@ -46,6 +50,8 @@ fun LibraryScreen(model: AppViewModel) {
     var flashing by remember { mutableStateOf<StoredFirmware?>(null) }
     @Suppress("UNUSED_EXPRESSION")
     model.libraryTick
+    @Suppress("UNUSED_EXPRESSION")
+    model.backupTick
     BackHandler(enabled = confirmingClear) { confirmingClear = false }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
@@ -101,6 +107,32 @@ fun LibraryScreen(model: AppViewModel) {
                 }
             }
         }
+        if (model.backups.items.isNotEmpty()) {
+            PixelPanel(title = "BACKUPS") {
+                NoteText("Taken automatically before a flash: presets, patterns, and a copy of the running firmware when this phone already had that .fwsc.")
+                model.backups.items.forEach { backup ->
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(theme.surface)
+                            .padding(10.dp),
+                    ) {
+                        BasicText(backup.title.uppercase(), style = pixelText(12.sp, bold = true, color = theme.bright))
+                        MonoText(backup.summary, size = 13, dim = true)
+                        Spacer(Modifier.height(8.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (backup.presetsFile != null) {
+                                PixelButton("RESTORE", compact = true, prominent = true, enabled = !model.isWriting) {
+                                    model.restoreBackup(backup, presets = true, patterns = true)
+                                }
+                            }
+                            PixelButton("REMOVE", compact = true) { model.removeBackup(backup) }
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+        }
         PixelPanel(title = "CACHE") {
             MonoText("${model.library.items.size} packages  ·  ${formattedBytes(model.library.items.sumOf { it.size })}", size = 14)
             PixelButton("CLEAR SAVED FIRMWARES") { confirmingClear = true }
@@ -112,6 +144,9 @@ fun LibraryScreen(model: AppViewModel) {
                 }
             }
         }
+    }
+    if (model.backupRestore !is BackupRestore.Idle) {
+        BackupRestoreSheet(model) { model.dismissBackupRestore() }
     }
     flashing?.let { item ->
         val requires = item.catalogueID?.let { model.catalogue.entry(it)?.requiresOfficialFirmware } ?: false
@@ -172,7 +207,10 @@ fun FlashConfirmSheet(
                 NoteText("The FM-1 is in its update loader, so this finishes that update.")
             }
             checkError?.let { MonoText(it, size = 14) }
-            if (switching) {
+            val autoBackup = model.identity?.supportsBaudGirlBackup == true && model.identity?.isLoader != true
+            if (autoBackup) {
+                NoteText("Before writing, FM-SWITCH will save the 128 presets and 16 patterns, the same dump Baud Girl's Device Manager uses, plus a copy of this firmware if this phone already has that .fwsc.")
+            } else if (switching) {
                 MonoText("Switching firmware can erase the FM-1's projects and samples. Back them up first.", size = 14)
                 com.fmswitch.theme.PixelToggle("I'VE BACKED UP", backedUp) { backedUp = it }
             }
@@ -187,9 +225,54 @@ fun FlashConfirmSheet(
                     },
                     modifier = Modifier.weight(1f),
                     prominent = true,
-                    enabled = !missingOfficial && (!switching || backedUp),
+                    enabled = !missingOfficial && (!switching || backedUp || autoBackup),
                 ) {
-                    model.flash(steps, confirmsSwitchingFirmware = switching && backedUp, confirmsSameIdentity = sameIdentity)
+                    model.flash(
+                        steps,
+                        confirmsSwitchingFirmware = switching && (backedUp || autoBackup),
+                        confirmsSameIdentity = sameIdentity,
+                    )
+                    onDismiss()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun BackupRestoreSheet(model: AppViewModel, onDismiss: () -> Unit) {
+    val theme = LocalPhosphor.current
+    Dialog(
+        onDismissRequest = {
+            if (!model.backupRestore.isRunning) {
+                model.dismissBackupRestore()
+                onDismiss()
+            }
+        },
+    ) {
+        Column(
+            Modifier
+                .background(theme.background)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            ScreenHeader("RESTORE BACKUP")
+            when (val state = model.backupRestore) {
+                BackupRestore.Idle -> MonoText("Nothing to restore.", size = 14)
+                is BackupRestore.Writing -> {
+                    MonoText("Writing ${state.label.lowercase()} back to the FM-1…", size = 15)
+                    PixelProgressBar(state.fraction.toFloat())
+                    NoteText("Keep the cable connected. Preset writes are paced so the FM-1 can store each one.")
+                }
+                BackupRestore.Succeeded -> MonoText(
+                    "The FM-1 now holds the presets and patterns from that backup.",
+                    size = 15,
+                )
+                is BackupRestore.Failed -> MonoText(state.message, size = 15)
+            }
+            if (!model.backupRestore.isRunning) {
+                PixelButton("CLOSE", prominent = true) {
+                    model.dismissBackupRestore()
                     onDismiss()
                 }
             }

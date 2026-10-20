@@ -123,7 +123,7 @@ fun SettingsScreen(model: AppViewModel) {
                     }
                 }
             }
-            NoteText("A real FM-1 talks class-compliant USB-MIDI. Plug straight into the phone if you can; hubs and emulators often hide the ports. Once the FM-1 answers, FM-SWITCH keeps that port open so the chip doesn't drop USB and blink on and off. Close other MIDI apps first.")
+            NoteText("A real FM-1 talks class-compliant USB-MIDI. Plug straight into the phone if you can; hubs often hide the ports. Once the FM-1 answers, FM-SWITCH keeps that port open so the chip doesn't drop USB and blink on and off. Close other MIDI apps first. SIMULATED FM-1 is only a protocol dummy for flashing tests. To play a firmware, open it on FIRMWARE and press TRY.")
             if (model.settings.transportKind == TransportKind.SIMULATED) {
                 PixelToggle("START IN USB RECOVERY MODE", model.settings.simulatedRecoveryMode) {
                     model.settings.simulatedRecoveryMode = it
@@ -178,6 +178,24 @@ fun SettingsScreen(model: AppViewModel) {
                     .padding(top = 8.dp)
                     .clickable {
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/ocean/FM1Kit")))
+                    },
+            )
+            BasicText(
+                "▸ FM-1 CHIP EMULATOR",
+                style = pixelText(11.sp, bold = true, color = theme.bright),
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .clickable {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/joakimeriksson/fm1-emu")))
+                    },
+            )
+            BasicText(
+                "▸ REDTAILWORKS EMULATORS",
+                style = pixelText(11.sp, bold = true, color = theme.bright),
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .clickable {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://rustypawz.github.io/fm1-HYP1/")))
                     },
             )
         }

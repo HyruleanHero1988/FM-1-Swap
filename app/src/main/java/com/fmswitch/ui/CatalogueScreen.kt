@@ -185,6 +185,9 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         )
         entry.what?.let { MonoText(it, size = 15) }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            PixelButton("TRY", prominent = stored == null, enabled = !downloading) {
+                model.openEmulator(entry)
+            }
             if (stored == null && entry.isDownloadable) {
                 PixelButton(if (downloading) "SAVING" else "SAVE", prominent = true, enabled = !downloading) {
                     scope.launch {
@@ -197,6 +200,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
                 PixelButton("FLASH", prominent = true) { confirming = stored }
             }
         }
+        NoteText("TRY opens a playable virtual FM-1 in this app — the author's emulator when they have one, otherwise the FM-1 chip emulator. It is not a flash.")
         error?.let { MonoText(it, size = 14) }
         PixelPanel(title = "DETAILS") {
             MonoText("Identity  ${entry.product ?: "unknown"}", size = 14)

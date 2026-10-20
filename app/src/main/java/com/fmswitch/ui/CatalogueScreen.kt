@@ -96,10 +96,6 @@ fun CatalogueScreen(model: AppViewModel) {
             Spacer(Modifier.height(8.dp))
             MonoText(it, size = 13)
         }
-        if (model.catalogue.isRefreshing && visible.size <= 1) {
-            Spacer(Modifier.height(16.dp))
-            MonoText("Fetching the catalogue…", size = 14, dim = true)
-        }
         if (visible.isEmpty() && !model.catalogue.isRefreshing) {
             Spacer(Modifier.height(16.dp))
             MonoText("No firmwares match. Refresh the list, or turn on LINKS-ONLY under SETUP if you want listings without a package.", size = 14, dim = true)
@@ -142,11 +138,14 @@ fun CatalogueScreen(model: AppViewModel) {
                 }
             }
         }
-        model.catalogue.catalogue?.hubUpdated?.let {
-            NoteText("Hub rebuilt $it · listed by GitHub stars, official first")
-        }
-        if (model.catalogue.catalogue?.hubUpdated == null) {
-            NoteText("Listed by GitHub stars, official V15 first. Shots from fm1-editor.com and the publishers.")
+        val shipped = model.catalogue.catalogue
+        when {
+            shipped?.bundled == true ->
+                NoteText("List shipped with the app. REFRESH pulls the latest from the hub.")
+            shipped?.hubUpdated != null ->
+                NoteText("Hub rebuilt ${shipped.hubUpdated}. REFRESH pulls again.")
+            else ->
+                NoteText("Listed by GitHub stars, official V15 first. Shots from fm1-editor.com and the publishers.")
         }
     }
 }

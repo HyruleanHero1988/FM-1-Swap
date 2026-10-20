@@ -54,7 +54,7 @@ object PackageDiscovery {
         val gate = Semaphore(6)
         entries.map { entry ->
             async {
-                if (entry.packageURL != null) return@async entry
+                if (entry.packageURL != null || entry.isOfficial) return@async entry
                 gate.withPermit {
                     val found = withContext(Dispatchers.IO) { discover(entry.name, entry.links) }
                     found?.let { apply(it, entry) } ?: CatalogueBuilder.fallBack(entry, previousById[entry.id])

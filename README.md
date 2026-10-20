@@ -75,8 +75,9 @@ sdk.dir=/path/to/Android/sdk
 
 CI vendors the Gradle wrapper, bundled V15, and fonts (from the original
 [FM-SWITCH](https://github.com/ocean/FM-SWITCH) tree) before it runs Gradle, then uploads
-`app-debug`. On `main` it also commits those Android assets. Enable Actions on the GitHub
-repo if the workflow is waiting for approval.
+`app-debug`. The firmware list is the committed snapshot at
+`app/src/main/assets/catalogue/snapshot.json`; CI only rebakes it for that job if the
+file is missing. Enable Actions on the GitHub repo if the workflow is waiting for approval.
 
 ## First flash on hardware
 
@@ -86,7 +87,7 @@ repo if the workflow is waiting for approval.
    ready as a fallback.
 4. Unplug mid-write on purpose and confirm **RESUME** finishes it.
 
-If the FM-1 won't start, some firmwares boot USB recovery with **OCT−** held at power-on.
+If the FM-1 won't start, some firmwares boot USB recovery with **OCT\u2212** held at power-on.
 That is a firmware feature, not a ROM one. Official V15 and Felucca 1.6.1 do not offer it.
 A bricked chip that shows up as `WL80UBOOT` needs a computer and jl-uboot-tool;
 FM-SWITCH cannot help there.

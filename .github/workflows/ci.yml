@@ -50,6 +50,9 @@ jobs:
       - name: Install Android platform
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
+      # The baked list lives in app/src/main/assets/catalogue/snapshot.json.
+      # Do not git-push it from this job: GITHUB_TOKEN commits do not start a
+      # new workflow, which left main looking like CI never ran.
       - name: Bake firmware catalogue if missing
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,19 +65,6 @@ jobs:
           mkdir -p "$(dirname "$out")"
           BAKE_CATALOGUE=true ./gradlew :app:testDebugUnitTest --tests com.fmswitch.catalogue.BakeCatalogue --stacktrace --no-daemon
           test -s "$out"
-
-      - name: Commit baked catalogue
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: |
-          git add app/src/main/assets/catalogue/snapshot.json
-          if git diff --cached --quiet; then
-            echo "Baked catalogue already committed."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Add the baked firmware catalogue snapshot required by CI."
-          git push
 
       - name: Protocol tests
         run: ./gradlew :fm1kit:test :app:testDebugUnitTest --stacktrace --no-daemon

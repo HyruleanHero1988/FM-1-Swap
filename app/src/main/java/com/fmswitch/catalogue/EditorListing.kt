@@ -35,6 +35,17 @@ data class EditorListing(val entries: List<Entry>) {
             return EditorListing(entries)
         }
 
+        private fun starCount(inner: String): Int? {
+            val starred = Html.elements("span", inner).firstOrNull { span ->
+                (span.attributes["class"] ?: "").contains("firmware-stars")
+            } ?: return null
+            val titled = starred.attributes["title"]?.let { title ->
+                Regex("([0-9]+)").find(title)?.groupValues?.get(1)?.toIntOrNull()
+            }
+            if (titled != null) return titled
+            return Html.text(starred.inner).filter { it.isDigit() }.toIntOrNull()
+        }
+
         private fun photo(inner: String, page: URI): Pair<String, String?>? {
             val figure = Html.elements("figure", inner).firstOrNull { figure ->
                 (figure.attributes["class"] ?: "").contains("firmware-photo")
@@ -50,7 +61,7 @@ data class EditorListing(val entries: List<Entry>) {
             if (!srcset.isNullOrBlank()) {
                 val candidates = ArrayList<Pair<Int, String>>()
                 for (part in srcset.split(',')) {
-                    val bits = part.trim().split(Regex("[ \t\n\r]+")).filter { it.isNotEmpty() }
+                    val bits = part.trim().split(Regex("[ \\t\\n\\r]+")).filter { it.isNotEmpty() }
                     if (bits.size < 2 || !bits.last().endsWith("w")) continue
                     val width = bits.last().dropLast(1).toIntOrNull() ?: continue
                     candidates += width to bits[0]
@@ -91,7 +102,7 @@ data class EditorListing(val entries: List<Entry>) {
                 val href = anchorElement.attributes["href"] ?: continue
                 val url = runCatching { page.resolve(href).toString() }.getOrNull() ?: continue
                 if (!url.startsWith("http")) continue
-                val label = Html.text(anchorElement.inner).replace("↗", "").trim().ifEmpty {
+                val label = Html.text(anchorElement.inner).replace("\u2197", "").trim().ifEmpty {
                     URI(url).host ?: "Link"
                 }
                 val link = CatalogueLink(label, url)
@@ -105,7 +116,7 @@ data class EditorListing(val entries: List<Entry>) {
                 blurb = blurbs.takeIf { it.isNotEmpty() }?.joinToString("\n\n"),
                 latest = latest,
                 updated = article.attributes["data-updated"],
-                stars = article.attributes["data-stars"]?.toIntOrNull(),
+                stars = article.attributes["data-stars"]?.toIntOrNull() ?: starCount(article.inner),
                 pinned = article.attributes.containsKey("data-pinned"),
                 experimental = experimental,
                 links = links,

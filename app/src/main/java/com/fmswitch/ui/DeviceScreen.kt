@@ -42,7 +42,7 @@ fun DeviceScreen(model: AppViewModel) {
     ) {
         ScreenHeader("DEVICE") {
             PixelButton(if (model.isScanning) "SCANNING" else "SCAN", compact = true, enabled = !model.isScanning) {
-                model.scan()
+                model.scan(force = true)
             }
         }
         PixelPanel(title = "REPORTS") {
@@ -52,12 +52,12 @@ fun DeviceScreen(model: AppViewModel) {
                     style = lcdText(48.sp, theme.bright),
                     maxLines = 1,
                 )
-                if (model.isScanning || model.identity == null) BlinkingCursor()
+                if (model.identity == null) BlinkingCursor()
             }
             if (model.identity?.isLoader == true) {
                 MonoText("UPDATE LOADER IS RUNNING", size = 14, dim = true)
             } else if (model.identity != null) {
-                MonoText("FIRMWARE IS RUNNING", size = 14, dim = true)
+                MonoText("FIRMWARE IS RUNNING · USB-MIDI HELD", size = 14, dim = true)
             }
             model.transportError?.let { MonoText(it, size = 13) }
         }

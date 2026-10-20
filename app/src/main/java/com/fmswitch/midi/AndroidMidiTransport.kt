@@ -3,7 +3,9 @@ package com.fmswitch.midi
 import android.content.Context
 import android.media.midi.MidiDevice
 import android.media.midi.MidiDeviceInfo
+import android.media.midi.MidiInputPort
 import android.media.midi.MidiManager
+import android.media.midi.MidiOutputPort
 import android.media.midi.MidiReceiver
 import android.os.Handler
 import android.os.Looper
@@ -13,6 +15,7 @@ import com.fmswitch.fm1kit.MidiTransport
 import com.fmswitch.fm1kit.MidiTransportError
 import com.fmswitch.fm1kit.SysexInbox
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
@@ -23,10 +26,17 @@ class AndroidMidiTransport(context: Context) : MidiTransport {
         ?: throw MidiTransportError.Unavailable("MidiManager")
     private val handler = Handler(Looper.getMainLooper())
     private val observers = mutableListOf<() -> Unit>()
+    private val openById = mutableMapOf<Int, AndroidMidiConnection>()
     private val callback = object : MidiManager.DeviceCallback() {
         override fun onDeviceAdded(device: MidiDeviceInfo) = notifyObservers()
-        override fun onDeviceRemoved(device: MidiDeviceInfo) = notifyObservers()
-        override fun onDeviceStatusChanged(status: android.media.midi.MidiDeviceStatus) = notifyObservers()
+        override fun onDeviceRemoved(device: MidiDeviceInfo) {
+            synchronized(openById) {
+                openById.remove(device.id)?.markLost()
+            }
+            notifyObservers()
+        }
+        // Opening or closing a port flips this. Treating it as unplug/replug
+        // made the DEVICE screen scan in a loop on the FM-1's JieLi chip.
     }
 
     init {
@@ -37,6 +47,7 @@ class AndroidMidiTransport(context: Context) : MidiTransport {
         return midi.devices.map { info ->
             val name = info.properties.getString(MidiDeviceInfo.PROPERTY_NAME)
                 ?: info.properties.getString(MidiDeviceInfo.PROPERTY_PRODUCT)
+                ?: info.properties.getString(MidiDeviceInfo.PROPERTY_MANUFACTURER)
                 ?: "MIDI ${info.id}"
             MidiPortDescriptor(info.id.toString(), name)
         }
@@ -50,16 +61,34 @@ class AndroidMidiTransport(context: Context) : MidiTransport {
                 if (opened != null) cont.resume(opened) else cont.resumeWithException(MidiTransportError.PortGone)
             }, handler)
         }
-        val input = device.openInputPort(0) ?: run {
-            device.close()
-            throw MidiTransportError.Unavailable("no input port")
+        val inputIndex = portIndex(info, MidiDeviceInfo.PortInfo.TYPE_INPUT)
+        val outputIndex = portIndex(info, MidiDeviceInfo.PortInfo.TYPE_OUTPUT)
+        try {
+            val input = device.openInputPort(inputIndex)
+                ?: throw MidiTransportError.Unavailable("no input port")
+            try {
+                val output = device.openOutputPort(outputIndex)
+                    ?: throw MidiTransportError.Unavailable("no output port")
+                try {
+                    // The AC791N drops USB if SysEx goes out before the gadget finishes enumerating.
+                    delay(250)
+                    val connection = AndroidMidiConnection(port, info.id, device, input, output) {
+                        synchronized(openById) { openById.remove(info.id) }
+                    }
+                    synchronized(openById) { openById[info.id] = connection }
+                    return connection
+                } catch (error: Throwable) {
+                    runCatching { output.close() }
+                    throw error
+                }
+            } catch (error: Throwable) {
+                runCatching { input.close() }
+                throw error
+            }
+        } catch (error: Throwable) {
+            runCatching { device.close() }
+            throw error
         }
-        val output = device.openOutputPort(0) ?: run {
-            input.close()
-            device.close()
-            throw MidiTransportError.Unavailable("no output port")
-        }
-        return AndroidMidiConnection(port, device, input, output)
     }
 
     override fun changes(onChange: () -> Unit): AutoCloseable {
@@ -70,33 +99,48 @@ class AndroidMidiTransport(context: Context) : MidiTransport {
     private fun notifyObservers() {
         synchronized(observers) { observers.toList() }.forEach { it() }
     }
+
+    private fun portIndex(info: MidiDeviceInfo, type: Int): Int {
+        val match = info.ports.indexOfFirst { it.type == type }
+        return if (match >= 0) match else 0
+    }
 }
 
 private class AndroidMidiConnection(
     override val port: MidiPortDescriptor,
+    val deviceId: Int,
     private val device: MidiDevice,
-    private val input: android.media.midi.MidiInputPort,
-    output: android.media.midi.MidiOutputPort,
+    private val input: MidiInputPort,
+    private val output: MidiOutputPort,
+    private val onClosed: () -> Unit,
 ) : MidiConnection {
     private val inbox = SysexInbox()
     private val assembler = SysexAssembler { inbox.deliver(it) }
+    private val receiver = object : MidiReceiver() {
+        override fun onSend(msg: ByteArray, offset: Int, count: Int, timestamp: Long) {
+            assembler.accept(msg, offset, count)
+        }
+    }
     private var closed = false
+    private var lost = false
 
-    override val isLost: Boolean get() = closed
+    override val isLost: Boolean get() = closed || lost
 
     init {
-        output.connect(object : MidiReceiver() {
-            override fun onSend(msg: ByteArray, offset: Int, count: Int, timestamp: Long) {
-                assembler.accept(msg, offset, count)
-            }
-        })
+        output.connect(receiver)
+    }
+
+    fun markLost() {
+        lost = true
+        inbox.close()
     }
 
     override fun send(sysex: ByteArray) {
-        if (closed) throw MidiTransportError.PortGone
+        if (closed || lost) throw MidiTransportError.PortGone
         try {
             input.send(sysex, 0, sysex.size)
         } catch (error: Exception) {
+            lost = true
             throw MidiTransportError.SendFailed(error.message ?: "send")
         }
     }
@@ -109,10 +153,14 @@ private class AndroidMidiConnection(
     }
 
     override fun close() {
+        if (closed) return
         closed = true
         inbox.close()
+        runCatching { output.disconnect(receiver) }
+        runCatching { output.close() }
         runCatching { input.close() }
         runCatching { device.close() }
+        onClosed()
     }
 }
 

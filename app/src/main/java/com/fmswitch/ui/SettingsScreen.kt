@@ -210,15 +210,6 @@ fun SettingsScreen(model: AppViewModel) {
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/joakimeriksson/fm1-emu")))
                     },
             )
-            BasicText(
-                "▸ REDTAILWORKS EMULATORS",
-                style = pixelText(11.sp, bold = true, color = theme.bright),
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .clickable {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://rustypawz.github.io/fm1-HYP1/")))
-                    },
-            )
         }
     }
 }

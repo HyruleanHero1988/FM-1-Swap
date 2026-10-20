@@ -62,6 +62,7 @@ fun EmulatorScreen(
     entry: CatalogueEntry,
     prepared: EmulatorPackage,
     phosphorPanel: Boolean,
+    chooseClock: Boolean,
     canSave: Boolean,
     saving: Boolean,
     onSave: suspend () -> Result<StoredFirmware>,
@@ -74,7 +75,9 @@ fun EmulatorScreen(
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val authorEmulator = remember(entry.id, entry.links) { FirmwareEmulator.authorEmulator(entry) }
     var saveError by remember(entry.id) { mutableStateOf<String?>(null) }
-    var mhz by remember(entry.id) { mutableIntStateOf(EmulatorClock.get(context, entry)) }
+    var mhz by remember(entry.id, chooseClock) {
+        mutableIntStateOf(EmulatorClock.get(context, entry, chooseClock))
+    }
     fun clock(value: Int) {
         mhz = value
         EmulatorClock.set(context, entry, value)
@@ -115,6 +118,7 @@ fun EmulatorScreen(
                     mhz = mhz,
                     expand = true,
                     phosphorPanel = phosphorPanel,
+                    chooseClock = chooseClock,
                     onStatus = { liveStatus = it },
                 )
             }
@@ -137,7 +141,7 @@ fun EmulatorScreen(
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(authorEmulator)))
                     }
                 }
-                if (prepared is EmulatorPackage.Ready) ClockRow(mhz, ::clock, narrow = true)
+                if (chooseClock && prepared is EmulatorPackage.Ready) ClockRow(mhz, ::clock, narrow = true)
                 if (liveStatus.isNotEmpty()) MonoText(liveStatus, size = 11, dim = true)
             }
         }
@@ -172,8 +176,14 @@ fun EmulatorScreen(
                 }
             }
             is EmulatorPackage.Ready -> {
-                ClockRow(mhz, ::clock)
-                RunningEmulator(prepared, mhz = mhz, expand = false, phosphorPanel = phosphorPanel)
+                if (chooseClock) ClockRow(mhz, ::clock)
+                RunningEmulator(
+                    prepared,
+                    mhz = mhz,
+                    expand = false,
+                    phosphorPanel = phosphorPanel,
+                    chooseClock = chooseClock,
+                )
             }
         }
     }
@@ -207,6 +217,7 @@ private fun RunningEmulator(
     mhz: Int,
     expand: Boolean,
     phosphorPanel: Boolean,
+    chooseClock: Boolean,
     onStatus: (String) -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -236,11 +247,13 @@ private fun RunningEmulator(
     LaunchedEffect(running) {
         while (true) {
             status = running.status
-            onStatus(statusLine(status, running.mhz))
+            onStatus(statusLine(status, running.mhz, chooseClock))
             delay(300)
         }
     }
-    if (!expand) MonoText(statusLine(status, running.mhz), size = 12, dim = status !is Fm1Engine.Status.Stopped)
+    if (!expand) {
+        MonoText(statusLine(status, running.mhz, chooseClock), size = 12, dim = status !is Fm1Engine.Status.Stopped)
+    }
     Box(
         Modifier.then(if (expand) Modifier.fillMaxSize() else Modifier.fillMaxWidth()),
         contentAlignment = Alignment.Center,
@@ -259,7 +272,11 @@ private fun RunningEmulator(
                 size = 13,
             )
             MonoText(
-                "If the sound gaps or crackles while the load is low, this firmware needs a faster emulated chip: raise CLOCK (a real FM-1 runs at 240 MHz). If the load goes over 100%, lower it.",
+                if (chooseClock) {
+                    "If the sound gaps or crackles while the load is low, this firmware needs a faster emulated chip: raise CLOCK. If the load goes over 100%, lower it."
+                } else {
+                    "This runs at 240 MHz, the same speed as a real FM-1. If the sound gaps or the load goes over 100%, SETUP ▸ CHOOSE EMULATOR CLOCK turns on 100, 160 and 240."
+                },
                 size = 12,
             )
             MonoText(
@@ -271,12 +288,14 @@ private fun RunningEmulator(
     }
 }
 
-private fun statusLine(status: Fm1Engine.Status, mhz: Int): String = when (status) {
+private fun statusLine(status: Fm1Engine.Status, mhz: Int, showClock: Boolean): String = when (status) {
     Fm1Engine.Status.Booting -> "BOOTING…"
     is Fm1Engine.Status.Running -> {
         val load = (status.load * 100).toInt()
-        if (status.load > 0.95f) "RUNNING · $mhz MHz · LOAD $load% · TOO MUCH FOR THIS PHONE, LOWER THE CLOCK"
-        else "RUNNING · $mhz MHz · LOAD $load%"
+        val clock = if (showClock) " · $mhz MHz" else ""
+        val hint = if (status.load > 0.95f && showClock) ", LOWER THE CLOCK" else ""
+        val overloaded = if (status.load > 0.95f) " · TOO MUCH FOR THIS PHONE$hint" else ""
+        "RUNNING$clock · LOAD $load%$overloaded"
     }
     is Fm1Engine.Status.Stopped -> status.message
 }

@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -185,6 +186,7 @@ fun PixelProgressBar(fraction: Float?, segments: Int = 20, modifier: Modifier = 
             if (index < segments - 1) Spacer(Modifier.width(3.dp))
         }
     }
+    // Keep composition refreshing while indeterminate.
     @Suppress("UNUSED_EXPRESSION")
     tick
 }
@@ -220,11 +222,19 @@ fun BlinkingCursor() {
 }
 
 @Composable
-fun MonoText(text: String, size: Int = 15, dim: Boolean = false, modifier: Modifier = Modifier) {
+fun MonoText(
+    text: String,
+    size: Int = 15,
+    dim: Boolean = false,
+    maxLines: Int = Int.MAX_VALUE,
+    modifier: Modifier = Modifier,
+) {
     val theme = LocalPhosphor.current
     BasicText(
         text = text,
         style = monoText(size.sp, if (dim) theme.muted else theme.ink),
+        maxLines = maxLines,
+        overflow = TextOverflow.Ellipsis,
         modifier = modifier,
     )
 }
@@ -289,7 +299,7 @@ fun CRTOverlay() {
         if (theme.scanlines) {
             var y = 0f
             while (y < size.height) {
-                drawRect(Color.Black.copy(alpha = 0.12f), topLeft = androidx.compose.ui.geometry.Offset(0f, 0f), size = androidx.compose.ui.geometry.Size(size.width, 1f))
+                drawRect(Color.Black.copy(alpha = 0.12f), topLeft = androidx.compose.ui.geometry.Offset(0f, y), size = androidx.compose.ui.geometry.Size(size.width, 1f))
                 y += 3f
             }
         }

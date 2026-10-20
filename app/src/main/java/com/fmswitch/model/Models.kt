@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.fmswitch.catalogue.CatalogueBuilder
 import com.fmswitch.catalogue.CatalogueEntry
+import com.fmswitch.catalogue.CatalogueRank
 import com.fmswitch.catalogue.EditorListing
 import com.fmswitch.catalogue.HubFeed
 import com.fmswitch.catalogue.MergedCatalogue
@@ -278,9 +279,7 @@ class CatalogueStore(context: Context) {
         get() {
             val listed = catalogue?.entries.orEmpty()
             val withOfficial = if (listed.any { it.isOfficial }) listed else listOf(officialCatalogueEntry()) + listed
-            return withOfficial.sortedWith(
-                compareBy<CatalogueEntry> { !it.isOfficial }.thenBy { it.name.lowercase() },
-            )
+            return CatalogueRank.ordered(withOfficial)
         }
 
     fun entry(id: String): CatalogueEntry? = entries.firstOrNull { it.id == id }

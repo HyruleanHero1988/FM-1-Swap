@@ -20,6 +20,8 @@ data class EditorListing(val entries: List<Entry>) {
         val pinned: Boolean = false,
         val experimental: Boolean = false,
         val links: List<CatalogueLink> = emptyList(),
+        val photoURL: String? = null,
+        val photoAlt: String? = null,
     )
 
     companion object {
@@ -31,6 +33,37 @@ data class EditorListing(val entries: List<Entry>) {
                 entry(article, page)
             }
             return EditorListing(entries)
+        }
+
+        private fun photo(inner: String, page: URI): Pair<String, String?>? {
+            val figure = Html.elements("figure", inner).firstOrNull { figure ->
+                (figure.attributes["class"] ?: "").contains("firmware-photo")
+            } ?: return null
+            if ((figure.attributes["class"] ?: "").contains("firmware-photo-missing")) return null
+            val img = Html.voids("img", figure.inner).firstOrNull() ?: return null
+            val url = pickImageUrl(img, page) ?: return null
+            return url to img.attributes["alt"]?.takeIf { it.isNotBlank() }
+        }
+
+        internal fun pickImageUrl(img: Html.Element, page: URI): String? {
+            val srcset = img.attributes["srcset"]
+            if (!srcset.isNullOrBlank()) {
+                val candidates = ArrayList<Pair<Int, String>>()
+                for (part in srcset.split(',')) {
+                    val bits = part.trim().split(Regex("[ \t\n\r]+")).filter { it.isNotEmpty() }
+                    if (bits.size < 2 || !bits.last().endsWith("w")) continue
+                    val width = bits.last().dropLast(1).toIntOrNull() ?: continue
+                    candidates += width to bits[0]
+                }
+                val chosen = candidates.filter { it.first in 1..720 }.maxByOrNull { it.first }
+                    ?: candidates.minByOrNull { it.first }
+                if (chosen != null) {
+                    return runCatching { page.resolve(chosen.second).toString() }.getOrNull()
+                        ?.takeIf { it.startsWith("http") }
+                }
+            }
+            val src = img.attributes["src"]?.takeIf { it.isNotBlank() } ?: return null
+            return runCatching { page.resolve(src).toString() }.getOrNull()?.takeIf { it.startsWith("http") }
         }
 
         private fun entry(article: Html.Element, page: URI): Entry? {
@@ -64,6 +97,7 @@ data class EditorListing(val entries: List<Entry>) {
                 val link = CatalogueLink(label, url)
                 if (links.none { it.comparable == link.comparable }) links.add(link)
             }
+            val photo = photo(article.inner, page)
             return Entry(
                 anchor = anchor,
                 name = title,
@@ -75,6 +109,8 @@ data class EditorListing(val entries: List<Entry>) {
                 pinned = article.attributes.containsKey("data-pinned"),
                 experimental = experimental,
                 links = links,
+                photoURL = photo?.first,
+                photoAlt = photo?.second,
             )
         }
     }
@@ -102,7 +138,10 @@ object CatalogueBuilder {
                 entries[index] = entry.copy(
                     what = entry.what ?: listed.blurb,
                     author = entry.author ?: listed.author,
-                    stars = entry.stars ?: listed.stars,
+                    stars = listOfNotNull(entry.stars, listed.stars).maxOrNull(),
+                    pinned = entry.pinned || listed.pinned,
+                    photoURL = entry.photoURL ?: listed.photoURL,
+                    photoAlt = entry.photoAlt ?: listed.photoAlt,
                     links = entry.links + extra,
                 )
             } else {
@@ -119,6 +158,9 @@ object CatalogueBuilder {
                     beta = listed.experimental,
                     links = listed.links + pageLink,
                     stars = listed.stars,
+                    pinned = listed.pinned,
+                    photoURL = listed.photoURL,
+                    photoAlt = listed.photoAlt,
                     isOfficial = official,
                 )
             }

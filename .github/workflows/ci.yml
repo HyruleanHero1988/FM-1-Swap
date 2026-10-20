@@ -17,7 +17,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Vendor binaries and drop leftover iOS sources
-        run: STRIP_IOS=1 bash scripts/vendor-binaries.sh
+        run: |
+          chmod +x gradlew scripts/vendor-binaries.sh scripts/make-icon.py || true
+          STRIP_IOS=1 bash scripts/vendor-binaries.sh
 
       - uses: actions/setup-java@v4
         with:

@@ -13,17 +13,23 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.content.res.Configuration
 import com.fmswitch.catalogue.SafetyNotice
 import com.fmswitch.model.AppTab
 import com.fmswitch.model.AppViewModel
@@ -50,10 +56,13 @@ fun RootScreen(model: AppViewModel) {
         Box(
             Modifier
                 .fillMaxSize()
-                .background(theme.background)
-                .windowInsetsPadding(WindowInsets.statusBars),
+                .background(theme.background),
         ) {
-            Column(Modifier.fillMaxSize()) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.statusBars),
+            ) {
                 StatusLine(model)
                 Box(Modifier.weight(1f).fillMaxWidth()) {
                     when (model.tab) {
@@ -70,6 +79,7 @@ fun RootScreen(model: AppViewModel) {
                     Modifier
                         .fillMaxSize()
                         .background(theme.background)
+                        .windowInsetsPadding(WindowInsets.statusBars)
                         .windowInsetsPadding(WindowInsets.navigationBars),
                 ) {
                     FlashScreen(model)
@@ -80,6 +90,7 @@ fun RootScreen(model: AppViewModel) {
                     Modifier
                         .fillMaxSize()
                         .background(theme.background)
+                        .windowInsetsPadding(WindowInsets.statusBars)
                         .windowInsetsPadding(WindowInsets.navigationBars),
                 ) {
                     SafetyNoticeScreen(model)
@@ -87,11 +98,23 @@ fun RootScreen(model: AppViewModel) {
             }
             if (model.playingFirmware == null) CRTOverlay()
             model.playingFirmware?.let { entry ->
+                val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+                val sideSystem = WindowInsets.navigationBars
+                    .union(WindowInsets.displayCutout)
+                    .only(WindowInsetsSides.Horizontal)
                 Box(
                     Modifier
                         .fillMaxSize()
                         .background(theme.background)
-                        .windowInsetsPadding(WindowInsets.navigationBars),
+                        .then(
+                            if (landscape) {
+                                Modifier.windowInsetsPadding(sideSystem)
+                            } else {
+                                Modifier
+                                    .windowInsetsPadding(WindowInsets.statusBars)
+                                    .windowInsetsPadding(WindowInsets.navigationBars)
+                            },
+                        ),
                 ) {
                     EmulatorScreen(
                         entry = entry,

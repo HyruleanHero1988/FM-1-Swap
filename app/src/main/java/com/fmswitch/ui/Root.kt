@@ -1,5 +1,6 @@
 package com.fmswitch.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,6 +38,13 @@ import com.fmswitch.theme.pixelText
 @Composable
 fun RootScreen(model: AppViewModel) {
     val theme = model.theme
+    BackHandler(
+        enabled = !model.needsSafetyNotice &&
+            model.job == null &&
+            model.tab != AppTab.DEVICE,
+    ) {
+        model.tab = AppTab.DEVICE
+    }
     CompositionLocalProvider(LocalPhosphor provides theme) {
         Box(
             Modifier

@@ -1,5 +1,6 @@
 package com.fmswitch.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,9 @@ fun FlashScreen(model: AppViewModel) {
     val job = model.job ?: return
     val theme = LocalPhosphor.current
     var restoring by remember { mutableStateOf(false) }
+    BackHandler {
+        if (!job.phase.isRunning) model.dismissFlash()
+    }
     val title = when (job.phase) {
         is FlashPhase.Succeeded -> "FLASHED"
         is FlashPhase.Failed -> "INTERRUPTED"

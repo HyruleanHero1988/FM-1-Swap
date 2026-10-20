@@ -35,6 +35,20 @@ class FirmwareEmulatorTest {
     }
 
     @Test
+    fun officialOpenPlaysInMvavesWorkbench() {
+        val open = CatalogueEntry(
+            id = "fm1-editor-official-open",
+            name = "Official Open",
+            author = "M-VAVE",
+            links = listOf(
+                CatalogueLink("FM1 Workbench", "https://open.m-vave.com/fm1-workbench"),
+                CatalogueLink("Source", "https://github.com/m-vave/fm1_open"),
+            ),
+        )
+        assertEquals("https://open.m-vave.com/fm1-workbench", FirmwareEmulator.authorEmulator(open))
+    }
+
+    @Test
     fun mostFirmwaresHaveNoAuthorEmulator() {
         assertNull(FirmwareEmulator.authorEmulator(CatalogueEntry(id = "sloop", name = "SLOOP")))
         assertNull(FirmwareEmulator.authorEmulator(CatalogueEntry(id = "fm1-editor-baud-girl", name = "Baud Girl (FM-1+VA)")))

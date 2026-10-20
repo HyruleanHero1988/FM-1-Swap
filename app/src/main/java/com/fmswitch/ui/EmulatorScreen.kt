@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -38,8 +39,12 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.FirmwareEmulator
+import com.fmswitch.emu.EmulatorClock
 import com.fmswitch.emu.Fm1Engine
 import com.fmswitch.model.EmulatorPackage
 import com.fmswitch.model.StoredFirmware
@@ -69,6 +74,11 @@ fun EmulatorScreen(
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val authorEmulator = remember(entry.id, entry.links) { FirmwareEmulator.authorEmulator(entry) }
     var saveError by remember(entry.id) { mutableStateOf<String?>(null) }
+    var mhz by remember(entry.id) { mutableIntStateOf(EmulatorClock.get(context, entry)) }
+    fun clock(value: Int) {
+        mhz = value
+        EmulatorClock.set(context, entry, value)
+    }
     fun keep() {
         scope.launch {
             saveError = null
@@ -102,6 +112,7 @@ fun EmulatorScreen(
                 }
                 is EmulatorPackage.Ready -> RunningEmulator(
                     prepared,
+                    mhz = mhz,
                     expand = true,
                     phosphorPanel = phosphorPanel,
                     onStatus = { liveStatus = it },
@@ -126,6 +137,7 @@ fun EmulatorScreen(
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(authorEmulator)))
                     }
                 }
+                if (prepared is EmulatorPackage.Ready) ClockRow(mhz, ::clock, narrow = true)
                 if (liveStatus.isNotEmpty()) MonoText(liveStatus, size = 11, dim = true)
             }
         }
@@ -159,7 +171,31 @@ fun EmulatorScreen(
                     PixelButton("RETRY", compact = true, onClick = onRetry)
                 }
             }
-            is EmulatorPackage.Ready -> RunningEmulator(prepared, expand = false, phosphorPanel = phosphorPanel)
+            is EmulatorPackage.Ready -> {
+                ClockRow(mhz, ::clock)
+                RunningEmulator(prepared, mhz = mhz, expand = false, phosphorPanel = phosphorPanel)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ClockRow(mhz: Int, onClock: (Int) -> Unit, narrow: Boolean = false) {
+    val buttons = @Composable {
+        EmulatorClock.CHOICES.forEach { choice ->
+            PixelButton("$choice", compact = true, prominent = choice == mhz) { if (choice != mhz) onClock(choice) }
+        }
+    }
+    if (narrow) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            MonoText("CLOCK · MHZ", size = 11, dim = true)
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { buttons() }
+        }
+    } else {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            MonoText("CLOCK", size = 11, dim = true)
+            buttons()
+            MonoText("MHZ", size = 11, dim = true)
         }
     }
 }
@@ -167,31 +203,43 @@ fun EmulatorScreen(
 @Composable
 private fun RunningEmulator(
     prepared: EmulatorPackage.Ready,
+    mhz: Int,
     expand: Boolean,
     phosphorPanel: Boolean,
     onStatus: (String) -> Unit = {},
 ) {
     val context = LocalContext.current
     val theme = LocalPhosphor.current
-    val engine by produceState<Fm1Engine?>(null, prepared.file, prepared.sha256) {
+    // The app in the background (home, another app, screen off) has no emulator running.
+    val foreground by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
+    val visible = foreground.isAtLeast(Lifecycle.State.STARTED)
+    // One engine at a time: the next boot reads the flash the previous one saved as it closed.
+    val current = remember { arrayOfNulls<Fm1Engine>(1) }
+    DisposableEffect(Unit) { onDispose { current[0]?.close(); current[0] = null } }
+    val engine by produceState<Fm1Engine?>(null, prepared.file, prepared.sha256, mhz, visible) {
+        value = null
+        current[0]?.close()
+        current[0] = null
+        if (!visible) return@produceState
         val bytes = withContext(Dispatchers.IO) { runCatching { prepared.file.readBytes() }.getOrNull() }
-        value = bytes?.let { Fm1Engine(it, Fm1Engine.saveFileFor(context.filesDir, prepared.sha256)) }
+        val next = bytes?.let { Fm1Engine(it, Fm1Engine.saveFileFor(context.filesDir, prepared.sha256), mhz) }
+        current[0] = next
+        value = next
     }
     val running = engine
     if (running == null) {
-        MonoText("BOOTING…", size = 13, dim = true)
+        MonoText(if (visible) "BOOTING…" else "PAUSED", size = 13, dim = true)
         return
     }
-    DisposableEffect(running) { onDispose { running.close() } }
     var status by remember(running) { mutableStateOf<Fm1Engine.Status>(Fm1Engine.Status.Booting) }
     LaunchedEffect(running) {
         while (true) {
             status = running.status
-            onStatus(statusLine(status))
+            onStatus(statusLine(status, running.mhz))
             delay(300)
         }
     }
-    if (!expand) MonoText(statusLine(status), size = 12, dim = status !is Fm1Engine.Status.Stopped)
+    if (!expand) MonoText(statusLine(status, running.mhz), size = 12, dim = status !is Fm1Engine.Status.Stopped)
     Box(
         Modifier.then(if (expand) Modifier.fillMaxSize() else Modifier.fillMaxWidth()),
         contentAlignment = Alignment.Center,
@@ -210,6 +258,10 @@ private fun RunningEmulator(
                 size = 13,
             )
             MonoText(
+                "If the sound gaps or crackles while the load is low, this firmware needs a faster emulated chip: raise CLOCK (a real FM-1 runs at 240 MHz). If the load goes over 100%, lower it.",
+                size = 12,
+            )
+            MonoText(
                 "This runs the exact .fwsc a flash would write, on Joakim Eriksson's FM-1 emulator compiled into the app. What you save on the emulated FM-1 is kept for this package.",
                 size = 12,
                 dim = true,
@@ -218,12 +270,12 @@ private fun RunningEmulator(
     }
 }
 
-private fun statusLine(status: Fm1Engine.Status): String = when (status) {
+private fun statusLine(status: Fm1Engine.Status, mhz: Int): String = when (status) {
     Fm1Engine.Status.Booting -> "BOOTING…"
     is Fm1Engine.Status.Running -> {
         val load = (status.load * 100).toInt()
-        if (status.load > 0.95f) "RUNNING · LOAD $load% · THIS PHONE IS STRUGGLING, SOUND MAY BREAK UP"
-        else "RUNNING · 100 MHz · LOAD $load%"
+        if (status.load > 0.95f) "RUNNING · $mhz MHz · LOAD $load% · TOO MUCH FOR THIS PHONE, LOWER THE CLOCK"
+        else "RUNNING · $mhz MHz · LOAD $load%"
     }
     is Fm1Engine.Status.Stopped -> status.message
 }

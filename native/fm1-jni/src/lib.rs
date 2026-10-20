@@ -208,17 +208,18 @@ mod tests {
     }
 
     /// The app's blocks (256 frames, 20 ms of emulated time at most): how much of real time a
-    /// second of audio costs on this machine.
-    /// FM1_TEST_FWSC=path/to/package.fwsc cargo test --release real_time -- --ignored --nocapture
+    /// second of audio costs on this machine at MHZ (default 240).
+    /// FM1_TEST_FWSC=path/to/package.fwsc MHZ=160 cargo test --release real_time -- --ignored --nocapture
     #[test]
     #[ignore]
     fn real_time() {
         let pkg = std::fs::read(std::env::var("FM1_TEST_FWSC").expect("FM1_TEST_FWSC")).unwrap();
-        let mut m = Machine::boot(&pkg, &[], 100, true).unwrap();
+        let mhz = std::env::var("MHZ").ok().and_then(|v| v.parse().ok()).unwrap_or(240);
+        let mut m = Machine::boot(&pkg, &[], mhz, true).unwrap();
         let mut out = vec![0i16; 2 * 256];
         for second in 0..4 {
             let t0 = std::time::Instant::now();
-            let made: usize = (0..44_100 / 256).map(|_| m.render(&mut out, 2_000_000)).sum();
+            let made: usize = (0..44_100 / 256).map(|_| m.render(&mut out, mhz * 20_000)).sum();
             println!("second {second}: {made} frames of audio, load {:.0}%", t0.elapsed().as_secs_f64() * 100.0);
         }
     }

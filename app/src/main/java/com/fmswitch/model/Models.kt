@@ -9,6 +9,7 @@ import com.fmswitch.catalogue.EditorListing
 import com.fmswitch.catalogue.HubFeed
 import com.fmswitch.catalogue.MergedCatalogue
 import com.fmswitch.catalogue.PackageDiscovery
+import com.fmswitch.catalogue.RedtailListing
 import com.fmswitch.catalogue.fetchBytes
 import com.fmswitch.catalogue.officialCatalogueEntry
 import com.fmswitch.fm1kit.FwscFailure
@@ -298,11 +299,16 @@ class CatalogueStore(context: Context) {
             val editorHtml = withContext(Dispatchers.IO) {
                 runCatching { String(fetchBytes(EditorListing.DEFAULT_URL), Charsets.UTF_8) }.getOrNull()
             }
+            val redtailHtml = withContext(Dispatchers.IO) {
+                runCatching { String(fetchBytes(RedtailListing.DEFAULT_URL), Charsets.UTF_8) }.getOrNull()
+            }
             val hub = hubText?.let { runCatching { HubFeed.decode(it) }.getOrNull() }
             val editor = editorHtml?.let { runCatching { EditorListing.parse(it) }.getOrNull() }
+            val redtail = redtailHtml?.let { runCatching { RedtailListing.parse(it) }.getOrNull() }
             val problems = ArrayList<String>()
             if (hub == null) problems += "The firmware hub couldn't be read."
             if (editor == null || editor.entries.isEmpty()) problems += "fm1-editor.com couldn't be read."
+            if (redtail == null || redtail.entries.isEmpty()) problems += "The RedtailWorks pack couldn't be read."
             if (hub == null && (editor == null || editor.entries.isEmpty())) {
                 error("Couldn't reach the firmware hub or fm1-editor.com.")
             }
@@ -310,6 +316,7 @@ class CatalogueStore(context: Context) {
             val merged = CatalogueBuilder.merge(
                 listOf(officialCatalogueEntry()) + hubEntries,
                 editor?.entries.orEmpty(),
+                redtail = redtail?.entries.orEmpty(),
             )
             val resolved = PackageDiscovery.discoverMissing(merged, previous)
             val built = MergedCatalogue(hub?.first, resolved, problems)

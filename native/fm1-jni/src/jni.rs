@@ -61,9 +61,13 @@ pub unsafe extern "system" fn Java_com_fmswitch_emu_Fm1Native_render(
     if m.halted() { -1 } else { have }
 }
 
+/// The screen's revision; `out` is only filled when that differs from `known`.
 #[no_mangle]
-pub unsafe extern "system" fn Java_com_fmswitch_emu_Fm1Native_lcd(env: *mut JNIEnv, _: jclass, h: jlong, out: jintArray) -> jint {
+pub unsafe extern "system" fn Java_com_fmswitch_emu_Fm1Native_lcd(
+    env: *mut JNIEnv, _: jclass, h: jlong, out: jintArray, known: jint,
+) -> jint {
     let Some(m) = machine(h) else { return 0 };
+    if m.lcd_revision() as jint == known { return known; }
     let mut buf = vec![0i32; LCD_PIXELS];
     let rev = m.lcd_argb(&mut buf);
     ((**env).SetIntArrayRegion.unwrap())(env, out, 0, LCD_PIXELS as jsize, buf.as_ptr());

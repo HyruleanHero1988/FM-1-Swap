@@ -21,25 +21,28 @@ class Fm1NativeHostTest {
             val block = ShortArray(2 * 512)
             var frames = 0
             repeat(44_100 * 3 / 512) {
-                val made = Fm1Native.render(handle, block, 50_000_000)
+                val made = Fm1Native.render(handle, block, BUDGET)
                 assertTrue("the machine stopped", made >= 0)
                 frames += made
             }
             assertTrue(frames > 44_100)
             assertTrue(Fm1Native.ms(handle) >= 2_500)
             val lcd = IntArray(240 * 240)
-            Fm1Native.lcd(handle, lcd)
+            val revision = Fm1Native.lcd(handle, lcd, -1)
             assertTrue("the screen stays dark", lcd.count { it and 0xffffff != 0 } > 1_000)
+            val untouched = IntArray(240 * 240)
+            assertEquals(revision, Fm1Native.lcd(handle, untouched, revision))
+            assertTrue("an unchanged screen is not copied again", untouched.all { it == 0 })
             val leds = FloatArray(41)
             Fm1Native.leds(handle, leds)
             Fm1Native.key(handle, 26, true)
-            Fm1Native.render(handle, block, 50_000_000)
+            Fm1Native.render(handle, block, BUDGET)
             Fm1Native.key(handle, 26, false)
             Fm1Native.enc(handle, 2, 1)
             Fm1Native.midi(handle, 0x91)
             Fm1Native.midi(handle, 60)
             Fm1Native.midi(handle, 100)
-            Fm1Native.render(handle, block, 50_000_000)
+            Fm1Native.render(handle, block, BUDGET)
             assertNotNull(Fm1Native.flashChanges(handle))
         } finally {
             Fm1Native.release(handle)
@@ -50,5 +53,9 @@ class Fm1NativeHostTest {
     fun junkDoesNotBoot() {
         assumeTrue("no host libfm1emu.so", Fm1Native.available)
         assertEquals(0L, Fm1Native.boot(ByteArray(64), null, 100, true))
+    }
+
+    private companion object {
+        const val BUDGET = 2_000_000
     }
 }

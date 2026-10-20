@@ -91,6 +91,9 @@ class Fm1Engine(
         var busyNanos = 0L
         var windowStart = System.nanoTime()
         var windowFrames = 0
+        val budget = mhz * INSNS_PER_MHZ_PER_BLOCK
+        var started = false
+        val bootRevision = Fm1Native.lcd(handle, scratch, -1)
         status = Status.Running(0f)
         while (running) {
             while (true) {
@@ -102,11 +105,18 @@ class Fm1Engine(
                 }
             }
             val t0 = System.nanoTime()
-            val made = Fm1Native.render(handle, block, MAX_INSNS_PER_BLOCK)
+            val made = Fm1Native.render(handle, block, budget)
             busyNanos += System.nanoTime() - t0
             if (made < 0) {
                 status = Status.Stopped("The firmware stopped (the emulator hit something it can't run).")
                 return
+            }
+            if (!started) {
+                started = made > 0 || lastRevision.let { it != -1 && it != bootRevision }
+                if (!started && Fm1Native.ms(handle) >= NEVER_STARTED_MS) {
+                    status = Status.Stopped(NEVER_STARTED)
+                    return
+                }
             }
             track.write(block, 0, block.size, AudioTrack.WRITE_BLOCKING)
             windowFrames += BLOCK_FRAMES
@@ -115,8 +125,9 @@ class Fm1Engine(
                 lastFrameAt = now
                 Fm1Native.leds(handle, leds)
                 val previous = frame.get()
-                val revision = Fm1Native.lcd(handle, scratch)
-                val lcd = if (revision == lastRevision && previous != null) previous.lcd else scratch.copyOf()
+                val known = if (previous != null) lastRevision else -1
+                val revision = Fm1Native.lcd(handle, scratch, known)
+                val lcd = if (revision == known && previous != null) previous.lcd else scratch.copyOf()
                 frame.set(Fm1PanelSource.Frame(lcd, revision, leds.copyOf()))
                 lastRevision = revision
             }
@@ -174,7 +185,14 @@ class Fm1Engine(
         const val SAMPLE_RATE = 44_100
         private const val BLOCK_FRAMES = 256
         private const val BUFFER_FRAMES = 2_048
-        private const val MAX_INSNS_PER_BLOCK = 50_000_000
+        /** At most 20 ms of emulated time per block, so a firmware that stalls its audio costs
+         *  bounded work instead of the whole CPU. */
+        private const val INSNS_PER_MHZ_PER_BLOCK = 20_000
+        private const val NEVER_STARTED_MS = 6_000L
+        const val NEVER_STARTED =
+            "This firmware never got going: after 6 emulated seconds it has made no sound and drawn nothing. " +
+                "It waits on FM-1 hardware the emulator doesn't model yet (M-VAVE's Official Open does this). " +
+                "A real FM-1 may run it fine."
         private const val FRAME_NANOS = 33_000_000L
         private const val SAVE_NANOS = 3_000_000_000L
 

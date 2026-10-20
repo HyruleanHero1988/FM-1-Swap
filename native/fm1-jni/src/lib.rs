@@ -97,6 +97,7 @@ impl Machine {
 
     fn run(&mut self, n: u32) {
         let jit = self.cpu.jit_on;
+        if let Some(c1) = self.cpu1.as_mut() { c1.profile = self.cpu.profile; }
         let Machine { cpu, cpu1, soc, pending_tick, .. } = self;
         if machine::run_dual(cpu1, soc, n, RAM_SIZE, jit, |soc, k| machine::run_blocks(cpu, soc, k, pending_tick)).is_err() {
             self.halted = true;
@@ -130,6 +131,8 @@ impl Machine {
         }
         self.soc.lcd.revision
     }
+
+    pub fn lcd_revision(&self) -> u32 { self.soc.lcd.revision }
 
     /// The LEDs' on-fractions since the last call.
     pub fn leds(&mut self, out: &mut [f32]) {
@@ -202,6 +205,22 @@ mod tests {
         println!("4 s emulated in {:?}; {loud} loud samples; {lit} lit pixels", t0.elapsed());
         assert!(!m.halted());
         assert!(lit > 1000, "the screen stays dark");
+    }
+
+    /// The app's blocks (256 frames, 20 ms of emulated time at most): how much of real time a
+    /// second of audio costs on this machine.
+    /// FM1_TEST_FWSC=path/to/package.fwsc cargo test --release real_time -- --ignored --nocapture
+    #[test]
+    #[ignore]
+    fn real_time() {
+        let pkg = std::fs::read(std::env::var("FM1_TEST_FWSC").expect("FM1_TEST_FWSC")).unwrap();
+        let mut m = Machine::boot(&pkg, &[], 100, true).unwrap();
+        let mut out = vec![0i16; 2 * 256];
+        for second in 0..4 {
+            let t0 = std::time::Instant::now();
+            let made: usize = (0..44_100 / 256).map(|_| m.render(&mut out, 2_000_000)).sum();
+            println!("second {second}: {made} frames of audio, load {:.0}%", t0.elapsed().as_secs_f64() * 100.0);
+        }
     }
 
     #[test]

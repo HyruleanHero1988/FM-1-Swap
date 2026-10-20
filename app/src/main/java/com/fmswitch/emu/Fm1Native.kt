@@ -10,7 +10,8 @@ object Fm1Native {
     @JvmStatic external fun boot(pkg: ByteArray, saved: ByteArray?, mhz: Int, jit: Boolean): Long
     @JvmStatic external fun release(handle: Long)
     @JvmStatic external fun render(handle: Long, out: ShortArray, maxInsns: Int): Int
-    @JvmStatic external fun lcd(handle: Long, out: IntArray): Int
+    /** The screen's revision; [out] is only filled when that differs from [known]. */
+    @JvmStatic external fun lcd(handle: Long, out: IntArray, known: Int): Int
     @JvmStatic external fun leds(handle: Long, out: FloatArray)
     @JvmStatic external fun key(handle: Long, id: Int, down: Boolean)
     @JvmStatic external fun enc(handle: Long, enc: Int, clicks: Int)

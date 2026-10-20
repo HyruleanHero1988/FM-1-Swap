@@ -635,6 +635,32 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Play a package already on the SAVED screen, including imports that are not in the list. */
+    fun trySaved(item: StoredFirmware) {
+        val listed = item.catalogueID?.let { catalogue.entry(it) }
+        val entry = listed?.takeIf {
+            it.sha256 == null || it.sha256.equals(item.sha256, ignoreCase = true)
+        } ?: run {
+            CatalogueEntry(
+                id = listed?.id ?: "saved-${item.sha256.take(16)}",
+                name = item.name,
+                author = item.author ?: listed?.author,
+                version = item.version,
+                product = item.product,
+                size = item.size,
+                sha256 = item.sha256,
+                packageURL = item.packageURL ?: listed?.packageURL,
+                links = listed?.links ?: emptyList(),
+                photoURL = listed?.photoURL,
+                photoAlt = listed?.photoAlt,
+                what = listed?.what,
+                beta = listed?.beta ?: false,
+                isOfficial = item.source == "official" || listed?.isOfficial == true,
+            )
+        }
+        openEmulator(entry)
+    }
+
     fun closeEmulator() {
         emulatorJob?.cancel()
         emulatorJob = null

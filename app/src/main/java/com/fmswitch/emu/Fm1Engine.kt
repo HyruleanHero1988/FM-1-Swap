@@ -19,6 +19,7 @@ class Fm1Engine(
     private val pkg: ByteArray,
     private val saveFile: File?,
     val mhz: Int = EmulatorClock.DEFAULT,
+    private val playInBackground: Boolean = false,
 ) : Fm1PanelSource, AutoCloseable {
 
     sealed class Status {
@@ -183,7 +184,7 @@ class Fm1Engine(
         return AudioTrack.Builder()
             .setAudioAttributes(
                 AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_GAME)
+                    .setUsage(if (playInBackground) AudioAttributes.USAGE_MEDIA else AudioAttributes.USAGE_GAME)
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build(),
             )

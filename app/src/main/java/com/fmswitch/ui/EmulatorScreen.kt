@@ -1,10 +1,15 @@
 package com.fmswitch.ui
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.net.Uri
+import android.os.PowerManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +50,7 @@ import androidx.lifecycle.compose.currentStateAsState
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.FirmwareEmulator
 import com.fmswitch.emu.EmulatorClock
+import com.fmswitch.emu.EmulatorRun
 import com.fmswitch.emu.Fm1Engine
 import com.fmswitch.model.EmulatorPackage
 import com.fmswitch.model.StoredFirmware
@@ -63,6 +69,7 @@ fun EmulatorScreen(
     prepared: EmulatorPackage,
     phosphorPanel: Boolean,
     chooseClock: Boolean,
+    runInBackground: Boolean,
     canSave: Boolean,
     saving: Boolean,
     onSave: suspend () -> Result<StoredFirmware>,
@@ -119,6 +126,7 @@ fun EmulatorScreen(
                     expand = true,
                     phosphorPanel = phosphorPanel,
                     chooseClock = chooseClock,
+                    runInBackground = runInBackground,
                     onStatus = { liveStatus = it },
                 )
             }
@@ -183,6 +191,7 @@ fun EmulatorScreen(
                     expand = false,
                     phosphorPanel = phosphorPanel,
                     chooseClock = chooseClock,
+                    runInBackground = runInBackground,
                 )
             }
         }
@@ -218,29 +227,55 @@ private fun RunningEmulator(
     expand: Boolean,
     phosphorPanel: Boolean,
     chooseClock: Boolean,
+    runInBackground: Boolean,
     onStatus: (String) -> Unit = {},
 ) {
     val context = LocalContext.current
     val theme = LocalPhosphor.current
-    // The app in the background (home, another app, screen off) has no emulator running.
+    // Leaving TRY removes this composable, and the effect below always closes the engine.
+    // Losing the app's focus only stops it when RUN EMULATOR IN BACKGROUND is off.
     val foreground by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
-    val visible = foreground.isAtLeast(Lifecycle.State.STARTED)
+    val activityStarted = foreground.isAtLeast(Lifecycle.State.STARTED)
+    val playing = EmulatorRun.keepEngine(activityStarted, runInBackground)
     // One engine at a time: the next boot reads the flash the previous one saved as it closed.
     val current = remember { arrayOfNulls<Fm1Engine>(1) }
     DisposableEffect(Unit) { onDispose { current[0]?.close(); current[0] = null } }
-    val engine by produceState<Fm1Engine?>(null, prepared.file, prepared.sha256, mhz, visible) {
+    val engine by produceState<Fm1Engine?>(null, prepared.file, prepared.sha256, mhz, playing, runInBackground) {
         value = null
         current[0]?.close()
         current[0] = null
-        if (!visible) return@produceState
+        if (!playing) return@produceState
         val bytes = withContext(Dispatchers.IO) { runCatching { prepared.file.readBytes() }.getOrNull() }
-        val next = bytes?.let { Fm1Engine(it, Fm1Engine.saveFileFor(context.filesDir, prepared.sha256), mhz) }
+        val next = bytes?.let {
+            Fm1Engine(it, Fm1Engine.saveFileFor(context.filesDir, prepared.sha256), mhz, runInBackground)
+        }
         current[0] = next
         value = next
     }
+    val runningForHold = engine
+    DisposableEffect(runningForHold, runInBackground) {
+        if (!runInBackground || runningForHold == null) return@DisposableEffect onDispose {}
+        val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val attributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_MEDIA)
+            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+            .build()
+        val focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+            .setAudioAttributes(attributes)
+            .build()
+        audio.requestAudioFocus(focus)
+        val power = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val lock = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "fmswitch:emulator")
+        lock.setReferenceCounted(false)
+        lock.acquire()
+        onDispose {
+            runCatching { audio.abandonAudioFocusRequest(focus) }
+            if (lock.isHeld) lock.release()
+        }
+    }
     val running = engine
     if (running == null) {
-        MonoText(if (visible) "BOOTING…" else "PAUSED", size = 13, dim = true)
+        MonoText(if (playing) "BOOTING…" else "PAUSED", size = 13, dim = true)
         return
     }
     var status by remember(running) { mutableStateOf<Fm1Engine.Status>(Fm1Engine.Status.Booting) }

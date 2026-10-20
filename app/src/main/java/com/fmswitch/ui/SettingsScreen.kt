@@ -119,6 +119,11 @@ fun SettingsScreen(model: AppViewModel) {
                 model.bumpTheme()
             }
             NoteText("Off, TRY runs at 240 MHz, the same speed as a real FM-1, and the clock stays off the TRY screen. On, TRY offers 100, 160 and 240, remembered per firmware. Lower it when the sound gaps or the load goes over 100%.")
+            PixelToggle("RUN EMULATOR IN BACKGROUND", model.settings.backgroundEmulator) {
+                model.settings.backgroundEmulator = it
+                model.bumpTheme()
+            }
+            NoteText("Off, TRY stops when you switch away or the screen turns off. On, it keeps sounding until you leave the TRY screen. Backing out of the emulator always stops it, even with this on.")
         }
         PixelPanel(title = "CONNECTION") {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

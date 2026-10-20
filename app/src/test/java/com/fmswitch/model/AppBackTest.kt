@@ -29,6 +29,14 @@ class AppBackTest {
     }
 
     @Test
+    fun emulatorPopsBeforeFirmwareDetail() {
+        assertEquals(
+            BackDecision.CLOSE_EMULATOR,
+            decide(emulatorOpen = true, firmwareDetailOpen = true, tab = AppTab.FIRMWARE),
+        )
+    }
+
+    @Test
     fun searchClearsBeforeLeavingFirmwareTab() {
         assertEquals(BackDecision.CLEAR_SEARCH, decide(searchNonEmpty = true, tab = AppTab.FIRMWARE))
     }
@@ -51,6 +59,7 @@ class AppBackTest {
         flashRunning: Boolean = false,
         flashOpen: Boolean = false,
         voiceRestoreRunning: Boolean = false,
+        emulatorOpen: Boolean = false,
         firmwareDetailOpen: Boolean = false,
         searchNonEmpty: Boolean = false,
         libraryClearConfirm: Boolean = false,
@@ -60,6 +69,7 @@ class AppBackTest {
         flashRunning = flashRunning,
         flashOpen = flashOpen,
         voiceRestoreRunning = voiceRestoreRunning,
+        emulatorOpen = emulatorOpen,
         firmwareDetailOpen = firmwareDetailOpen,
         searchNonEmpty = searchNonEmpty,
         libraryClearConfirm = libraryClearConfirm,

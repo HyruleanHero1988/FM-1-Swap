@@ -3,6 +3,7 @@ package com.fmswitch.model
 enum class BackDecision {
     STAY,
     DISMISS_FLASH,
+    CLOSE_EMULATOR,
     CLOSE_DETAIL,
     CLEAR_SEARCH,
     CANCEL_LIBRARY_CLEAR,
@@ -16,6 +17,7 @@ object AppBack {
         flashRunning: Boolean,
         flashOpen: Boolean,
         voiceRestoreRunning: Boolean,
+        emulatorOpen: Boolean = false,
         firmwareDetailOpen: Boolean,
         searchNonEmpty: Boolean,
         libraryClearConfirm: Boolean,
@@ -24,6 +26,7 @@ object AppBack {
         if (showingSafetyNotice) return BackDecision.LEAVE_APP
         if (voiceRestoreRunning || flashRunning) return BackDecision.STAY
         if (flashOpen) return BackDecision.DISMISS_FLASH
+        if (emulatorOpen) return BackDecision.CLOSE_EMULATOR
         if (firmwareDetailOpen) return BackDecision.CLOSE_DETAIL
         if (searchNonEmpty) return BackDecision.CLEAR_SEARCH
         if (libraryClearConfirm) return BackDecision.CANCEL_LIBRARY_CLEAR

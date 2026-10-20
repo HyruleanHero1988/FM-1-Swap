@@ -244,6 +244,12 @@ class PackageDiscoveryTest {
         assertEquals(byteArrayOf(1, 2, 3, 4).toList(), PackageDiscovery.firmwareBytes(html.toByteArray()).toList())
         val plain = byteArrayOf(0x46, 0x4d, 0x2d, 0x31)
         assertEquals(plain.toList(), PackageDiscovery.firmwareBytes(plain).toList())
+        val truncated = """FM1_PACKAGE = {"schema":1,"product":"FM-1_8000014","release_version":"V14","sha256":"aa","bytes":492084,"data":"AAAA"""
+        val head = PackageDiscovery.workbenchPackage(truncated, "https://example.com/FM1-Open-V14-Workbench.html")
+        assertNotNull(head)
+        assertEquals("V14", head!!.version)
+        assertEquals("FM-1_8000014", head.product)
+        assertEquals(492084, head.size)
     }
 
     @Test

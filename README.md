@@ -56,7 +56,8 @@ Artifacts). You can also trigger it from the Actions tab with **Run workflow**.
 
 CI vendors the Gradle wrapper, bundled V15, and fonts (from the original
 [FM-SWITCH](https://github.com/ocean/FM-SWITCH) tree) before it runs Gradle, then uploads
-`app-debug`. Enable Actions on the GitHub repo if the workflow is waiting for approval.
+`app-debug`. On `main` it also strips leftover iOS sources from a replaced fork and commits
+those Android assets. Enable Actions on the GitHub repo if the workflow is waiting for approval.
 
 ## First flash on hardware
 

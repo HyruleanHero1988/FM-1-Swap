@@ -11,26 +11,41 @@ permissions:
 jobs:
   build:
     name: Test and assemble
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Vendor binaries and drop leftover iOS sources
         run: |
           chmod +x gradlew scripts/vendor-binaries.sh scripts/make-icon.py || true
           STRIP_IOS=1 bash scripts/vendor-binaries.sh
 
-      - uses: actions/setup-java@v4
+      # Commit the overwrite even if the Gradle build later fails, so GitHub
+      # main becomes the Android tree instead of a mixed iOS fork.
+      - name: Commit the Android tree
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No leftover iOS sources to strip."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Replace iOS sources with the Android port."
+          git push
+
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
           cache: gradle
 
-      # Puts cmdline-tools on PATH and accepts SDK licences so Gradle can
-      # download platforms;android-35 / build-tools as AGP asks for them.
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools
 
       - name: Install Android platform
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
@@ -47,16 +62,3 @@ jobs:
           name: app-debug
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-
-      - name: Commit the Android tree
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: |
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No leftover iOS sources to strip."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Replace iOS sources with the Android port."
-          git push

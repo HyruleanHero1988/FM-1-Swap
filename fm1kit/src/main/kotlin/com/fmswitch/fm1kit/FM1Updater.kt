@@ -9,8 +9,7 @@ class FM1Updater(
     val timing: UpdaterTiming = UpdaterTiming.Standard,
 ) {
     suspend fun find(filter: (FM1Identity) -> Boolean = { true }): FoundDevice? {
-        for (port in transport.ports()) {
-            if (!isProbeable(port)) continue
+        for (port in portsToProbe(transport.ports())) {
             val connection = try {
                 transport.open(port)
             } catch (_: Exception) {
@@ -25,8 +24,7 @@ class FM1Updater(
 
     suspend fun findAll(filter: (FM1Identity) -> Boolean = { true }): List<FoundDevice> {
         val found = ArrayList<FoundDevice>()
-        for (port in transport.ports()) {
-            if (!isProbeable(port)) continue
+        for (port in portsToProbe(transport.ports())) {
             val connection = try {
                 transport.open(port)
             } catch (_: Exception) {
@@ -391,13 +389,28 @@ class FM1Updater(
 
     companion object {
         val PROBEABLE_FRAGMENTS = listOf(
-            "fm-1", "fm1", "felucca", "ota", "composite", "usb-midi", "simulated",
-            "sloop", "clipper", "sinco",
+            "fm-1", "fm1", "felucca", "ota", "composite", "usb-midi", "usb midi",
+            "simulated", "sloop", "clipper", "sinco", "jieli", "ac791", "wl80",
         )
 
         fun isProbeable(port: MidiPortDescriptor): Boolean {
             val name = port.name.lowercase()
             return PROBEABLE_FRAGMENTS.any { name.contains(it) }
+        }
+
+        fun probeRank(port: MidiPortDescriptor): Int {
+            val name = port.name.lowercase()
+            return when {
+                listOf("fm-1", "fm1").any { name.contains(it) } -> 0
+                listOf("clipper", "sloop", "felucca", "sinco").any { name.contains(it) } -> 1
+                listOf("jieli", "ac791", "wl80").any { name.contains(it) } -> 2
+                else -> 3
+            }
+        }
+
+        fun portsToProbe(ports: List<MidiPortDescriptor>): List<MidiPortDescriptor> {
+            val named = ports.filter { isProbeable(it) }
+            return (named.ifEmpty { ports }).sortedBy { probeRank(it) }
         }
 
         fun knownBuildID(package_: FwscPackage): FM1BuildID? = OfficialFirmware.matching(package_)?.buildID

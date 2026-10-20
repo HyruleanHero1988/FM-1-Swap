@@ -49,6 +49,7 @@ fun FlashScreen(model: AppViewModel) {
     val title = when (job.phase) {
         is FlashPhase.Succeeded -> "FLASHED"
         is FlashPhase.Failed -> "INTERRUPTED"
+        is FlashPhase.BackingUp -> "BACKING UP"
         else -> "FLASHING"
     }
     Column(
@@ -77,6 +78,9 @@ fun FlashScreen(model: AppViewModel) {
         when (val phase = job.phase) {
             is FlashPhase.Succeeded -> PixelPanel(title = "DONE") {
                 MonoText("The FM-1 now reports ${phase.identity}.", size = 15)
+                model.lastBackup?.let { backup ->
+                    NoteText("A copy of ${backup.summary} is on this phone under SAVED, taken before the write.")
+                }
                 if (phase.identity == FM1Identity.OFFICIAL_V15.text) {
                     NoteText("V15 can keep the old firmware's voices in some banks, some of them wrong or silent. Restoring writes its 128 factory voices over all four banks.")
                     PixelButton("RESTORE FACTORY VOICES") { restoring = true }
@@ -91,6 +95,13 @@ fun FlashScreen(model: AppViewModel) {
                     PixelButton("TRY AGAIN") { model.resumeFlash() }
                 }
                 PixelButton("CLOSE") { model.dismissFlash() }
+            }
+            is FlashPhase.BackingUp -> PixelPanel(title = "SAVING A COPY FIRST") {
+                MonoText(
+                    "Reading the running firmware's 128 presets and 16 patterns so they aren't lost if this flash overwrites them. The write has not started yet.",
+                    size = 14,
+                )
+                NoteText("Same dump Baud Girl's Device Manager uses: a presets .syx and a patterns .syx, kept on this phone.")
             }
             else -> PixelPanel(title = "KEEP THIS SCREEN OPEN") {
                 MonoText(

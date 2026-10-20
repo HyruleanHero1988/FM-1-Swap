@@ -11,9 +11,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.SafetyNotice
+import com.fmswitch.fm1kit.BaudGirlLibrarian
+import com.fmswitch.fm1kit.BaudGirlSnapshot
 import com.fmswitch.fm1kit.FM1Identity
 import com.fmswitch.fm1kit.FM1UpdateError
 import com.fmswitch.fm1kit.FM1Updater
+import com.fmswitch.fm1kit.supportsBaudGirlBackup
 import com.fmswitch.fm1kit.FoundDevice
 import com.fmswitch.fm1kit.InstallCheck
 import com.fmswitch.fm1kit.InstallKind
@@ -45,6 +48,7 @@ enum class AppTab(val title: String, val glyph: String) {
 
 sealed class FlashPhase {
     data object Preparing : FlashPhase()
+    data class BackingUp(val done: Int, val total: Int) : FlashPhase()
     data class Staging(val requests: Int) : FlashPhase()
     data object WaitingForLoader : FlashPhase()
     data class Writing(val amount: Double) : FlashPhase()
@@ -56,6 +60,7 @@ sealed class FlashPhase {
     val label: String
         get() = when (this) {
             Preparing -> "CONNECTING"
+            is BackingUp -> "BACKING UP"
             is Staging -> "CHECKING PACKAGE"
             WaitingForLoader -> "WAITING FOR LOADER"
             is Writing -> "WRITING"
@@ -68,6 +73,7 @@ sealed class FlashPhase {
     val isRunning: Boolean get() = this !is Succeeded && this !is Failed
     val fraction: Float?
         get() = when (this) {
+            is BackingUp -> if (total == 0) 0f else done.toFloat() / total
             is Staging -> (requests / 75.0).coerceAtMost(1.0).toFloat()
             is Writing -> amount.toFloat()
             is Verifying -> amount.toFloat()
@@ -92,12 +98,21 @@ sealed class VoiceRestore {
     val isRunning: Boolean get() = this is Writing
 }
 
+sealed class BackupRestore {
+    data object Idle : BackupRestore()
+    data class Writing(val label: String, val fraction: Double) : BackupRestore()
+    data object Succeeded : BackupRestore()
+    data class Failed(val message: String) : BackupRestore()
+    val isRunning: Boolean get() = this is Writing
+}
+
 class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = application.getSharedPreferences("fmswitch", Context.MODE_PRIVATE)
     val settings = AppSettings(prefs)
     val library = FirmwareLibrary(application)
     val catalogue = CatalogueStore(application)
     val history = FlashHistory(prefs)
+    val backups = BackupStore(application)
 
     var tab by mutableStateOf(AppTab.DEVICE)
     var identity by mutableStateOf<FM1Identity?>(null)
@@ -110,6 +125,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         private set
     var voiceRestore by mutableStateOf<VoiceRestore>(VoiceRestore.Idle)
         private set
+    var backupRestore by mutableStateOf<BackupRestore>(BackupRestore.Idle)
+        private set
+    var lastBackup by mutableStateOf<DeviceBackup?>(null)
+        private set
+    var backupTick by mutableIntStateOf(0)
     var log by mutableStateOf<List<String>>(emptyList())
         private set
     var transportName by mutableStateOf("")
@@ -124,7 +144,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         private set
 
     val theme: PhosphorTheme get() = settings.theme.also { themeTick }
-    val isWriting: Boolean get() = job?.phase?.isRunning == true || voiceRestore.isRunning
+    val isWriting: Boolean get() = job?.phase?.isRunning == true || voiceRestore.isRunning || backupRestore.isRunning
     val needsSafetyNotice: Boolean get() = settings.acknowledgedNoticeVersion < SafetyNotice.VERSION
 
     private var transport: MidiTransport = UnavailableTransport
@@ -134,6 +154,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private var scanGeneration = 0
     private var held: FoundDevice? = null
     private var ignorePortChangesUntil = 0L
+    private var backupRestoreSeq = 0
     private val mainHandler = Handler(Looper.getMainLooper())
     var simulated: SimulatedFM1? = null
         private set
@@ -256,9 +277,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun flash(steps: List<StoredFirmware>, confirmsSwitchingFirmware: Boolean, confirmsSameIdentity: Boolean) {
         if (steps.isEmpty() || isWriting) return
         log = emptyList()
-        job = FlashJob(steps, confirmsSwitchingFirmware, confirmsSameIdentity)
+        lastBackup = null
+        val autoBackup = identity?.supportsBaudGirlBackup == true && identity?.isLoader != true
+        job = FlashJob(
+            steps,
+            confirmsSwitchingFirmware = confirmsSwitchingFirmware || autoBackup,
+            confirmsSameIdentity = confirmsSameIdentity,
+        )
         viewModelScope.launch {
-            releaseHeld()
             runFlash(0)
         }
     }
@@ -281,6 +307,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private suspend fun runFlash(startIndex: Int) {
         val current = job ?: return
+        if (startIndex == 0) {
+            try {
+                captureBackup()
+            } catch (error: Exception) {
+                appendLog("✕ ${error.userMessage()}")
+                job = job?.copy(phase = FlashPhase.Failed(error.userMessage(), canResume = false))
+                return
+            }
+        }
+        releaseHeld()
+        ignorePortChangesUntil = System.currentTimeMillis() + 2_000
         val options = InstallOptions(
             confirmsSwitchingFirmware = current.confirmsSwitchingFirmware,
             confirmsSameIdentity = current.confirmsSameIdentity,
@@ -310,6 +347,54 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
         job = job?.copy(phase = FlashPhase.Succeeded(identity?.text.orEmpty()))
         appendLog("✓ Finished.")
+        lastBackup?.let { appendLog("Backup kept on this phone: ${it.summary}.") }
+    }
+
+    private suspend fun captureBackup() {
+        val current = identity
+        if (current == null || current.isLoader) {
+            appendLog("No running firmware to back up (update loader).")
+            return
+        }
+        job = job?.copy(phase = FlashPhase.BackingUp(0, 1))
+        val snapshot = if (current.supportsBaudGirlBackup) {
+            appendLog("Backing up 128 presets and 16 patterns from ${current.text}.")
+            val found = held ?: updater.find()?.also { held = it } ?: throw FM1UpdateError.DeviceNotFound
+            withContext(Dispatchers.Default) {
+                BaudGirlLibrarian().dump(found.connection, current) { done, total ->
+                    mainHandler.post {
+                        if (job?.phase is FlashPhase.BackingUp) {
+                            job = job?.copy(phase = FlashPhase.BackingUp(done, total))
+                        }
+                    }
+                }
+            }
+        } else {
+            appendLog("${current.text} has no FM-1+VA preset dump; keeping a firmware copy if this phone has one.")
+            null
+        }
+        val firmware = library.items.firstOrNull { it.product == current.text }
+        val bytes = firmware?.let { item ->
+            withContext(Dispatchers.IO) { runCatching { library.file(item).readBytes() }.getOrNull() }
+        }
+        if (snapshot == null && (firmware == null || bytes == null)) {
+            appendLog("Nothing to keep: no matching .fwsc is saved on this phone.")
+            lastBackup = null
+            return
+        }
+        lastBackup = withContext(Dispatchers.IO) {
+            backups.save(current.text, snapshot, firmware, bytes)
+        }
+        backupTick++
+        val saved = lastBackup!!
+        appendLog(
+            buildString {
+                append("Saved backup of ${saved.identity}")
+                if (saved.presetCount > 0) append(" (${saved.presetCount} presets, ${saved.patternCount} patterns)")
+                if (saved.firmwareName != null) append(" plus ${saved.firmwareName}")
+                append(".")
+            },
+        )
     }
 
     private fun applyEvent(event: UpdateEvent) {
@@ -364,6 +449,72 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun dismissVoiceRestore() {
         if (!voiceRestore.isRunning) voiceRestore = VoiceRestore.Idle
+    }
+
+    fun restoreBackup(backup: DeviceBackup, presets: Boolean, patterns: Boolean) {
+        if (isWriting) return
+        if (!presets && !patterns) return
+        val identity = identity
+        if (identity == null || !identity.supportsBaudGirlBackup) {
+            backupRestore = BackupRestore.Failed("Restoring presets and patterns needs FM-1+VA running (FM-1_079 or later).")
+            return
+        }
+        val restoreSeq = ++backupRestoreSeq
+        backupRestore = BackupRestore.Writing("CONNECTING", 0.0)
+        viewModelScope.launch {
+            releaseHeld()
+            try {
+                val snapshot = withContext(Dispatchers.IO) { backups.loadPresets(backup) }
+                    ?: throw FM1UpdateError.BackupFailed("the backup files are missing")
+                val found = withContext(Dispatchers.Default) { updater.find() }
+                    ?: throw FM1UpdateError.DeviceNotFound
+                try {
+                    if (!found.identity.supportsBaudGirlBackup) {
+                        throw FM1UpdateError.BackupUnavailable(found.identity.text)
+                    }
+                    val librarian = BaudGirlLibrarian()
+                    if (presets) {
+                        withContext(Dispatchers.Default) {
+                            librarian.restorePresets(found.connection, snapshot.presets) { done, total ->
+                                postRestoreProgress(restoreSeq, "PRESETS", done, total)
+                            }
+                        }
+                    }
+                    if (patterns) {
+                        val bank = snapshot.patterns
+                        withContext(Dispatchers.Default) {
+                            librarian.restorePatterns(found.connection, bank) { done, total ->
+                                postRestoreProgress(restoreSeq, "PATTERNS", done, total)
+                            }
+                        }
+                    }
+                    if (restoreSeq == backupRestoreSeq) backupRestore = BackupRestore.Succeeded
+                } finally {
+                    found.connection.close()
+                }
+            } catch (error: Exception) {
+                if (restoreSeq == backupRestoreSeq) backupRestore = BackupRestore.Failed(error.userMessage())
+            } finally {
+                scan(force = true)
+            }
+        }
+    }
+
+    private fun postRestoreProgress(seq: Int, label: String, done: Int, total: Int) {
+        mainHandler.post {
+            if (seq != backupRestoreSeq || backupRestore !is BackupRestore.Writing) return@post
+            backupRestore = BackupRestore.Writing(label, if (total == 0) 0.0 else done.toDouble() / total)
+        }
+    }
+
+    fun dismissBackupRestore() {
+        if (!backupRestore.isRunning) backupRestore = BackupRestore.Idle
+    }
+
+    fun removeBackup(backup: DeviceBackup) {
+        backups.remove(backup)
+        if (lastBackup?.id == backup.id) lastBackup = null
+        backupTick++
     }
 
     suspend fun save(entry: CatalogueEntry): Result<StoredFirmware> = runCatching {

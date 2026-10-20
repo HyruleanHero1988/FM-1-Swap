@@ -62,3 +62,21 @@ jobs:
           name: app-debug
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      - name: Name the APK
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: cp app/build/outputs/apk/debug/app-debug.apk FM-SWITCH-debug.apk
+
+      - name: Publish debug APK on Releases
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-debug
+          name: Android debug APK
+          body: |
+            Sideload this debug build on a phone. USB MIDI to an FM-1 does not work on the emulator.
+
+            Built from `${{ github.sha }}` on `main`.
+          files: FM-SWITCH-debug.apk
+          fail_on_unmatched_files: true
+          make_latest: true

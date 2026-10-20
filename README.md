@@ -12,6 +12,14 @@ iPhone, iPad, or Mac build.
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
+## Download
+
+The debug APK is on [Releases](https://github.com/HyruleanHero1988/FM-SWITCH/releases)
+(`FM-SWITCH-debug.apk`). Sideload it on a phone; USB MIDI to the FM-1 does not work on an emulator.
+
+GitHub Actions also attaches `app-debug` on each green [CI run](https://github.com/HyruleanHero1988/FM-SWITCH/actions),
+but that zip is easy to miss and is not the repo homepage.
+
 ## What it does
 
 - Lists the firmware hub catalogue, with official V15 first
@@ -55,8 +63,9 @@ sdk.dir=/path/to/Android/sdk
 ## GitHub Actions
 
 `.github/workflows/ci.yml` runs on every push and pull request: protocol tests, then
-`assembleDebug`. The debug APK is uploaded as the `app-debug` artifact (Actions → the run →
-Artifacts). You can also trigger it from the Actions tab with **Run workflow**.
+`assembleDebug`. On `main` it publishes `FM-SWITCH-debug.apk` to
+[Releases](https://github.com/HyruleanHero1988/FM-SWITCH/releases) and also uploads the
+`app-debug` Actions artifact. You can retrigger it from the Actions tab with **Run workflow**.
 
 CI vendors the Gradle wrapper, bundled V15, and fonts (from the original
 [FM-SWITCH](https://github.com/ocean/FM-SWITCH) tree) before it runs Gradle, then uploads

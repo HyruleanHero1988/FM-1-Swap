@@ -1,5 +1,6 @@
 package com.fmswitch.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -45,6 +46,7 @@ fun LibraryScreen(model: AppViewModel) {
     var flashing by remember { mutableStateOf<StoredFirmware?>(null) }
     @Suppress("UNUSED_EXPRESSION")
     model.libraryTick
+    BackHandler(enabled = confirmingClear) { confirmingClear = false }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return@rememberLauncherForActivityResult

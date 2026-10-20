@@ -29,6 +29,7 @@ but that zip is easy to miss and is not the repo homepage.
 - Offers a simulated FM-1 under **SETUP ▸ CONNECTION**, including cable-pull at 45% to test **RESUME**
 - Restores V15 factory voices after installing official firmware
 - Keeps the 8-bit phosphor look: Silkscreen, Departure Mono, VT323, CRT overlay, colour presets
+- System / hardware BACK pops firmware detail, clears search, dismisses dialogs, and returns to DEVICE before leaving the app. It does not abort a write in progress.
 
 ## Talking to the FM-1
 

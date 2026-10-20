@@ -163,7 +163,7 @@ fun SettingsScreen(model: AppViewModel) {
                 size = 14,
             )
             BasicText(
-                "▸ FM-SWITCH",
+                "▸ FM-SWITCH (iOS)",
                 style = pixelText(11.sp, bold = true, color = theme.bright),
                 modifier = Modifier
                     .padding(top = 8.dp)

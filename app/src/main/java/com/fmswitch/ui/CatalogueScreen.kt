@@ -120,12 +120,12 @@ fun CatalogueScreen(model: AppViewModel) {
                     Spacer(Modifier.width(10.dp))
                     Column(Modifier.weight(1f)) {
                         BasicText(entry.name.uppercase(), style = pixelText(13.sp, bold = true, color = theme.bright))
-                        MonoText("${entry.author ?: "unknown"}  \u00b7  ${entry.version ?: ""}", size = 13, dim = true)
+                        MonoText("${entry.author ?: "unknown"}  ·  ${entry.version ?: ""}", size = 13, dim = true)
                         val rankBits = buildList {
-                            entry.stars?.takeIf { it > 0 }?.let { add("\u2605 $it") }
+                            entry.stars?.takeIf { it > 0 }?.let { add("★ $it") }
                             if (entry.pinned) add("PINNED")
                         }
-                        if (rankBits.isNotEmpty()) MonoText(rankBits.joinToString("  \u00b7  "), size = 12, dim = true)
+                        if (rankBits.isNotEmpty()) MonoText(rankBits.joinToString("  ·  "), size = 12, dim = true)
                     }
                     Column(horizontalAlignment = Alignment.End) {
                         if (entry.isOfficial) PixelTag("OFFICIAL")
@@ -170,13 +170,13 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PixelButton("\u25c2 BACK", compact = true, onClick = onBack)
+            PixelButton("◂ BACK", compact = true, onClick = onBack)
             Spacer(Modifier.weight(1f))
             if (entry.isOfficial) PixelTag("OFFICIAL")
             if (entry.beta) PixelTag("BETA", inverted = false)
         }
         BasicText(entry.name.uppercase(), style = pixelText(24.sp, bold = true, color = theme.bright, glow = true))
-        MonoText("${entry.author ?: ""}  \u00b7  ${entry.version ?: ""}  \u00b7  ${entry.product ?: ""}", size = 14, dim = true)
+        MonoText("${entry.author ?: ""}  ·  ${entry.version ?: ""}  ·  ${entry.product ?: ""}", size = 14, dim = true)
         FirmwarePhoto(
             url = entry.photoURL,
             alt = entry.photoAlt ?: entry.name,
@@ -205,7 +205,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         PixelPanel(title = "DETAILS") {
             MonoText("Identity  ${entry.product ?: "unknown"}", size = 14)
             MonoText("Size  ${entry.size?.let { formattedBytes(it) } ?: "unknown"}", size = 14)
-            entry.sha256?.let { MonoText("SHA-256  ${it.take(16)}\u2026", size = 14) }
+            entry.sha256?.let { MonoText("SHA-256  ${it.take(16)}…", size = 14) }
             if (entry.requiresOfficialFirmware) MonoText("Needs official firmware running first.", size = 14)
             RescueMode.summary(entry.id)?.let { MonoText("USB recovery  $it", size = 14) }
             entry.stars?.takeIf { it > 0 }?.let { MonoText("GitHub stars  $it", size = 14) }
@@ -215,7 +215,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
             PixelPanel(title = "LINKS") {
                 entry.links.forEach { link ->
                     BasicText(
-                        "\u25b8 ${link.label.uppercase()}",
+                        "▸ ${link.label.uppercase()}",
                         style = pixelText(11.sp, bold = true, color = theme.bright),
                         modifier = Modifier
                             .padding(vertical = 4.dp)

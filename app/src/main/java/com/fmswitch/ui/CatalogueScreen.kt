@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.fmswitch.catalogue.CatalogueBlurb
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.CatalogueOrder
+import com.fmswitch.catalogue.CatalogueSearch
 import com.fmswitch.catalogue.FirmwareSort
 import com.fmswitch.catalogue.RescueMode
 import com.fmswitch.model.AppViewModel
@@ -68,11 +69,7 @@ fun CatalogueScreen(model: AppViewModel) {
         (model.settings.showBeta || !entry.beta) &&
             (model.settings.showLinksOnly || entry.isDownloadable || model.library.items.any { it.catalogueID == entry.id }) &&
             (!model.settings.curatedOnly || entry.id in curatedIds) &&
-            (search.isBlank() ||
-                entry.name.contains(search, true) ||
-                (entry.what ?: "").contains(search, true) ||
-                (entry.author ?: "").contains(search, true) ||
-                entry.kinds.any { it.contains(search, true) })
+            CatalogueSearch.matches(entry, search)
     }
     val visible = CatalogueOrder.apply(matching, model.settings.firmwareSort, curation)
     if (selected != null) {
@@ -332,7 +329,7 @@ private fun SortMenu(
                     style = pixelText(11.sp, bold = true, color = if (selected) theme.background else theme.bright),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(if (selected) theme.bright else theme.surface)
+                        .background(if (selected) theme.surface else theme.surface)
                         .border(1.dp, theme.dim)
                         .clickable { onSelect(option) }
                         .padding(horizontal = 10.dp, vertical = 8.dp),

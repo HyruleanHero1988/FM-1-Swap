@@ -23,7 +23,7 @@ object RepoShots {
     private val markdownImage = Regex("""!\[([^\]]*)]\(\s*<?([^)\s>]+)>?[^)]*\)""")
     private val htmlImage = Regex("""(?is)<img\b([^>]*)>""")
     private val githubBlob = Regex("""^https://github\.com/([^/]+)/([^/]+)/(?:blob|raw)/([^/]+)/(.+)$""")
-    private val decoration = Regex("""(?i)(^|[_/.=-])(logo|badge|shields?|icon|favicon|avatar|sponsor)([/_.?=]|$)""")
+    private val decoration = Regex("""(?i)(^|[/_.=-])(logo|badge|shields?|icon|favicon|avatar|sponsor)([/_.?=]|$)""")
 
     fun pick(markdown: String, readmeUrl: String, sectionOnly: Boolean = false): Shot? {
         val images = images(markdown)

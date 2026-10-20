@@ -123,6 +123,7 @@ fun RootScreen(model: AppViewModel) {
                         entry = entry,
                         prepared = model.emulatorPackage,
                         phosphorPanel = model.settings.phosphorPanel,
+                        chooseClock = model.settings.chooseEmulatorClock,
                         canSave = entry.isDownloadable && !kept,
                         saving = entry.id in model.downloadingIds,
                         onSave = { model.save(entry) },

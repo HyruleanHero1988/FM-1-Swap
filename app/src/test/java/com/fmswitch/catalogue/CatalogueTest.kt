@@ -110,6 +110,65 @@ class CatalogueBuilderTest {
         assertTrue(CatalogueBuilder.matches(hub, listed))
         assertEquals("baudgirlfm1va", CatalogueBuilder.normalisedName("Baud Girl (FM-1+VA)"))
     }
+
+    @Test
+    fun mergesRedtailPackWithoutDuplicatingHyp1() {
+        val redtail = RedtailListing.parse(REDTAIL_HTML)
+        val merged = CatalogueBuilder.merge(
+            listOf(
+                officialCatalogueEntry(),
+                CatalogueEntry(
+                    id = "hyp1",
+                    name = "HYP-1",
+                    author = "RedtailWorks",
+                    packageURL = "https://thefirmwarehub.com/fw/hyp1-1.5.44.fwsc",
+                    product = "FM-1_7010544",
+                ),
+            ),
+            editor = emptyList(),
+            redtail = redtail.entries,
+        )
+        assertEquals(1, merged.count { CatalogueBuilder.normalisedName(it.name) == "hyp1" })
+        val hyp = merged.single { it.id == "hyp1" }
+        assertEquals("https://rustypawz.github.io/fm1-HYP1/img/hyp-device.png", hyp.photoURL)
+        assertTrue(hyp.links.any { it.url.endsWith("/install/") || it.url.endsWith("/install") })
+        assertFalse(merged.any { it.id == "redtail-hyp" })
+        val lof = merged.single { it.id == "redtail-lof" }
+        assertEquals("LOF-1", lof.name)
+        assertEquals("RedtailWorks", lof.author)
+        assertTrue(lof.beta)
+        assertTrue(lof.what!!.contains("lofi groovebox", ignoreCase = true))
+        assertEquals("https://rustypawz.github.io/fm1-HYP1/lof/img/lof-device.png", lof.photoURL)
+        assertEquals("redtail-eco", merged.single { it.name == "ECO-1" }.id)
+        assertEquals("redtail-grav", merged.single { it.name == "GRAV-1" }.id)
+        assertTrue(merged.none { it.name.contains("OPEN-1") })
+        assertEquals("Hold OCT\u2212 and OCT+ for 5 s while it runs", RescueMode.summary("redtail-lof"))
+        assertEquals(RescueMode.summary("hyp1"), RescueMode.summary("redtail-grav"))
+    }
+}
+
+class RedtailListingTest {
+    @Test
+    fun readsTheFourFm1CardsAndSkipsOpen1() {
+        val listing = RedtailListing.parse(REDTAIL_HTML)
+        assertEquals(listOf("hyp", "lof", "eco", "grav"), listing.entries.map { it.slug })
+        val hyp = listing.entries.single { it.slug == "hyp" }
+        assertEquals("HYP-1", hyp.name)
+        assertFalse(hyp.experimental)
+        assertEquals("Hypnotic techno and acid", hyp.tagline)
+        assertEquals("https://rustypawz.github.io/fm1-HYP1/img/hyp-device.png", hyp.photoURL)
+        assertEquals(
+            listOf("Install", "About HYP-1", "Try in browser", "RedtailWorks pack", "Source"),
+            hyp.links.map { it.label },
+        )
+        assertEquals("https://rustypawz.github.io/fm1-HYP1/install/", hyp.links.first().url)
+        val lof = listing.entries.single { it.slug == "lof" }
+        assertTrue(lof.experimental)
+        assertEquals("A lofi groovebox", lof.tagline)
+        assertTrue(lof.blurb!!.contains("tired jazz band"))
+        assertEquals("https://rustypawz.github.io/fm1-HYP1/lof/install/", lof.links.first().url)
+        assertTrue(listing.entries.none { it.name.contains("OPEN-1") })
+    }
 }
 
 class PackageDiscoveryTest {
@@ -158,6 +217,35 @@ class PackageDiscoveryTest {
             ),
         )
         assertEquals(listOf("isod89" to "clipper-fm1"), repos)
+    }
+
+    @Test
+    fun readsRedtailInstallerMetaAndIgnoresSiblingPackFiles() {
+        val found = PackageDiscovery.installerMetaPackage(
+            """<script>const meta = {"version": "0.0.77", "product": "FM-1_7000077", "pkg": "../firmware/lof1-0.0.77.fwsc"};</script>""",
+            "https://rustypawz.github.io/fm1-HYP1/lof/install/",
+        )
+        assertNotNull(found)
+        assertEquals("https://rustypawz.github.io/fm1-HYP1/lof/firmware/lof1-0.0.77.fwsc", found!!.url)
+        assertEquals("0.0.77", found.version)
+        assertEquals("FM-1_7000077", found.product)
+        assertTrue(found.beta)
+        val words = PackageDiscovery.identifyingWords(
+            "LOF-1",
+            listOf(
+                CatalogueLink("Install", "https://rustypawz.github.io/fm1-HYP1/lof/install/"),
+                CatalogueLink("Source", "https://github.com/RustyPawz/fm1-HYP1"),
+            ),
+        )
+        assertTrue(words.contains("lof"))
+        assertFalse(words.contains("hyp1"))
+        assertTrue(PackageDiscovery.isRelevant(found.url, words))
+        assertFalse(
+            PackageDiscovery.isRelevant(
+                "https://rustypawz.github.io/fm1-HYP1/firmware/hyp1-1.5.44.fwsc",
+                words,
+            ),
+        )
     }
 }
 
@@ -219,7 +307,7 @@ private const val EDITOR_HTML = """
   <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true"><span>Clipper</span></figure>
   <p class="synthwave-kicker">isod89</p>
   <h2>Clipper</h2>
-  <p class="firmware-status"><span>Experimental · Latest 1.0</span></p>
+  <p class="firmware-status"><span>Experimental \u00b7 Latest 1.0</span></p>
   <p class="firmware-blurb">A synthesizer from SLOOP, with 23 engines and 407 sounds.</p>
   <ul class="firmware-links">
     <li><a href="https://isod89.github.io/clipper-fm1/webapp/installer/">Install</a></li>
@@ -227,6 +315,36 @@ private const val EDITOR_HTML = """
     <li><a href="https://github.com/isod89/clipper-fm1">Source</a></li>
   </ul>
 </article>
+"""
+
+private const val REDTAIL_HTML = """
+<a class="open1" href="open1/"><b>OPEN-1</b> <em>Ideas phase</em></a>
+<div class="fws">
+<article class="fw"><a href="hyp/"><img src="img/hyp-device.png" alt="the FM-1 running HYP-1"></a>
+<h3><a href="hyp/">HYP-1</a><span class="status">Stable</span></h3>
+<p class="what">Hypnotic techno and acid</p>
+<p>A breathing pad, a deep drone, a generative 303 line and a bed of grain over drums you sequence.</p>
+<div class="go"><a href="hyp/">About HYP-1</a><a href="emu/">Try in browser</a><a href="install/">Install</a></div>
+</article>
+<article class="fw"><a href="lof/"><img src="lof/img/lof-device.png" alt="the FM-1 running LOF-1"></a>
+<h3><a href="lof/">LOF-1</a><span class="status">Experimental</span></h3>
+<p class="what">A lofi groovebox</p>
+<p>You play the lead and a tired jazz band follows: comp, bass and drums move with your chords.</p>
+<div class="go"><a href="lof/">About LOF-1</a><a href="lof/emu/">Try in browser</a><a href="lof/install/">Install</a></div>
+</article>
+<article class="fw"><a href="eco/"><img src="eco/img/eco-device.png" alt="the FM-1 running ECO-1"></a>
+<h3><a href="eco/">ECO-1</a><span class="status">Experimental</span></h3>
+<p class="what">A plant plays it</p>
+<p>Three leaves fire notes as light and water charge them.</p>
+<div class="go"><a href="eco/">About ECO-1</a><a href="eco/emu/">Try in browser</a><a href="eco/install/">Install</a></div>
+</article>
+<article class="fw"><a href="grav/"><img src="grav/img/grav-device.png" alt="the FM-1 running GRAV-1"></a>
+<h3><a href="grav/">GRAV-1</a><span class="status">Experimental</span></h3>
+<p class="what">A star and its planets</p>
+<p>Slow, dark, spacey ambient: a star of coloured noise and up to six planets.</p>
+<div class="go"><a href="grav/">About GRAV-1</a><a href="grav/emu/">Try in browser</a><a href="grav/install/">Install</a></div>
+</article>
+</div>
 """
 
 private const val INSTALL_HTML = """

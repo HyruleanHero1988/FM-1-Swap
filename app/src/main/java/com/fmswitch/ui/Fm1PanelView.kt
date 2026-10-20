@@ -154,8 +154,9 @@ fun Fm1PanelView(
                         engine.key(id, true)
                         down[id] = true
                     }
-                    awaitPointerEventScope {
-                        while (true) {
+                    try {
+                        awaitPointerEventScope {
+                            while (true) {
                             val event = awaitPointerEvent()
                             for (change in event.changes) {
                                 val x = change.position.x / scale
@@ -212,6 +213,12 @@ fun Fm1PanelView(
                                 }
                             }
                         }
+                        }
+                    } finally {
+                        // A new panel size (rotation) restarts this block. Release whatever is still held
+                        // so a key does not stay down in the firmware after the finger's stream ends.
+                        grabs.values.forEach(::release)
+                        grabs.clear()
                     }
                 },
         ) {

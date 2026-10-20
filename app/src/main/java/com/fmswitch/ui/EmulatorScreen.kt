@@ -14,16 +14,19 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
@@ -42,6 +45,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -52,6 +56,7 @@ import androidx.lifecycle.compose.currentStateAsState
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.FirmwareEmulator
 import com.fmswitch.emu.EmulatorClock
+import com.fmswitch.emu.EmulatorFrame
 import com.fmswitch.emu.EmulatorRun
 import com.fmswitch.emu.Fm1Engine
 import com.fmswitch.model.EmulatorPackage
@@ -134,39 +139,64 @@ fun EmulatorScreen(
     }
 
     if (landscape) {
-        Box(Modifier.fillMaxSize().background(theme.background)) {
-            when (prepared) {
-                EmulatorPackage.Preparing -> MonoText(
-                    "FETCHING THE PACKAGE YOU WOULD FLASH…",
-                    size = 13,
-                    dim = true,
-                    modifier = Modifier.align(Alignment.Center).padding(24.dp),
-                )
-                is EmulatorPackage.Failed -> Column(
-                    Modifier.align(Alignment.Center).padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    MonoText("Couldn't get this firmware's package: ${prepared.message}", size = 14)
-                    PixelButton("RETRY", compact = true, onClick = onRetry)
+        // The panel is centered at the FM-1's shape. Every other control is clipped
+        // to the leftover strip, so it cannot land on the knobs or the screen.
+        BoxWithConstraints(Modifier.fillMaxSize().background(theme.background)) {
+            val fit = EmulatorFrame.fit(maxWidth.value, maxHeight.value)
+            val beside = fit.side >= fit.bar
+            Box(
+                Modifier
+                    .align(Alignment.Center)
+                    .width(fit.panelWidth.dp)
+                    .height(fit.panelHeight.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                when (prepared) {
+                    EmulatorPackage.Preparing -> MonoText(
+                        "FETCHING THE PACKAGE YOU WOULD FLASH…",
+                        size = 13,
+                        dim = true,
+                        modifier = Modifier.padding(24.dp),
+                    )
+                    is EmulatorPackage.Failed -> Column(
+                        Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        MonoText("Couldn't get this firmware's package: ${prepared.message}", size = 14)
+                        PixelButton("RETRY", compact = true, onClick = onRetry)
+                    }
+                    is EmulatorPackage.Ready -> slot?.let { running(it) }
                 }
-                is EmulatorPackage.Ready -> slot?.let { running(it) }
             }
             Column(
                 Modifier
-                    .align(Alignment.TopStart)
+                    .then(
+                        if (beside) {
+                            Modifier.align(Alignment.CenterStart).width(fit.side.dp).fillMaxHeight()
+                        } else {
+                            Modifier.align(Alignment.TopCenter).fillMaxWidth().height(fit.bar.dp)
+                        },
+                    )
+                    .clipToBounds()
                     .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.displayCutout))
-                    .padding(start = 8.dp, end = 8.dp)
-                    .widthIn(max = 148.dp),
+                    .verticalScroll(rememberScrollState())
+                    .padding(6.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                PixelButton("◂ BACK", compact = true, onClick = onBack)
+                PixelButton("◂ BACK", compact = true, modifier = Modifier.fillMaxWidth(), onClick = onBack)
                 if (canSave) {
-                    PixelButton(if (saving) "SAVING" else "SAVE", compact = true, enabled = !saving, onClick = ::keep)
+                    PixelButton(
+                        if (saving) "SAVING" else "SAVE",
+                        compact = true,
+                        enabled = !saving,
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = ::keep,
+                    )
                 }
                 saveError?.let { MonoText(it, size = 11) }
                 BasicText(entry.name.uppercase(), style = pixelText(13.sp, bold = true, color = theme.bright, glow = true))
                 if (authorEmulator != null) {
-                    PixelButton("AUTHOR'S EMU", compact = true) {
+                    PixelButton("AUTHOR'S EMU", compact = true, modifier = Modifier.fillMaxWidth()) {
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(authorEmulator)))
                     }
                 }
@@ -231,10 +261,16 @@ private fun ClockRow(mhz: Int, onClock: (Int) -> Unit, narrow: Boolean = false) 
         }
     }
     if (narrow) {
-        // One column: a row of 100 / 160 / 240 is wider than the margin and lands on the panel.
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             MonoText("CLOCK · MHZ", size = 11, dim = true)
-            buttons()
+            EmulatorClock.CHOICES.forEach { choice ->
+                PixelButton(
+                    "$choice",
+                    compact = true,
+                    prominent = choice == mhz,
+                    modifier = Modifier.fillMaxWidth(),
+                ) { if (choice != mhz) onClock(choice) }
+            }
         }
     } else {
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {

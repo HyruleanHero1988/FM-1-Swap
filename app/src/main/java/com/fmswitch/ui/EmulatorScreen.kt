@@ -34,9 +34,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -102,9 +104,36 @@ fun EmulatorScreen(
         activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
         onDispose { previous?.let { activity.requestedOrientation = it } }
     }
+    // One session for both frames. Calling RunningEmulator from each layout would
+    // dispose it on rotate, and that dispose closes the engine.
+    var liveStatus by remember { mutableStateOf("") }
+    val reportStatus = remember<(String) -> Unit> { { liveStatus = it } }
+    val running = remember {
+        movableContentOf<RunningSlot> { slot ->
+            RunningEmulator(
+                prepared = slot.prepared,
+                mhz = slot.mhz,
+                expand = slot.expand,
+                phosphorPanel = slot.phosphorPanel,
+                chooseClock = slot.chooseClock,
+                runInBackground = slot.runInBackground,
+                onStatus = slot.onStatus,
+            )
+        }
+    }
+    val slot = (prepared as? EmulatorPackage.Ready)?.let {
+        RunningSlot(
+            prepared = it,
+            mhz = mhz,
+            expand = landscape,
+            phosphorPanel = phosphorPanel,
+            chooseClock = chooseClock,
+            runInBackground = runInBackground,
+            onStatus = reportStatus,
+        )
+    }
 
     if (landscape) {
-        var liveStatus by remember { mutableStateOf("") }
         Box(Modifier.fillMaxSize().background(theme.background)) {
             when (prepared) {
                 EmulatorPackage.Preparing -> MonoText(
@@ -120,15 +149,7 @@ fun EmulatorScreen(
                     MonoText("Couldn't get this firmware's package: ${prepared.message}", size = 14)
                     PixelButton("RETRY", compact = true, onClick = onRetry)
                 }
-                is EmulatorPackage.Ready -> RunningEmulator(
-                    prepared,
-                    mhz = mhz,
-                    expand = true,
-                    phosphorPanel = phosphorPanel,
-                    chooseClock = chooseClock,
-                    runInBackground = runInBackground,
-                    onStatus = { liveStatus = it },
-                )
+                is EmulatorPackage.Ready -> slot?.let { running(it) }
             }
             Column(
                 Modifier
@@ -153,50 +174,54 @@ fun EmulatorScreen(
                 if (liveStatus.isNotEmpty()) MonoText(liveStatus, size = 11, dim = true)
             }
         }
-        return
-    }
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(theme.background)
-            .padding(horizontal = 12.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            PixelButton("◂ BACK", compact = true, onClick = onBack)
-            if (canSave) {
-                PixelButton(if (saving) "SAVING" else "SAVE", compact = true, enabled = !saving, onClick = ::keep)
-            }
-            if (authorEmulator != null) {
-                PixelButton("AUTHOR'S EMU", compact = true) {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(authorEmulator)))
+    } else {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .background(theme.background)
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                PixelButton("◂ BACK", compact = true, onClick = onBack)
+                if (canSave) {
+                    PixelButton(if (saving) "SAVING" else "SAVE", compact = true, enabled = !saving, onClick = ::keep)
+                }
+                if (authorEmulator != null) {
+                    PixelButton("AUTHOR'S EMU", compact = true) {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(authorEmulator)))
+                    }
                 }
             }
-        }
-        BasicText(entry.name.uppercase(), style = pixelText(16.sp, bold = true, color = theme.bright, glow = true))
-        saveError?.let { MonoText(it, size = 13) }
-        when (prepared) {
-            EmulatorPackage.Preparing -> MonoText("FETCHING THE PACKAGE YOU WOULD FLASH…", size = 13, dim = true)
-            is EmulatorPackage.Failed -> {
-                MonoText("Couldn't get this firmware's package: ${prepared.message}", size = 14)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    PixelButton("RETRY", compact = true, onClick = onRetry)
+            BasicText(entry.name.uppercase(), style = pixelText(16.sp, bold = true, color = theme.bright, glow = true))
+            saveError?.let { MonoText(it, size = 13) }
+            when (prepared) {
+                EmulatorPackage.Preparing -> MonoText("FETCHING THE PACKAGE YOU WOULD FLASH…", size = 13, dim = true)
+                is EmulatorPackage.Failed -> {
+                    MonoText("Couldn't get this firmware's package: ${prepared.message}", size = 14)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PixelButton("RETRY", compact = true, onClick = onRetry)
+                    }
                 }
-            }
-            is EmulatorPackage.Ready -> {
-                if (chooseClock) ClockRow(mhz, ::clock)
-                RunningEmulator(
-                    prepared,
-                    mhz = mhz,
-                    expand = false,
-                    phosphorPanel = phosphorPanel,
-                    chooseClock = chooseClock,
-                    runInBackground = runInBackground,
-                )
+                is EmulatorPackage.Ready -> {
+                    if (chooseClock) ClockRow(mhz, ::clock)
+                    slot?.let { running(it) }
+                }
             }
         }
     }
 }
+
+/** The running TRY session. The same instance is moved between the portrait and landscape frames. */
+private data class RunningSlot(
+    val prepared: EmulatorPackage.Ready,
+    val mhz: Int,
+    val expand: Boolean,
+    val phosphorPanel: Boolean,
+    val chooseClock: Boolean,
+    val runInBackground: Boolean,
+    val onStatus: (String) -> Unit,
+)
 
 @Composable
 private fun ClockRow(mhz: Int, onClock: (Int) -> Unit, narrow: Boolean = false) {
@@ -233,6 +258,7 @@ private fun RunningEmulator(
     val context = LocalContext.current
     val theme = LocalPhosphor.current
     // Leaving TRY removes this composable, and the effect below always closes the engine.
+    // Rotating does not: the screen moves this composable between frames instead of removing it.
     // Losing the app's focus only stops it when RUN EMULATOR IN BACKGROUND is off.
     val foreground by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
     val activityStarted = foreground.isAtLeast(Lifecycle.State.STARTED)
@@ -278,11 +304,13 @@ private fun RunningEmulator(
         MonoText(if (playing) "BOOTING…" else "PAUSED", size = 13, dim = true)
         return
     }
-    var status by remember(running) { mutableStateOf<Fm1Engine.Status>(Fm1Engine.Status.Booting) }
+    var status by remember(running) { mutableStateOf(running.status) }
+    val currentChooseClock by rememberUpdatedState(chooseClock)
+    val currentOnStatus by rememberUpdatedState(onStatus)
     LaunchedEffect(running) {
         while (true) {
             status = running.status
-            onStatus(statusLine(status, running.mhz, chooseClock))
+            currentOnStatus(statusLine(status, running.mhz, currentChooseClock))
             delay(300)
         }
     }

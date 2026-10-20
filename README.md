@@ -22,7 +22,7 @@ but that zip is easy to miss and is not the repo homepage.
 
 ## What it does
 
-- Lists the firmware hub catalogue merged with [fm1-editor.com](https://fm1-editor.com/firmware/) and [RedtailWorks' FM-1 pack](https://rustypawz.github.io/fm1-HYP1/). Official V15 is first; the rest are ranked by GitHub stars (and hub installs), so SLOOP, Felucca, X0X, JIANT and Melodee sit at the top instead of drowning alphabetically. Each row shows a representative shot from fm1-editor.com or the publisher when they have one. Firmwares the hub doesn't carry still show up, including Baud Girl's FM-1+VA, isod89's Clipper 1.0 (from the makers of SLOOP), M-VAVE Official Open, and RedtailWorks' LOF-1, ECO-1 and GRAV-1 (HYP-1 is already on the hub). Their `.fwsc` is found from GitHub releases or the publisher's own page. Clipper and the experimental RedtailWorks machines are marked beta, so they sit with the other beta listings (shown unless **SETUP** hides them). OPEN-1 is a different synth, not an FM-1 firmware, so it is not listed.
+- Lists the firmware hub catalogue merged with [fm1-editor.com](https://fm1-editor.com/firmware/) and [RedtailWorks' FM-1 pack](https://rustypawz.github.io/fm1-HYP1/). Official V15 is first; the rest are ranked by GitHub stars (and hub installs), so SLOOP, Felucca, X0X, JIANT and Melodee sit at the top instead of drowning alphabetically. Each row shows a representative shot from fm1-editor.com or the publisher when they have one. Firmwares the hub doesn't carry still show up, including Baud Girl's FM-1+VA, isod89's Clipper 1.0 (from the makers of SLOOP), M-VAVE's Official Open (the eight-track groovebox they ship as [FM1 Open](https://github.com/m-vave/fm1_open) — currently V14, whose `.fwsc` is inside the Workbench HTML), and RedtailWorks' LOF-1, ECO-1 and GRAV-1 (HYP-1 is already on the hub). Other `.fwsc` files are found from GitHub releases or the publisher's own page. Clipper and the experimental RedtailWorks machines are marked beta, so they sit with the other beta listings (shown unless **SETUP** hides them). OPEN-1 is a different synth, not an FM-1 firmware, so it is not listed.
 - Downloads `.fwsc` packages, checks SHA-256, and keeps them offline
 - Talks to a real FM-1 over class-compliant USB MIDI (Android MIDI API)
 - Stages, writes, and resumes interrupted flashes using the same protocol as FM1Kit
@@ -85,7 +85,7 @@ those Android assets. Enable Actions on the GitHub repo if the workflow is waiti
    ready as a fallback.
 4. Unplug mid-write on purpose and confirm **RESUME** finishes it.
 
-If the FM-1 won't start, some firmwares boot USB recovery with **OCT\u2212** held at power-on.
+If the FM-1 won't start, some firmwares boot USB recovery with **OCT−** held at power-on.
 That is a firmware feature, not a ROM one. Official V15 and Felucca 1.6.1 do not offer it.
 A bricked chip that shows up as `WL80UBOOT` needs a computer and jl-uboot-tool;
 FM-SWITCH cannot help there.

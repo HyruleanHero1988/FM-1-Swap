@@ -60,10 +60,10 @@ object PackageDiscovery {
     }
 
     fun discover(name: String, links: List<CatalogueLink>): DiscoveredPackage? {
-        for ((owner, repo) in gitHubRepos(links)) {
-            latestRelease(owner, repo)?.let { return it }
-        }
         val words = identifyingWords(name, links)
+        for ((owner, repo) in gitHubRepos(links)) {
+            latestRelease(owner, repo, words)?.let { return it }
+        }
         val pages = ArrayDeque<String>()
         for (link in links) {
             val host = runCatching { URI(link.url).host }.getOrNull()?.lowercase()
@@ -76,6 +76,7 @@ object PackageDiscovery {
             if (!visited.add(page)) continue
             val html = runCatching { String(fetchBytes(page), Charsets.UTF_8) }.getOrNull() ?: continue
             val clean = Html.withoutComments(html)
+            installerMetaPackage(clean, page)?.takeIf { words.isEmpty() || isRelevant(it.url, words) }?.let { return it }
             manifestPackage(clean, page)?.let { return it }
             val relevant = packageLinks(clean, page).filter { isRelevant(it, words) }
             if (relevant.isNotEmpty()) {
@@ -117,6 +118,24 @@ object PackageDiscovery {
             }
         }
         return repos
+    }
+
+    fun installerMetaPackage(html: String, pageUrl: String): DiscoveredPackage? {
+        val match = Regex("""(?s)const\\s+meta\\s*=\\s*(\\{.*?\\});""").find(html) ?: return null
+        val obj = runCatching { json.parseToJsonElement(match.groupValues[1]) }.getOrNull()
+            as? kotlinx.serialization.json.JsonObject ?: return null
+        val pkg = obj.str("pkg") ?: return null
+        if (!pkg.lowercase().endsWith(".fwsc")) return null
+        val url = runCatching { URI(pageUrl).resolve(pkg).toString() }.getOrNull() ?: return null
+        if (!url.startsWith("http")) return null
+        val version = obj.str("version")
+        val product = obj.str("product")?.takeIf { fm1Identity.matches(it) }
+        return DiscoveredPackage(
+            url = url,
+            version = version,
+            beta = version?.startsWith("0.") == true,
+            product = product,
+        )
     }
 
     fun manifestPackage(html: String, pageUrl: String): DiscoveredPackage? {
@@ -169,13 +188,17 @@ object PackageDiscovery {
 
     fun identifyingWords(name: String, links: List<CatalogueLink>): Set<String> {
         val common = setOf("fm", "fm1", "the", "and", "for", "firmware", "patch", "synth", "web", "app", "github", "io")
-        val sources = listOf(name) + gitHubRepos(links).map { it.second }
+        val nameNorm = name.lowercase().filter { it.isLetterOrDigit() }
         val words = LinkedHashSet<String>()
-        for (source in sources) {
+        fun addFrom(source: String, requireInName: Boolean) {
             for (word in source.lowercase().split(Regex("[^a-z0-9]+"))) {
-                if (word.length >= 3 && word !in common && word.any { it.isLetter() }) words += word
+                if (word.length < 3 || word in common || word.none { it.isLetter() }) continue
+                if (!requireInName || nameNorm.contains(word)) words += word
             }
         }
+        addFrom(name, requireInName = false)
+        // Shared pack repos (RustyPawz/fm1-HYP1 hosts LOF/ECO/GRAV too) must not add sibling names.
+        for (repo in gitHubRepos(links)) addFrom(repo.second, requireInName = true)
         return words
     }
 
@@ -202,7 +225,7 @@ object PackageDiscovery {
         return found.take(2)
     }
 
-    private fun latestRelease(owner: String, repo: String): DiscoveredPackage? {
+    private fun latestRelease(owner: String, repo: String, words: Set<String> = emptySet()): DiscoveredPackage? {
         val url = "https://api.github.com/repos/$owner/$repo/releases?per_page=10"
         val body = runCatching { String(fetchBytes(url), Charsets.UTF_8) }.getOrNull() ?: return null
         val root = runCatching { json.parseToJsonElement(body) }.getOrNull() ?: return null
@@ -219,7 +242,8 @@ object PackageDiscovery {
                 val address = item.str("browser_download_url") ?: return@mapNotNull null
                 Triple(address, item["size"]?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.content?.toIntOrNull() }, item.str("digest"))
             }
-            val chosen = fwsc.minByOrNull { it.first.length } ?: continue
+            val matching = if (words.isEmpty()) fwsc else fwsc.filter { isRelevant(it.first, words) }
+            val chosen = matching.minByOrNull { it.first.length } ?: continue
             val digest = chosen.third?.let { if (it.startsWith("sha256:")) it.removePrefix("sha256:") else null }
             return DiscoveredPackage(
                 url = chosen.first,

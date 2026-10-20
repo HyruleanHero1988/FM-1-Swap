@@ -13,9 +13,11 @@ import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.SafetyNotice
 import com.fmswitch.fm1kit.BaudGirlLibrarian
 import com.fmswitch.fm1kit.BaudGirlSnapshot
+import com.fmswitch.fm1kit.ConnectionTone
 import com.fmswitch.fm1kit.FM1Identity
 import com.fmswitch.fm1kit.FM1UpdateError
 import com.fmswitch.fm1kit.FM1Updater
+import com.fmswitch.fm1kit.MidiNotes
 import com.fmswitch.fm1kit.supportsBaudGirlBackup
 import com.fmswitch.fm1kit.FoundDevice
 import com.fmswitch.fm1kit.InstallCheck
@@ -106,6 +108,18 @@ sealed class BackupRestore {
     val isRunning: Boolean get() = this is Writing
 }
 
+sealed class MidiCheck {
+    data object Idle : MidiCheck()
+    data class Played(
+        val stillAnswering: Boolean,
+        val identity: String?,
+        val simulated: Boolean,
+        val loader: Boolean,
+        val notesSent: Int,
+    ) : MidiCheck()
+    data class Failed(val message: String) : MidiCheck()
+}
+
 class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = application.getSharedPreferences("fmswitch", Context.MODE_PRIVATE)
     val settings = AppSettings(prefs)
@@ -142,6 +156,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     var glow by mutableFloatStateOf(settings.glow)
     var downloadingIds by mutableStateOf(setOf<String>())
         private set
+    var midiCheck by mutableStateOf<MidiCheck>(MidiCheck.Idle)
+    var isCheckingMidi by mutableStateOf(false)
+        private set
+    var playingFirmware by mutableStateOf<CatalogueEntry?>(null)
 
     val theme: PhosphorTheme get() = settings.theme.also { themeTick }
     val isWriting: Boolean get() = job?.phase?.isRunning == true || voiceRestore.isRunning || backupRestore.isRunning
@@ -548,6 +566,51 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             catalogue.refresh { catalogueTick++ }
             catalogueTick++
         }
+    }
+
+    fun playTestNotes() {
+        if (isWriting || isCheckingMidi) return
+        isCheckingMidi = true
+        midiCheck = MidiCheck.Idle
+        viewModelScope.launch {
+            try {
+                val found = held ?: updater.find()?.also { held = it }
+                    ?: throw FM1UpdateError.DeviceNotFound
+                identity = found.identity
+                val result = withContext(Dispatchers.Default) {
+                    ConnectionTone.play(found.connection) { updater.handshake(it) }
+                }
+                if (result.identity != null) identity = result.identity
+                midiCheck = MidiCheck.Played(
+                    stillAnswering = result.stillAnswering,
+                    identity = (result.identity ?: found.identity).text,
+                    simulated = simulated != null,
+                    loader = (result.identity ?: found.identity).isLoader,
+                    notesSent = result.notesSent,
+                )
+            } catch (error: Exception) {
+                midiCheck = MidiCheck.Failed(error.userMessage())
+            } finally {
+                isCheckingMidi = false
+            }
+        }
+    }
+
+    fun sendLiveNote(note: Int, on: Boolean) {
+        val connection = held?.connection ?: return
+        if (connection.isLost || isWriting) return
+        for (channel in MidiNotes.TEST_CHANNELS) {
+            val bytes = if (on) MidiNotes.noteOn(channel, note) else MidiNotes.noteOff(channel, note)
+            runCatching { connection.send(bytes) }
+        }
+    }
+
+    fun openEmulator(entry: CatalogueEntry) {
+        playingFirmware = entry
+    }
+
+    fun closeEmulator() {
+        playingFirmware = null
     }
 
     fun probablyRunning(identity: FM1Identity): String {

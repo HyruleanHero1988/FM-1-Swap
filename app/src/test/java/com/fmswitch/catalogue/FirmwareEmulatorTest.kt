@@ -6,7 +6,7 @@ import org.junit.Test
 
 class FirmwareEmulatorTest {
     @Test
-    fun hyp1HasTheRustypawzEmulator() {
+    fun redtailWorksPlaysInTheBundledEmulator() {
         val hyp = CatalogueEntry(
             id = "hyp1",
             name = "HYP-1",
@@ -15,11 +15,10 @@ class FirmwareEmulatorTest {
                 CatalogueLink("Try it in the browser", "https://rustypawz.github.io/fm1-HYP1/emu/"),
             ),
         )
-        assertEquals("https://rustypawz.github.io/fm1-HYP1/emu/", FirmwareEmulator.authorEmulator(hyp))
-        assertEquals(
-            "https://rustypawz.github.io/fm1-HYP1/lof/emu/",
-            FirmwareEmulator.authorEmulator(CatalogueEntry(id = "redtail-lof", name = "LOF-1")),
-        )
+        assertNull(FirmwareEmulator.authorEmulator(hyp))
+        assertNull(FirmwareEmulator.authorEmulator(CatalogueEntry(id = "redtail-lof", name = "LOF-1")))
+        assertNull(FirmwareEmulator.authorEmulator(CatalogueEntry(id = "redtail-eco", name = "ECO-1")))
+        assertNull(FirmwareEmulator.authorEmulator(CatalogueEntry(id = "redtail-grav", name = "GRAV-1")))
     }
 
     @Test

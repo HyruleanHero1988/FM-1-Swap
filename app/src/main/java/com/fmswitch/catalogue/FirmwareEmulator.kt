@@ -8,8 +8,9 @@ package com.fmswitch.catalogue
  * flash boots on an emulated JieLi AC791N, with sound through the phone and the
  * panel drawn in Compose.
  *
- * Some publishers also ship their own browser emulator (RedtailWorks' rustypawz
- * pages, hub `/play/` links); [authorEmulator] finds those as an extra option.
+ * A few publishers also ship a browser emulator (hub `/play/` links, M-VAVE's
+ * Workbench). [authorEmulator] finds those as an extra option. RedtailWorks'
+ * machines play here, in the same emulator as everything else.
  */
 object FirmwareEmulator {
     const val CHIP_EMU = "https://joakimeriksson.github.io/fm1-emu/"
@@ -21,12 +22,13 @@ object FirmwareEmulator {
         chipSlug(entry)?.let { append("?fw=").append(it) }
     }
 
-    fun authorEmulator(entry: CatalogueEntry): String? = dedicatedUrl(entry) ?: playLink(entry)
+    fun authorEmulator(entry: CatalogueEntry): String? = playLink(entry)
 
     fun playLink(entry: CatalogueEntry): String? {
         val ranked = entry.links.mapNotNull { link ->
             val label = link.label.lowercase()
             val url = link.url.lowercase()
+            if ("rustypawz.github.io" in url) return@mapNotNull null
             val score = when {
                 "/emu" in url || url.endsWith("/emu") || url.endsWith("/emu/") -> 0
                 "/play/" in url -> 1
@@ -38,13 +40,6 @@ object FirmwareEmulator {
             score to link.url
         }
         return ranked.minByOrNull { it.first }?.second
-    }
-
-    fun dedicatedUrl(entry: CatalogueEntry): String? {
-        val key = CatalogueBuilder.normalisedName(entry.name).ifEmpty {
-            entry.id.lowercase().filter { it.isLetterOrDigit() }
-        }
-        return REDTAIL[key] ?: REDTAIL[entry.id.lowercase()]
     }
 
     fun chipSlug(entry: CatalogueEntry): String? {
@@ -62,19 +57,4 @@ object FirmwareEmulator {
             else -> id
         }
     }
-
-    private val REDTAIL = mapOf(
-        "hyp1" to "https://rustypawz.github.io/fm1-HYP1/emu/",
-        "hyp" to "https://rustypawz.github.io/fm1-HYP1/emu/",
-        "redtail-hyp" to "https://rustypawz.github.io/fm1-HYP1/emu/",
-        "lof1" to "https://rustypawz.github.io/fm1-HYP1/lof/emu/",
-        "lof" to "https://rustypawz.github.io/fm1-HYP1/lof/emu/",
-        "redtail-lof" to "https://rustypawz.github.io/fm1-HYP1/lof/emu/",
-        "eco1" to "https://rustypawz.github.io/fm1-HYP1/eco/emu/",
-        "eco" to "https://rustypawz.github.io/fm1-HYP1/eco/emu/",
-        "redtail-eco" to "https://rustypawz.github.io/fm1-HYP1/eco/emu/",
-        "grav1" to "https://rustypawz.github.io/fm1-HYP1/grav/emu/",
-        "grav" to "https://rustypawz.github.io/fm1-HYP1/grav/emu/",
-        "redtail-grav" to "https://rustypawz.github.io/fm1-HYP1/grav/emu/",
-    )
 }

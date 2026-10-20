@@ -114,6 +114,11 @@ fun SettingsScreen(model: AppViewModel) {
                 model.bumpTheme()
             }
             NoteText("TRY draws the virtual FM-1 as glowing vector lines in this colour, like a scope's electron beam. Off shows the realistic panel. The firmware's own screen is never changed either way.")
+            PixelToggle("CHOOSE EMULATOR CLOCK", model.settings.chooseEmulatorClock) {
+                model.settings.chooseEmulatorClock = it
+                model.bumpTheme()
+            }
+            NoteText("Off, TRY runs at 240 MHz, the same speed as a real FM-1, and the clock stays off the TRY screen. On, TRY offers 100, 160 and 240, remembered per firmware. Lower it when the sound gaps or the load goes over 100%.")
         }
         PixelPanel(title = "CONNECTION") {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

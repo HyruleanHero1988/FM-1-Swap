@@ -185,11 +185,11 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         )
         entry.what?.let { MonoText(it, size = 15) }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PixelButton("TRY", prominent = stored == null, enabled = !downloading) {
+            PixelButton("TRY", prominent = true) {
                 model.openEmulator(entry)
             }
             if (stored == null && entry.isDownloadable) {
-                PixelButton(if (downloading) "SAVING" else "SAVE", prominent = true, enabled = !downloading) {
+                PixelButton(if (downloading) "SAVING" else "SAVE", enabled = !downloading) {
                     scope.launch {
                         error = null
                         model.save(entry).onFailure { error = it.message }
@@ -200,7 +200,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
                 PixelButton("FLASH", prominent = true) { confirming = stored }
             }
         }
-        NoteText("TRY plays this exact package on a virtual FM-1 built into the app (fm1-emu, compiled for Android): sound, screen and saves, offline once the package is saved. It is not a flash.")
+        NoteText("TRY plays this package on the virtual FM-1 and does not keep it. SAVE puts the same file under SAVED so you can flash it later. Neither one writes to a connected FM-1.")
         error?.let { MonoText(it, size = 14) }
         PixelPanel(title = "DETAILS") {
             MonoText("Identity  ${entry.product ?: "unknown"}", size = 14)

@@ -123,7 +123,7 @@ fun SettingsScreen(model: AppViewModel) {
                 model.settings.backgroundEmulator = it
                 model.bumpTheme()
             }
-            NoteText("Off, TRY stops when you switch away or the screen turns off. On, it keeps sounding until you leave the TRY screen. Backing out of the emulator always stops it, even with this on.")
+            NoteText("Off, TRY stops when you switch away or the screen turns off. On, it keeps sounding until you leave the TRY screen. Backing out of the emulator always stops it, even with this on. Turning the phone does not: the panel changes shape and the firmware keeps running.")
         }
         PixelPanel(title = "CONNECTION") {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

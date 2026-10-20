@@ -160,7 +160,7 @@ class FirmwareLibrary(private val context: Context) {
         val url = entry.packageURL ?: error("No downloadable file is known for this firmware.")
         downloading = downloading + entry.id
         try {
-            val bytes = fetchBytes(url)
+            val bytes = PackageDiscovery.firmwareBytes(fetchBytes(url))
             val package_ = FwscPackage.read(bytes)
             if (entry.sha256 != null && (bytes.size != (entry.size ?: bytes.size) || package_.sha256 != entry.sha256)) {
                 error("The downloaded file doesn't match its published size or checksum, so it was not saved.")

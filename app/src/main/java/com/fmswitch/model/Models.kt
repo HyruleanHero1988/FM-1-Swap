@@ -264,7 +264,7 @@ class FirmwareLibrary(private val context: Context) {
     }
 }
 
-class CatalogueStore(context: Context) {
+class CatalogueStore(private val context: Context) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val cacheFile = File(context.filesDir, "catalogue.json")
     var catalogue: MergedCatalogue? = null
@@ -327,13 +327,19 @@ class CatalogueStore(context: Context) {
             if (problems.isNotEmpty()) errorMessage = problems.joinToString(" ")
             onUpdate()
             val resolved = PackageDiscovery.discoverMissing(merged, previous)
-            val built = MergedCatalogue(hub?.first, resolved, problems)
+            val built = MergedCatalogue(
+                hubUpdated = hub?.first,
+                entries = resolved,
+                problems = problems,
+                snapshotVersion = MergedCatalogue.BUNDLED_VERSION,
+                bundled = false,
+            )
             catalogue = built
             withContext(Dispatchers.IO) { cacheFile.writeText(json.encodeToString(built)) }
             if (problems.isNotEmpty()) errorMessage = problems.joinToString(" ")
         } catch (_: Throwable) {
-            errorMessage = if (catalogue == null) {
-                "Couldn't fetch the firmware list. Check your connection and try again."
+            errorMessage = if (catalogue == null || catalogue?.bundled == true) {
+                "Couldn't refresh the list. Showing the copy shipped with the app."
             } else {
                 "Couldn't refresh; showing the list saved earlier."
             }
@@ -343,18 +349,32 @@ class CatalogueStore(context: Context) {
     }
 
     private fun loadCached() {
-        if (!cacheFile.exists()) return
-        val text = cacheFile.readText()
-        val stored = runCatching { json.decodeFromString<MergedCatalogue>(text) }.getOrNull()
-        if (stored != null) {
-            catalogue = stored
-            return
-        }
-        runCatching {
-            val (updated, hub) = HubFeed.decode(text)
-            catalogue = MergedCatalogue(updated, listOf(officialCatalogueEntry()) + hub, emptyList())
+        val bundled = loadBundled()
+        val cached = readCache()
+        catalogue = when {
+            cached != null &&
+                cached.entries.size > 1 &&
+                cached.snapshotVersion >= (bundled?.snapshotVersion ?: 0) -> cached
+            bundled != null -> bundled
+            cached != null -> cached
+            else -> null
         }
     }
+
+    private fun readCache(): MergedCatalogue? {
+        if (!cacheFile.exists()) return null
+        val text = cacheFile.readText()
+        runCatching { json.decodeFromString<MergedCatalogue>(text) }.getOrNull()?.let { return it }
+        return runCatching {
+            val (updated, hub) = HubFeed.decode(text)
+            MergedCatalogue(updated, listOf(officialCatalogueEntry()) + hub, emptyList())
+        }.getOrNull()
+    }
+
+    private fun loadBundled(): MergedCatalogue? = runCatching {
+        val text = context.assets.open(MergedCatalogue.ASSET_PATH).bufferedReader(Charsets.UTF_8).use { it.readText() }
+        json.decodeFromString<MergedCatalogue>(text)
+    }.getOrNull()
 }
 
 class FlashHistory(private val prefs: SharedPreferences) {

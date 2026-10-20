@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import com.fmswitch.catalogue.CatalogueBuilder
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.CatalogueRank
+import com.fmswitch.catalogue.FirmwareSort
 import com.fmswitch.catalogue.EditorListing
 import com.fmswitch.catalogue.HubFeed
 import com.fmswitch.catalogue.MergedCatalogue
@@ -63,6 +64,17 @@ class AppSettings(private val prefs: SharedPreferences) {
     var showLinksOnly: Boolean
         get() = prefs.getBoolean("showLinksOnly", false)
         set(value) { prefs.edit().putBoolean("showLinksOnly", value).apply() }
+    /** Catalogue ids, first in this list is the top of MY CURATION. */
+    var curation: List<String>
+        get() = prefs.getString("curation", null).orEmpty().lineSequence().filter { it.isNotBlank() }.toList()
+        set(value) { prefs.edit().putString("curation", value.joinToString("\n")).apply() }
+    var curatedOnly: Boolean
+        get() = prefs.getBoolean("curatedOnly", false)
+        set(value) { prefs.edit().putBoolean("curatedOnly", value).apply() }
+    var firmwareSort: FirmwareSort
+        get() = FirmwareSort.entries.firstOrNull { it.id == prefs.getString("firmwareSort", FirmwareSort.CURATION.id) }
+            ?: FirmwareSort.CURATION
+        set(value) { prefs.edit().putString("firmwareSort", value.id).apply() }
     var alwaysViaOfficial: Boolean
         get() = prefs.getBoolean("alwaysViaOfficial", false)
         set(value) { prefs.edit().putBoolean("alwaysViaOfficial", value).apply() }

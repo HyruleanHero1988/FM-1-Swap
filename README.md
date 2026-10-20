@@ -92,7 +92,7 @@ file is missing. Enable Actions on the GitHub repo if the workflow is waiting fo
    ready as a fallback.
 4. Unplug mid-write on purpose and confirm **RESUME** finishes it.
 
-If the FM-1 won't start, some firmwares boot USB recovery with **OCT\u2212** held at power-on.
+If the FM-1 won't start, some firmwares boot USB recovery with **OCT−** held at power-on.
 That is a firmware feature, not a ROM one. Official V15 and Felucca 1.6.1 do not offer it.
 A bricked chip that shows up as `WL80UBOOT` needs a computer and jl-uboot-tool;
 FM-SWITCH cannot help there.

@@ -2,6 +2,7 @@ package com.fmswitch.model
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.fmswitch.catalogue.AboutOverlay
 import com.fmswitch.catalogue.CatalogueBuilder
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.CatalogueRank
@@ -12,6 +13,7 @@ import com.fmswitch.catalogue.MergedCatalogue
 import com.fmswitch.catalogue.PackageDiscovery
 import com.fmswitch.catalogue.PhotoOverlay
 import com.fmswitch.catalogue.RedtailListing
+import com.fmswitch.catalogue.RepoAbout
 import com.fmswitch.catalogue.RepoShots
 import com.fmswitch.catalogue.fetchBytes
 import com.fmswitch.catalogue.officialCatalogueEntry
@@ -344,17 +346,19 @@ class CatalogueStore(private val context: Context) {
         loadCached()
     }
 
-    private val photoOverlayText: String by lazy {
-        runCatching {
-            context.assets.open(PhotoOverlay.ASSET_PATH).bufferedReader(Charsets.UTF_8).use { it.readText() }
-        }.getOrDefault("")
-    }
+    private val photoOverlayText: String by lazy { assetText(PhotoOverlay.ASSET_PATH) }
+    private val aboutOverlayText: String by lazy { assetText(AboutOverlay.ASSET_PATH) }
+
+    private fun assetText(path: String): String = runCatching {
+        context.assets.open(path).bufferedReader(Charsets.UTF_8).use { it.readText() }
+    }.getOrDefault("")
 
     val entries: List<CatalogueEntry>
         get() {
             val listed = catalogue?.entries.orEmpty()
             val withOfficial = if (listed.any { it.isOfficial }) listed else listOf(officialCatalogueEntry()) + listed
-            return CatalogueRank.ordered(PhotoOverlay.apply(withOfficial, photoOverlayText))
+            val described = AboutOverlay.apply(withOfficial, aboutOverlayText)
+            return CatalogueRank.ordered(PhotoOverlay.apply(described, photoOverlayText))
         }
 
     fun entry(id: String): CatalogueEntry? = entries.firstOrNull { it.id == id }
@@ -400,9 +404,10 @@ class CatalogueStore(private val context: Context) {
             onUpdate()
             val resolved = PackageDiscovery.discoverMissing(merged, previous)
             val photographed = RepoShots.fill(resolved, previous)
+            val described = RepoAbout.fill(AboutOverlay.apply(photographed, aboutOverlayText), previous)
             val built = MergedCatalogue(
                 hubUpdated = hub?.first,
-                entries = photographed,
+                entries = described,
                 problems = problems,
                 snapshotVersion = MergedCatalogue.BUNDLED_VERSION,
                 bundled = false,

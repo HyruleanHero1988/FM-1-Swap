@@ -121,7 +121,7 @@ object PackageDiscovery {
     }
 
     fun installerMetaPackage(html: String, pageUrl: String): DiscoveredPackage? {
-        val match = Regex("""(?s)const\\s+meta\\s*=\\s*(\\{.*?\\});""").find(html) ?: return null
+        val match = Regex("(?s)const[ \\t\\n\\r]+meta[ \\t\\n\\r]*=[ \\t\\n\\r]*(\\{.*?\\});").find(html) ?: return null
         val obj = runCatching { json.parseToJsonElement(match.groupValues[1]) }.getOrNull()
             as? kotlinx.serialization.json.JsonObject ?: return null
         val pkg = obj.str("pkg") ?: return null

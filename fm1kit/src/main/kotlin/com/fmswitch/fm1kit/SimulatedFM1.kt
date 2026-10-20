@@ -48,10 +48,17 @@ class SimulatedFM1(
     private var voiceSteps = 0
     private val baudGirl = SimulatedBaudGirl()
     private val eventLog = CopyOnWriteArrayList<String>()
+    private val heardNotes = CopyOnWriteArrayList<MidiNotes.Heard>()
     private val observers = CopyOnWriteArrayList<() -> Unit>()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     val events: List<String> get() = eventLog.toList()
+
+    val notesHeard: List<MidiNotes.Heard> get() = heardNotes.toList()
+
+    internal fun hear(message: ByteArray) {
+        MidiNotes.parse(message)?.let { heardNotes.add(it) }
+    }
 
     var currentVoices: ByteArray
         get() = synchronized(lock) { voices.copyOf() }
@@ -350,6 +357,10 @@ internal class SimulatedConnection(
 
     override fun send(sysex: ByteArray) {
         if (!device.isCurrent(generation)) throw MidiTransportError.PortGone
+        if (MidiNotes.isChannelVoice(sysex)) {
+            device.hear(sysex)
+            return
+        }
         device.handle(sysex, this)
     }
 

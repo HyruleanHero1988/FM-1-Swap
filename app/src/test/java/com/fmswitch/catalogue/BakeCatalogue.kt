@@ -1,6 +1,7 @@
 package com.fmswitch.catalogue
 
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.Assume
@@ -30,9 +31,10 @@ class BakeCatalogue {
             redtail = redtail.entries,
         )
         val resolved = PackageDiscovery.discoverMissing(merged, emptyList())
+        val photographed = RepoShots.fill(resolved, emptyList())
         val snapshot = MergedCatalogue(
             hubUpdated = hub.first,
-            entries = CatalogueRank.ordered(resolved),
+            entries = CatalogueRank.ordered(photographed),
             problems = emptyList(),
             snapshotVersion = MergedCatalogue.BUNDLED_VERSION,
             bundled = true,
@@ -42,6 +44,20 @@ class BakeCatalogue {
         out.parentFile?.mkdirs()
         out.writeText(json.encodeToString(snapshot) + "\n")
         println("Wrote ${out.canonicalPath} (${snapshot.entries.size} firmwares, ${snapshot.entries.count { it.packageURL != null }} with packages)")
+    }
+
+    /** Fills photos on the snapshot already in the repo, without rebuilding the list. */
+    @Test
+    fun fillExistingSnapshot() = runBlocking {
+        Assume.assumeTrue("set FILL_PHOTOS=true to scan GitHub READMEs", System.getenv("FILL_PHOTOS") == "true")
+        val json = Json { prettyPrint = true; encodeDefaults = false; ignoreUnknownKeys = true }
+        val file = File(moduleRoot(), "src/main/assets/${MergedCatalogue.ASSET_PATH}")
+        val current = json.decodeFromString<MergedCatalogue>(file.readText())
+        val photographed = RepoShots.fill(current.entries, emptyList())
+        val snapshot = current.copy(entries = photographed)
+        file.writeText(json.encodeToString(snapshot) + "\n")
+        val gained = photographed.count { it.photoURL != null } - current.entries.count { it.photoURL != null }
+        println("Photos now ${photographed.count { it.photoURL != null }} of ${photographed.size} (+$gained)")
     }
 
     private fun readOrFetch(path: String, url: String): String {

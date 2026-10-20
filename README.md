@@ -22,7 +22,7 @@ but that zip is easy to miss and is not the repo homepage.
 
 ## What it does
 
-- Lists the firmware hub catalogue, with official V15 first
+- Lists the firmware hub catalogue merged with [fm1-editor.com](https://fm1-editor.com/firmware/), with official V15 first. Firmwares the hub doesn't carry still show up, including Baud Girl's FM-1+VA, isod89's Clipper 1.0 (from the makers of SLOOP), and M-VAVE Official Open. Their `.fwsc` is found from GitHub releases or the publisher's own page. Clipper is marked experimental, so it sits with the other beta listings (shown unless **SETUP** hides them).
 - Downloads `.fwsc` packages, checks SHA-256, and keeps them offline
 - Talks to a real FM-1 over class-compliant USB MIDI (Android MIDI API)
 - Stages, writes, and resumes interrupted flashes using the same protocol as FM1Kit
@@ -33,7 +33,10 @@ but that zip is easy to miss and is not the repo homepage.
 ## Talking to the FM-1
 
 The FM-1 is flashed entirely over USB-MIDI SysEx, not DFU or a vendor driver. Android's MIDI
-service enumerates class-compliant USB-MIDI devices, which is what the FM-1 is.
+service enumerates class-compliant USB-MIDI devices, which is what the FM-1 is. The app does
+not claim the USB device itself (that fights the MIDI service and makes the FM-1 appear and
+vanish in a loop). Plug it in, grant USB if Android asks, and leave the DEVICE screen: once
+the identity sticks, the MIDI port is held open.
 
 The protocol library in `fm1kit/` is a Kotlin port of ocean's [FM1Kit](https://github.com/ocean/FM1Kit)
 (MIT), written from the [FM-1-RE](https://github.com/AL-255/FM-1-RE) notes (WTFPL). It contains

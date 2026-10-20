@@ -14,6 +14,7 @@ import com.fmswitch.catalogue.SafetyNotice
 import com.fmswitch.fm1kit.FM1Identity
 import com.fmswitch.fm1kit.FM1UpdateError
 import com.fmswitch.fm1kit.FM1Updater
+import com.fmswitch.fm1kit.FoundDevice
 import com.fmswitch.fm1kit.InstallCheck
 import com.fmswitch.fm1kit.InstallKind
 import com.fmswitch.fm1kit.InstallOptions
@@ -130,6 +131,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private var updater = FM1Updater(UnavailableTransport)
     private var watch: AutoCloseable? = null
     private var scanJob: Job? = null
+    private var scanGeneration = 0
+    private var held: FoundDevice? = null
+    private var ignorePortChangesUntil = 0L
     private val mainHandler = Handler(Looper.getMainLooper())
     var simulated: SimulatedFM1? = null
         private set
@@ -152,6 +156,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun configureTransport() {
         if (isWriting) return
         watch?.close()
+        releaseHeld()
         simulated?.shutdown()
         simulated = null
         transportError = null
@@ -177,25 +182,54 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         ports = emptyList()
         watch = transport.changes {
             viewModelScope.launch {
-                delay(400)
-                if (!isWriting) scan()
+                delay(800)
+                if (isWriting) return@launch
+                if (System.currentTimeMillis() < ignorePortChangesUntil) return@launch
+                scan(force = false)
             }
         }
-        viewModelScope.launch { scan() }
+        viewModelScope.launch { scan(force = true) }
     }
 
-    fun scan() {
-        if (isScanning || isWriting) return
+    fun scan(force: Boolean = false) {
+        if (isWriting) return
+        if (isScanning && !force) return
         scanJob?.cancel()
+        val generation = ++scanGeneration
         scanJob = viewModelScope.launch {
             isScanning = true
             try {
                 ports = transport.ports()
-                identity = updater.identify()
+                val current = held
+                if (current != null && current.connection.isLost) {
+                    releaseHeld()
+                }
+                if (!force && held != null && identity != null && ports.any { it.id == held!!.connection.port.id }) {
+                    return@launch
+                }
+                releaseHeld()
+                ignorePortChangesUntil = System.currentTimeMillis() + 2_000
+                val found = updater.find()
+                if (isWriting) {
+                    found?.connection?.close()
+                    return@launch
+                }
+                if (found != null) {
+                    identity = found.identity
+                    held = found
+                    ignorePortChangesUntil = System.currentTimeMillis() + 2_000
+                } else if (force || ports.isEmpty()) {
+                    identity = null
+                }
             } finally {
-                isScanning = false
+                if (generation == scanGeneration) isScanning = false
             }
         }
+    }
+
+    private fun releaseHeld() {
+        held?.connection?.close()
+        held = null
     }
 
     fun plan(forTarget: StoredFirmware, requiresOfficial: Boolean): List<StoredFirmware> {
@@ -211,22 +245,32 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    suspend fun check(item: StoredFirmware): InstallCheck = withContext(Dispatchers.Default) {
-        updater.check(library.loadPackage(item))
+    suspend fun check(item: StoredFirmware): InstallCheck {
+        releaseHeld()
+        ignorePortChangesUntil = System.currentTimeMillis() + 2_000
+        return withContext(Dispatchers.Default) {
+            updater.check(library.loadPackage(item))
+        }
     }
 
     fun flash(steps: List<StoredFirmware>, confirmsSwitchingFirmware: Boolean, confirmsSameIdentity: Boolean) {
         if (steps.isEmpty() || isWriting) return
         log = emptyList()
         job = FlashJob(steps, confirmsSwitchingFirmware, confirmsSameIdentity)
-        viewModelScope.launch { runFlash(0) }
+        viewModelScope.launch {
+            releaseHeld()
+            runFlash(0)
+        }
     }
 
     fun resumeFlash() {
         val current = job ?: return
         if (current.phase.isRunning) return
         job = current.copy(phase = FlashPhase.Preparing)
-        viewModelScope.launch { runFlash(current.index) }
+        viewModelScope.launch {
+            releaseHeld()
+            runFlash(current.index)
+        }
     }
 
     fun dismissFlash() {
@@ -248,7 +292,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val package_ = withContext(Dispatchers.IO) { library.loadPackage(item) }
                 simulated?.prepare(package_)
-                val isLoaderRunning = updater.identify()?.isLoader == true
+                val isLoaderRunning = identity?.isLoader == true
                 val installed = withContext(Dispatchers.Default) {
                     if (isLoaderRunning) {
                         updater.resume(package_) { applyEvent(it) }
@@ -300,6 +344,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (isWriting) return
         voiceRestore = VoiceRestore.Writing(0.0)
         viewModelScope.launch {
+            releaseHeld()
             try {
                 val official = library.official ?: throw FM1UpdateError.FactoryVoicesUnavailable
                 val package_ = withContext(Dispatchers.IO) { library.loadPackage(official) }
@@ -311,6 +356,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 voiceRestore = VoiceRestore.Succeeded
             } catch (error: Exception) {
                 voiceRestore = VoiceRestore.Failed(error.userMessage())
+            } finally {
+                scan(force = true)
             }
         }
     }
@@ -382,6 +429,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     override fun onCleared() {
         watch?.close()
+        releaseHeld()
         simulated?.shutdown()
     }
 }

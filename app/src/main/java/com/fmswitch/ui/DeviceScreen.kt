@@ -69,6 +69,9 @@ fun DeviceScreen(model: AppViewModel) {
                 MonoText("FIRMWARE IS RUNNING · USB-MIDI HELD", size = 14, dim = true)
             }
             model.transportError?.let { MonoText(it, size = 13) }
+            if (model.identity == null && !model.isScanning && model.ports.isNotEmpty()) {
+                model.probeProblem?.let { MonoText(it, size = 13) }
+            }
         }
         val identity = model.identity
         if (identity == null) {

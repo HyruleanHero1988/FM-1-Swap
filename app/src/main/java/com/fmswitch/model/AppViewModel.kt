@@ -160,6 +160,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         private set
     var transportError by mutableStateOf<String?>(null)
         private set
+    var probeProblem by mutableStateOf<String?>(null)
+        private set
     var catalogueTick by mutableIntStateOf(0)
     var listTick by mutableIntStateOf(0)
     var libraryTick by mutableIntStateOf(0)
@@ -213,6 +215,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         simulated?.shutdown()
         simulated = null
         transportError = null
+        probeProblem = null
         transport = when (settings.transportKind) {
             TransportKind.USB_MIDI -> try {
                 AndroidMidiTransport(getApplication())
@@ -267,6 +270,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     found?.connection?.close()
                     return@launch
                 }
+                probeProblem = if (found == null) updater.lastProbeProblem else null
                 if (found != null) {
                     identity = found.identity
                     held = found

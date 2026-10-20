@@ -10,11 +10,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
@@ -64,42 +69,86 @@ fun EmulatorScreen(
         onDispose { previous?.let { activity.requestedOrientation = it } }
     }
 
+    if (landscape) {
+        var liveStatus by remember { mutableStateOf("") }
+        Box(Modifier.fillMaxSize().background(theme.background)) {
+            when (prepared) {
+                EmulatorPackage.Preparing -> MonoText(
+                    "FETCHING THE PACKAGE YOU WOULD FLASH…",
+                    size = 13,
+                    dim = true,
+                    modifier = Modifier.align(Alignment.Center).padding(24.dp),
+                )
+                is EmulatorPackage.Failed -> Column(
+                    Modifier.align(Alignment.Center).padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    MonoText("Couldn't get this firmware's package: ${prepared.message}", size = 14)
+                    PixelButton("RETRY", compact = true, onClick = onRetry)
+                }
+                is EmulatorPackage.Ready -> RunningEmulator(
+                    prepared,
+                    expand = true,
+                    phosphorPanel = phosphorPanel,
+                    onStatus = { liveStatus = it },
+                )
+            }
+            Column(
+                Modifier
+                    .align(Alignment.TopStart)
+                    .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.displayCutout))
+                    .padding(start = 8.dp, end = 8.dp)
+                    .widthIn(max = 148.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                PixelButton("\u25c2 BACK", compact = true, onClick = onBack)
+                BasicText(entry.name.uppercase(), style = pixelText(13.sp, bold = true, color = theme.bright, glow = true))
+                if (authorEmulator != null) {
+                    PixelButton("AUTHOR'S EMU", compact = true) {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(authorEmulator)))
+                    }
+                }
+                if (liveStatus.isNotEmpty()) MonoText(liveStatus, size = 11, dim = true)
+            }
+        }
+        return
+    }
     Column(
         Modifier
             .fillMaxSize()
             .background(theme.background)
-            .padding(horizontal = 12.dp, vertical = if (landscape) 6.dp else 12.dp),
-        verticalArrangement = Arrangement.spacedBy(if (landscape) 4.dp else 8.dp),
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            PixelButton("◂ BACK", compact = true, onClick = onBack)
+            PixelButton("\u25c2 BACK", compact = true, onClick = onBack)
             if (authorEmulator != null) {
                 PixelButton("AUTHOR'S EMU", compact = true) {
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(authorEmulator)))
                 }
             }
-            if (landscape) {
-                BasicText(entry.name.uppercase(), style = pixelText(14.sp, bold = true, color = theme.bright, glow = true))
-            }
         }
-        if (!landscape) {
-            BasicText(entry.name.uppercase(), style = pixelText(16.sp, bold = true, color = theme.bright, glow = true))
-        }
+        BasicText(entry.name.uppercase(), style = pixelText(16.sp, bold = true, color = theme.bright, glow = true))
         when (prepared) {
-            EmulatorPackage.Preparing -> MonoText("FETCHING THE PACKAGE YOU WOULD FLASH…", size = 13, dim = true)
+            EmulatorPackage.Preparing -> MonoText("FETCHING THE PACKAGE YOU WOULD FLASH\u2026", size = 13, dim = true)
             is EmulatorPackage.Failed -> {
                 MonoText("Couldn't get this firmware's package: ${prepared.message}", size = 14)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     PixelButton("RETRY", compact = true, onClick = onRetry)
                 }
             }
-            is EmulatorPackage.Ready -> RunningEmulator(prepared, landscape, phosphorPanel)
+            is EmulatorPackage.Ready -> RunningEmulator(prepared, expand = false, phosphorPanel = phosphorPanel)
         }
     }
 }
 
 @Composable
-private fun ColumnScope.RunningEmulator(prepared: EmulatorPackage.Ready, landscape: Boolean, phosphorPanel: Boolean) {
+private fun RunningEmulator(
+    prepared: EmulatorPackage.Ready,
+    expand: Boolean,
+    phosphorPanel: Boolean,
+    onStatus: (String) -> Unit = {},
+) {
     val context = LocalContext.current
     val theme = LocalPhosphor.current
     val engine by produceState<Fm1Engine?>(null, prepared.file, prepared.sha256) {
@@ -108,7 +157,7 @@ private fun ColumnScope.RunningEmulator(prepared: EmulatorPackage.Ready, landsca
     }
     val running = engine
     if (running == null) {
-        MonoText("BOOTING…", size = 13, dim = true)
+        MonoText("BOOTING\u2026", size = 13, dim = true)
         return
     }
     DisposableEffect(running) { onDispose { running.close() } }
@@ -116,19 +165,23 @@ private fun ColumnScope.RunningEmulator(prepared: EmulatorPackage.Ready, landsca
     LaunchedEffect(running) {
         while (true) {
             status = running.status
+            onStatus(statusLine(status))
             delay(300)
         }
     }
-    MonoText(statusLine(status), size = 12, dim = status !is Fm1Engine.Status.Stopped)
-    Box(Modifier.fillMaxWidth().then(if (landscape) Modifier.weight(1f) else Modifier), contentAlignment = Alignment.Center) {
+    if (!expand) MonoText(statusLine(status), size = 12, dim = status !is Fm1Engine.Status.Stopped)
+    Box(
+        Modifier.then(if (expand) Modifier.fillMaxSize() else Modifier.fillMaxWidth()),
+        contentAlignment = Alignment.Center,
+    ) {
         Fm1PanelView(
             running,
-            Modifier.fillMaxWidth(),
+            if (expand) Modifier.fillMaxSize() else Modifier.fillMaxWidth(),
             phosphor = if (phosphorPanel) theme.base else null,
             glow = theme.glow,
         )
     }
-    if (!landscape) {
+    if (!expand) {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             MonoText(
                 "Tap keys and buttons (several at once is fine); drag a knob up or down to turn it, MASTER for volume. Sound comes from this phone. Turn it sideways for a bigger panel.",
@@ -144,11 +197,11 @@ private fun ColumnScope.RunningEmulator(prepared: EmulatorPackage.Ready, landsca
 }
 
 private fun statusLine(status: Fm1Engine.Status): String = when (status) {
-    Fm1Engine.Status.Booting -> "BOOTING…"
+    Fm1Engine.Status.Booting -> "BOOTING\u2026"
     is Fm1Engine.Status.Running -> {
         val load = (status.load * 100).toInt()
-        if (status.load > 0.95f) "RUNNING · LOAD $load% · THIS PHONE IS STRUGGLING, SOUND MAY BREAK UP"
-        else "RUNNING · 100 MHz · LOAD $load%"
+        if (status.load > 0.95f) "RUNNING \u00b7 LOAD $load% \u00b7 THIS PHONE IS STRUGGLING, SOUND MAY BREAK UP"
+        else "RUNNING \u00b7 100 MHz \u00b7 LOAD $load%"
     }
     is Fm1Engine.Status.Stopped -> status.message
 }

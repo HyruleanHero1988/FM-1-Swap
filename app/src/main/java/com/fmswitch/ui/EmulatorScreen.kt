@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,12 +42,14 @@ import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.FirmwareEmulator
 import com.fmswitch.emu.Fm1Engine
 import com.fmswitch.model.EmulatorPackage
+import com.fmswitch.model.StoredFirmware
 import com.fmswitch.theme.LocalPhosphor
 import com.fmswitch.theme.MonoText
 import com.fmswitch.theme.PixelButton
 import com.fmswitch.theme.pixelText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
@@ -54,13 +57,24 @@ fun EmulatorScreen(
     entry: CatalogueEntry,
     prepared: EmulatorPackage,
     phosphorPanel: Boolean,
+    canSave: Boolean,
+    saving: Boolean,
+    onSave: suspend () -> Result<StoredFirmware>,
     onRetry: () -> Unit,
     onBack: () -> Unit,
 ) {
     val theme = LocalPhosphor.current
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val authorEmulator = remember(entry.id, entry.links) { FirmwareEmulator.authorEmulator(entry) }
+    var saveError by remember(entry.id) { mutableStateOf<String?>(null) }
+    fun keep() {
+        scope.launch {
+            saveError = null
+            onSave().onFailure { saveError = it.message }
+        }
+    }
     BackHandler(onBack = onBack)
     DisposableEffect(Unit) {
         val activity = context as? Activity
@@ -102,6 +116,10 @@ fun EmulatorScreen(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 PixelButton("◂ BACK", compact = true, onClick = onBack)
+                if (canSave) {
+                    PixelButton(if (saving) "SAVING" else "SAVE", compact = true, enabled = !saving, onClick = ::keep)
+                }
+                saveError?.let { MonoText(it, size = 11) }
                 BasicText(entry.name.uppercase(), style = pixelText(13.sp, bold = true, color = theme.bright, glow = true))
                 if (authorEmulator != null) {
                     PixelButton("AUTHOR'S EMU", compact = true) {
@@ -122,6 +140,9 @@ fun EmulatorScreen(
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             PixelButton("◂ BACK", compact = true, onClick = onBack)
+            if (canSave) {
+                PixelButton(if (saving) "SAVING" else "SAVE", compact = true, enabled = !saving, onClick = ::keep)
+            }
             if (authorEmulator != null) {
                 PixelButton("AUTHOR'S EMU", compact = true) {
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(authorEmulator)))
@@ -129,6 +150,7 @@ fun EmulatorScreen(
             }
         }
         BasicText(entry.name.uppercase(), style = pixelText(16.sp, bold = true, color = theme.bright, glow = true))
+        saveError?.let { MonoText(it, size = 13) }
         when (prepared) {
             EmulatorPackage.Preparing -> MonoText("FETCHING THE PACKAGE YOU WOULD FLASH…", size = 13, dim = true)
             is EmulatorPackage.Failed -> {
@@ -200,8 +222,8 @@ private fun statusLine(status: Fm1Engine.Status): String = when (status) {
     Fm1Engine.Status.Booting -> "BOOTING…"
     is Fm1Engine.Status.Running -> {
         val load = (status.load * 100).toInt()
-        if (status.load > 0.95f) "RUNNING · LOAD $load% · THIS PHONE IS STRUGGLING, SOUND MAY BREAK UP"
-        else "RUNNING · 100 MHz · LOAD $load%"
+        if (status.load > 0.95f) "RUNNING \u00b7 LOAD $load% \u00b7 THIS PHONE IS STRUGGLING, SOUND MAY BREAK UP"
+        else "RUNNING \u00b7 100 MHz \u00b7 LOAD $load%"
     }
     is Fm1Engine.Status.Stopped -> status.message
 }

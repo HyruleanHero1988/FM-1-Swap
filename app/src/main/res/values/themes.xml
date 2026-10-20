@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.FMSwitch" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#0C0E0D</item>
+        <item name="android:navigationBarColor">#151917</item>
+        <item name="android:windowBackground">#0C0E0D</item>
+        <item name="android:colorPrimary">#7BE39A</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

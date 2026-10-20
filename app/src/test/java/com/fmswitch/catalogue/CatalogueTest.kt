@@ -99,6 +99,48 @@ class CatalogueBuilderTest {
     }
 
     @Test
+    fun aboutLinePrefersTheGitHubShortDescription() {
+        val sloop = CatalogueEntry(
+            id = "sloop",
+            name = "SLOOP",
+            about = "A live groovebox firmware for the M-VAVE FM-1",
+            what = "A live groovebox: tracks, layers, a step sequencer, song mode.",
+        )
+        assertEquals("A live groovebox firmware for the M-VAVE FM-1", CatalogueBlurb.line(sloop))
+        val baud = CatalogueEntry(
+            id = "baud",
+            name = "Baud Girl",
+            what = "Keeps M-VAVE's FM engine and effects, fixes its engine bugs, and adds a Virtual Analog engine.",
+        )
+        assertEquals(baud.what, CatalogueBlurb.line(baud))
+        val open = CatalogueEntry(id = "open", name = "Official Open", what = "word ".repeat(40).trim())
+        val line = CatalogueBlurb.line(open)!!
+        assertTrue(line.endsWith("…"))
+        assertTrue(line.length < open.what!!.length)
+    }
+
+    @Test
+    fun aboutOverlayFillsOnlyBlankLines() {
+        val entries = listOf(
+            CatalogueEntry(id = "sloop", name = "SLOOP"),
+            CatalogueEntry(id = "kept", name = "Kept", about = "Already there"),
+        )
+        val filled = AboutOverlay.apply(entries, """{"sloop":"A live groovebox firmware for the M-VAVE FM-1","kept":"nope"}""")
+        assertEquals("A live groovebox firmware for the M-VAVE FM-1", filled[0].about)
+        assertEquals("Already there", filled[1].about)
+    }
+
+    @Test
+    fun readsAGitHubAboutLine() {
+        assertEquals(
+            "A live groovebox firmware for the M-VAVE FM-1",
+            RepoAbout.description("""{"description":"A live groovebox firmware for the M-VAVE FM-1"}"""),
+        )
+        assertNull(RepoAbout.description("""{"description":"  "}"""))
+        assertNull(RepoAbout.description("""{"description":null}"""))
+    }
+
+    @Test
     fun listsSloopNearTheTopByStars() {
         val ordered = CatalogueRank.ordered(
             listOf(
@@ -111,6 +153,37 @@ class CatalogueBuilderTest {
             ),
         )
         assertEquals(listOf("mvave-official", "sloop", "felucca", "fm1-editor-baud-girl", "obscure", "fm1-editor-clipper"), ordered.map { it.id })
+    }
+
+    @Test
+    fun curationKeepsChosenFirmwaresOnTopInPersonalOrder() {
+        val popular = CatalogueRank.ordered(
+            listOf(
+                CatalogueEntry(id = "obscure", name = "BEETLE", stars = 2),
+                CatalogueEntry(id = "sloop", name = "SLOOP", stars = 567, installs = 2803),
+                officialCatalogueEntry(),
+                CatalogueEntry(id = "felucca", name = "Felucca", stars = 543, installs = 1124),
+                CatalogueEntry(id = "fm1-editor-baud-girl", name = "Baud Girl (FM-1+VA)", pinned = true),
+                CatalogueEntry(id = "fm1-editor-clipper", name = "Clipper", stars = 1, beta = true),
+            ),
+        )
+        val ordered = CatalogueOrder.apply(popular, FirmwareSort.CURATION, listOf("fm1-editor-clipper", "obscure"))
+        assertEquals(
+            listOf("fm1-editor-clipper", "obscure", "mvave-official", "sloop", "felucca", "fm1-editor-baud-girl"),
+            ordered.map { it.id },
+        )
+    }
+
+    @Test
+    fun nameAuthorAndNewestSortsIgnorePopularity() {
+        val entries = listOf(
+            CatalogueEntry(id = "sloop", name = "SLOOP", author = "Zed", date = "2020-01-01"),
+            CatalogueEntry(id = "baud", name = "Baud Girl", author = "Ada", date = "2026-10-20"),
+            CatalogueEntry(id = "anon", name = "Anon", date = "2024-05-01"),
+        )
+        assertEquals(listOf("anon", "baud", "sloop"), CatalogueOrder.apply(entries, FirmwareSort.NAME, emptyList()).map { it.id })
+        assertEquals(listOf("baud", "sloop", "anon"), CatalogueOrder.apply(entries, FirmwareSort.AUTHOR, emptyList()).map { it.id })
+        assertEquals(listOf("baud", "anon", "sloop"), CatalogueOrder.apply(entries, FirmwareSort.NEWEST, emptyList()).map { it.id })
     }
 
     @Test
@@ -250,6 +323,30 @@ class PackageDiscoveryTest {
         assertEquals("V14", head!!.version)
         assertEquals("FM-1_8000014", head.product)
         assertEquals(492084, head.size)
+    }
+
+    @Test
+    fun doesNotAttachOfficialOpenWorkbenchToStockV15() {
+        val workbench =
+            "https://github.com/m-vave/fm1_open/releases/download/V14/FM1-Open-V14-Workbench.html"
+        val v15Words = PackageDiscovery.identifyingWords(
+            "FM-1 V15",
+            listOf(
+                CatalogueLink("M-VAVE downloads", "https://www.m-vave.com/download"),
+                CatalogueLink("fm1_open", "https://github.com/m-vave/fm1_open"),
+            ),
+        )
+        val openWords = PackageDiscovery.identifyingWords(
+            "Official Open",
+            listOf(CatalogueLink("Source", "https://github.com/m-vave/fm1_open")),
+        )
+        assertFalse(PackageDiscovery.isRelevant(workbench, v15Words))
+        assertTrue(PackageDiscovery.isRelevant(workbench, openWords))
+        val found = DiscoveredPackage(url = workbench, version = "V14", product = "FM-1_8000014")
+        val applied = PackageDiscovery.apply(found, officialCatalogueEntry())
+        assertNull(applied.packageURL)
+        assertEquals("V15", applied.version)
+        assertEquals("FM-1_015", applied.product)
     }
 
     @Test

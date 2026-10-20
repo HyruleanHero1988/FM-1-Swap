@@ -70,6 +70,9 @@ jobs:
         run: ./gradlew :fm1kit:test :app:testDebugUnitTest --stacktrace --no-daemon
 
       - name: Assemble debug APK
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: 0.1.${{ github.run_number }}
         run: ./gradlew :app:assembleDebug --stacktrace --no-daemon
 
       - name: Upload debug APK
@@ -92,7 +95,8 @@ jobs:
           body: |
             Sideload this debug build on a phone. USB MIDI to an FM-1 does not work on the emulator.
 
-            Built from `${{ github.sha }}` on `main`.
+            Built from `${{ github.sha }}` on `main` (versionCode ${{ github.run_number }}).
+            After the first uninstall/reinstall onto the committed debug key, later APKs update in place.
           files: FM-SWITCH-debug.apk
           fail_on_unmatched_files: true
           make_latest: true

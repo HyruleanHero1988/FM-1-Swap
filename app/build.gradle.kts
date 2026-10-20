@@ -1,3 +1,5 @@
+import java.util.Base64
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -13,8 +15,18 @@ android {
         applicationId = "com.fmswitch"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = resolvedVersionCode()
+        versionName = resolvedVersionName()
+    }
+
+    signingConfigs {
+        getByName("debug") {
+            storeFile = materialiseDebugKeystore()
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+            storeType = "PKCS12"
+        }
     }
 
     buildTypes {
@@ -28,6 +40,7 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -42,6 +55,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -72,3 +86,35 @@ dependencies {
     testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.kotlinx.coroutines.test)
 }
+
+/**
+ * CI signs every debug APK with this committed key, and bumps versionCode from
+ * GITHUB_RUN_NUMBER, so tapping a new APK updates the one already on the phone
+ * instead of Android answering "App not installed".
+ */
+fun materialiseDebugKeystore(): java.io.File {
+    val encoded = file("debug.keystore.b64")
+    val decoded = file("debug.keystore")
+    val bytes = Base64.getMimeDecoder().decode(encoded.readText())
+    if (!decoded.exists() || !decoded.readBytes().contentEquals(bytes)) {
+        decoded.writeBytes(bytes)
+    }
+    return decoded
+}
+
+fun resolvedVersionCode(): Int {
+    listOf("VERSION_CODE", "GITHUB_RUN_NUMBER").forEach { key ->
+        System.getenv(key)?.toIntOrNull()?.takeIf { it > 0 }?.let { return it }
+    }
+    return try {
+        providers.exec {
+            commandLine("git", "rev-list", "--count", "HEAD")
+            isIgnoreExitValue = true
+        }.standardOutput.asText.get().trim().toIntOrNull()?.coerceAtLeast(1) ?: 1
+    } catch (_: Exception) {
+        1
+    }
+}
+
+fun resolvedVersionName(): String =
+    System.getenv("VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "0.1.0"

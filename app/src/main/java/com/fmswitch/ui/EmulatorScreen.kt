@@ -187,9 +187,10 @@ private fun ClockRow(mhz: Int, onClock: (Int) -> Unit, narrow: Boolean = false) 
         }
     }
     if (narrow) {
+        // One column: a row of 100 / 160 / 240 is wider than the margin and lands on the panel.
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             MonoText("CLOCK · MHZ", size = 11, dim = true)
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { buttons() }
+            buttons()
         }
     } else {
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {

@@ -329,7 +329,7 @@ private fun SortMenu(
                     style = pixelText(11.sp, bold = true, color = if (selected) theme.background else theme.bright),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(if (selected) theme.surface else theme.surface)
+                        .background(if (selected) theme.bright else theme.surface)
                         .border(1.dp, theme.dim)
                         .clickable { onSelect(option) }
                         .padding(horizontal = 10.dp, vertical = 8.dp),

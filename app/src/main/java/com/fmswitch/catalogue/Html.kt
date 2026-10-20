@@ -5,7 +5,7 @@ object Html {
     data class Element(val attributes: Map<String, String>, val inner: String)
 
     fun elements(tag: String, html: String): List<Element> {
-        val pattern = Regex("(?si)<$tag((?:\\s[^>]*)?)>(.*?)</$tag\\s*>")
+        val pattern = Regex("(?si)<$tag((?:[ \t\n\r][^>]*)?)>(.*?)</$tag[ \t\n\r]*>")
         return pattern.findAll(html).map { match ->
             Element(attributes(match.groupValues[1]), match.groupValues[2])
         }.toList()
@@ -13,7 +13,7 @@ object Html {
 
     fun attributes(text: String): Map<String, String> {
         val pattern = Regex(
-            """(?s)([A-Za-z_:][-A-Za-z0-9_:.]*)(?:\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s\"'>]+)))?""",
+            """(?s)([A-Za-z_:][-A-Za-z0-9_:.]*)(?:[ \t\n\r]*=[ \t\n\r]*(?:"([^"]*)"|'([^']*)'|([^ \t\n\r"'>]+)))?""",
         )
         val result = LinkedHashMap<String, String>()
         for (match in pattern.findAll(text)) {
@@ -28,7 +28,7 @@ object Html {
 
     fun text(html: String): String {
         val withoutTags = html.replace(Regex("<[^>]*>"), " ")
-        val collapsed = decodeEntities(withoutTags).split(Regex("\\s+")).filter { it.isNotEmpty() }.joinToString(" ")
+        val collapsed = decodeEntities(withoutTags).split(Regex("[ \t\n\r]+")).filter { it.isNotEmpty() }.joinToString(" ")
         return collapsed
             .replace(" ,", ",")
             .replace(" .", ".")

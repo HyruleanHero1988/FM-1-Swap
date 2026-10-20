@@ -58,7 +58,7 @@ data class EditorListing(val entries: List<Entry>) {
                 val href = anchorElement.attributes["href"] ?: continue
                 val url = runCatching { page.resolve(href).toString() }.getOrNull() ?: continue
                 if (!url.startsWith("http")) continue
-                val label = Html.text(anchorElement.inner).replace("\u2197", "").trim().ifEmpty {
+                val label = Html.text(anchorElement.inner).replace("↗", "").trim().ifEmpty {
                     URI(url).host ?: "Link"
                 }
                 val link = CatalogueLink(label, url)

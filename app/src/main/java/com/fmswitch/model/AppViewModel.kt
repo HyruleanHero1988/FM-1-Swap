@@ -161,7 +161,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         configureTransport()
-        viewModelScope.launch { catalogue.refresh(); catalogueTick++ }
     }
 
     fun bumpTheme() {
@@ -546,7 +545,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun refreshCatalogue() {
         viewModelScope.launch {
-            catalogue.refresh()
+            catalogue.refresh { catalogueTick++ }
             catalogueTick++
         }
     }

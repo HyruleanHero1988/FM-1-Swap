@@ -38,8 +38,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (!model.isWriting) model.scan(force = false)
+    }
+
     override fun onResume() {
         super.onResume()
-        if (!model.isWriting) model.scan()
+        if (!model.isWriting) model.scan(force = false)
     }
 }

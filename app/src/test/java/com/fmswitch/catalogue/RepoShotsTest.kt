@@ -69,6 +69,21 @@ class RepoShotsTest {
     }
 
     @Test
+    fun overlayFillsAMissingShotAndLeavesOneTheListingAlreadyHas() {
+        val text = """{"sloop":{"photoURL":"https://example.com/s.png","photoAlt":"grid"}}"""
+        val filled = PhotoOverlay.apply(
+            listOf(
+                CatalogueEntry(id = "sloop", name = "SLOOP"),
+                CatalogueEntry(id = "hyp1", name = "HYP-1", photoURL = "https://keep.example/a.png"),
+            ),
+            text,
+        )
+        assertEquals("https://example.com/s.png", filled[0].photoURL)
+        assertEquals("grid", filled[0].photoAlt)
+        assertEquals("https://keep.example/a.png", filled[1].photoURL)
+    }
+
+    @Test
     fun anOrdinaryPictureDoesNotReplaceAPhotoTheListingAlreadyHas() {
         val entry = CatalogueEntry(id = "hyp1", name = "HYP-1", photoURL = "https://rustypawz.github.io/x.png")
         val shot = RepoShots.Shot("https://raw.githubusercontent.com/a/b/main/x.png", null, fromSection = false)

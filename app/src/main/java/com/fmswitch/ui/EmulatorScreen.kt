@@ -48,6 +48,7 @@ import kotlinx.coroutines.withContext
 fun EmulatorScreen(
     entry: CatalogueEntry,
     prepared: EmulatorPackage,
+    phosphorPanel: Boolean,
     onRetry: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -92,14 +93,15 @@ fun EmulatorScreen(
                     PixelButton("RETRY", compact = true, onClick = onRetry)
                 }
             }
-            is EmulatorPackage.Ready -> RunningEmulator(prepared, landscape)
+            is EmulatorPackage.Ready -> RunningEmulator(prepared, landscape, phosphorPanel)
         }
     }
 }
 
 @Composable
-private fun ColumnScope.RunningEmulator(prepared: EmulatorPackage.Ready, landscape: Boolean) {
+private fun ColumnScope.RunningEmulator(prepared: EmulatorPackage.Ready, landscape: Boolean, phosphorPanel: Boolean) {
     val context = LocalContext.current
+    val theme = LocalPhosphor.current
     val engine by produceState<Fm1Engine?>(null, prepared.file, prepared.sha256) {
         val bytes = withContext(Dispatchers.IO) { runCatching { prepared.file.readBytes() }.getOrNull() }
         value = bytes?.let { Fm1Engine(it, Fm1Engine.saveFileFor(context.filesDir, prepared.sha256)) }
@@ -119,7 +121,12 @@ private fun ColumnScope.RunningEmulator(prepared: EmulatorPackage.Ready, landsca
     }
     MonoText(statusLine(status), size = 12, dim = status !is Fm1Engine.Status.Stopped)
     Box(Modifier.fillMaxWidth().then(if (landscape) Modifier.weight(1f) else Modifier), contentAlignment = Alignment.Center) {
-        Fm1PanelView(running, Modifier.fillMaxWidth())
+        Fm1PanelView(
+            running,
+            Modifier.fillMaxWidth(),
+            phosphor = if (phosphorPanel) theme.base else null,
+            glow = theme.glow,
+        )
     }
     if (!landscape) {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {

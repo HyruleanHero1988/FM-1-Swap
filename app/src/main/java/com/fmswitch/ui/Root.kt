@@ -96,6 +96,7 @@ fun RootScreen(model: AppViewModel) {
                     EmulatorScreen(
                         entry = entry,
                         prepared = model.emulatorPackage,
+                        phosphorPanel = model.settings.phosphorPanel,
                         onRetry = { model.openEmulator(entry) },
                         onBack = { model.closeEmulator() },
                     )

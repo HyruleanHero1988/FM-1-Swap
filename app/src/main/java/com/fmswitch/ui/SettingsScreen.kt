@@ -109,6 +109,11 @@ fun SettingsScreen(model: AppViewModel) {
                 model.settings.flicker = it
                 model.bumpTheme()
             }
+            PixelToggle("PHOSPHOR EMULATOR PANEL", model.settings.phosphorPanel) {
+                model.settings.phosphorPanel = it
+                model.bumpTheme()
+            }
+            NoteText("TRY draws the virtual FM-1 as glowing vector lines in this colour, like a scope's electron beam. Off shows the realistic panel. The firmware's own screen is never changed either way.")
         }
         PixelPanel(title = "CONNECTION") {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

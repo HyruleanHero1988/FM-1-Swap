@@ -252,7 +252,13 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
                 PixelButton("FLASH", prominent = true) { confirming = stored }
             }
         }
-        NoteText("TRY plays this package on the virtual FM-1 and does not keep it. SAVE puts the same file under SAVED so you can flash it later. Neither one writes to a connected FM-1.")
+        NoteText(
+            if (model.settings.autoSaveTried) {
+                "TRY plays this package on the virtual FM-1 and saves it under SAVED, ready to flash later (SETUP ▸ SAVE WHAT YOU TRY). Neither TRY nor SAVE writes to a connected FM-1."
+            } else {
+                "TRY plays this package on the virtual FM-1 and does not keep it. SAVE puts the same file under SAVED so you can flash it later. Neither one writes to a connected FM-1."
+            },
+        )
         if (keptAt >= 0) {
             MonoText("In your list, place ${keptAt + 1} of ${curation.size}.", size = 14)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

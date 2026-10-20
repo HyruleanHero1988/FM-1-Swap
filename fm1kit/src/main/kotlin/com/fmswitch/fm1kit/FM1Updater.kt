@@ -8,37 +8,60 @@ class FM1Updater(
     val transport: MidiTransport,
     val timing: UpdaterTiming = UpdaterTiming.Standard,
 ) {
+    /** Why the last [find] or [findAll] came back empty while ports were listed, for the DEVICE screen. */
+    @Volatile
+    var lastProbeProblem: String? = null
+        private set
+
     suspend fun find(filter: (FM1Identity) -> Boolean = { true }): FoundDevice? {
+        val problems = ArrayList<String>()
         for (port in portsToProbe(transport.ports())) {
             val connection = try {
                 transport.open(port)
-            } catch (_: Exception) {
+            } catch (error: Exception) {
+                problems += "${port.name}: couldn't open it (${error.message ?: error})."
                 continue
             }
             val identity = handshake(connection)
-            if (identity != null && filter(identity)) return FoundDevice(connection, identity)
+            if (identity != null && filter(identity)) {
+                lastProbeProblem = null
+                return FoundDevice(connection, identity)
+            }
+            problems += probeMiss(port, identity)
             connection.close()
         }
+        lastProbeProblem = problems.joinToString(" ").ifEmpty { null }
         return null
     }
 
     suspend fun findAll(filter: (FM1Identity) -> Boolean = { true }): List<FoundDevice> {
         val found = ArrayList<FoundDevice>()
+        val problems = ArrayList<String>()
         for (port in portsToProbe(transport.ports())) {
             val connection = try {
                 transport.open(port)
-            } catch (_: Exception) {
+            } catch (error: Exception) {
+                problems += "${port.name}: couldn't open it (${error.message ?: error})."
                 continue
             }
             val identity = handshake(connection)
             if (identity != null && filter(identity)) {
                 found.add(FoundDevice(connection, identity))
             } else {
+                problems += probeMiss(port, identity)
                 connection.close()
             }
         }
+        lastProbeProblem = if (found.isEmpty()) problems.joinToString(" ").ifEmpty { null } else null
         return found
     }
+
+    private fun probeMiss(port: MidiPortDescriptor, identity: FM1Identity?): String =
+        if (identity == null) {
+            "${port.name}: opened, but nothing answered the FM-1 handshake."
+        } else {
+            "${port.name}: answered as ${identity.text}, which isn't what this step needs."
+        }
 
     private suspend fun findOnly(filter: (FM1Identity) -> Boolean): FoundDevice? {
         val found = findAll(filter)

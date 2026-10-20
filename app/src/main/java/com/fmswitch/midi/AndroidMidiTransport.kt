@@ -61,14 +61,17 @@ class AndroidMidiTransport(context: Context) : MidiTransport {
                 if (opened != null) cont.resume(opened) else cont.resumeWithException(MidiTransportError.PortGone)
             }, handler)
         }
-        val inputIndex = portIndex(info, MidiDeviceInfo.PortInfo.TYPE_INPUT)
-        val outputIndex = portIndex(info, MidiDeviceInfo.PortInfo.TYPE_OUTPUT)
+        val ports = info.ports.map { it.type to it.portNumber }
         try {
-            val input = device.openInputPort(inputIndex)
-                ?: throw MidiTransportError.Unavailable("no input port")
+            val inputNumber = MidiPortNumbers.first(ports, MidiDeviceInfo.PortInfo.TYPE_INPUT)
+                ?: throw MidiTransportError.Unavailable("${port.name} has no port to send to")
+            val outputNumber = MidiPortNumbers.first(ports, MidiDeviceInfo.PortInfo.TYPE_OUTPUT)
+                ?: throw MidiTransportError.Unavailable("${port.name} has no port to listen on")
+            val input = device.openInputPort(inputNumber)
+                ?: throw MidiTransportError.Unavailable("${port.name} refused its input port $inputNumber")
             try {
-                val output = device.openOutputPort(outputIndex)
-                    ?: throw MidiTransportError.Unavailable("no output port")
+                val output = device.openOutputPort(outputNumber)
+                    ?: throw MidiTransportError.Unavailable("${port.name} refused its output port $outputNumber")
                 try {
                     // The AC791N drops USB if SysEx goes out before the gadget finishes enumerating.
                     delay(250)
@@ -100,10 +103,15 @@ class AndroidMidiTransport(context: Context) : MidiTransport {
         synchronized(observers) { observers.toList() }.forEach { it() }
     }
 
-    private fun portIndex(info: MidiDeviceInfo, type: Int): Int {
-        val match = info.ports.indexOfFirst { it.type == type }
-        return if (match >= 0) match else 0
-    }
+}
+
+/**
+ * MidiDevice.openInputPort/openOutputPort take a port's own number, not its position in
+ * MidiDeviceInfo.getPorts(), which lists every input before every output.
+ */
+internal object MidiPortNumbers {
+    fun first(ports: List<Pair<Int, Int>>, type: Int): Int? =
+        ports.filter { it.first == type }.minOfOrNull { it.second }
 }
 
 private class AndroidMidiConnection(

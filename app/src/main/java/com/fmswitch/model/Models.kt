@@ -9,7 +9,9 @@ import com.fmswitch.catalogue.EditorListing
 import com.fmswitch.catalogue.HubFeed
 import com.fmswitch.catalogue.MergedCatalogue
 import com.fmswitch.catalogue.PackageDiscovery
+import com.fmswitch.catalogue.PhotoOverlay
 import com.fmswitch.catalogue.RedtailListing
+import com.fmswitch.catalogue.RepoShots
 import com.fmswitch.catalogue.fetchBytes
 import com.fmswitch.catalogue.officialCatalogueEntry
 import com.fmswitch.fm1kit.FwscFailure
@@ -282,11 +284,17 @@ class CatalogueStore(private val context: Context) {
         loadCached()
     }
 
+    private val photoOverlayText: String by lazy {
+        runCatching {
+            context.assets.open(PhotoOverlay.ASSET_PATH).bufferedReader(Charsets.UTF_8).use { it.readText() }
+        }.getOrDefault("")
+    }
+
     val entries: List<CatalogueEntry>
         get() {
             val listed = catalogue?.entries.orEmpty()
             val withOfficial = if (listed.any { it.isOfficial }) listed else listOf(officialCatalogueEntry()) + listed
-            return CatalogueRank.ordered(withOfficial)
+            return CatalogueRank.ordered(PhotoOverlay.apply(withOfficial, photoOverlayText))
         }
 
     fun entry(id: String): CatalogueEntry? = entries.firstOrNull { it.id == id }
@@ -331,9 +339,10 @@ class CatalogueStore(private val context: Context) {
             if (problems.isNotEmpty()) errorMessage = problems.joinToString(" ")
             onUpdate()
             val resolved = PackageDiscovery.discoverMissing(merged, previous)
+            val photographed = RepoShots.fill(resolved, previous)
             val built = MergedCatalogue(
                 hubUpdated = hub?.first,
-                entries = resolved,
+                entries = photographed,
                 problems = problems,
                 snapshotVersion = MergedCatalogue.BUNDLED_VERSION,
                 bundled = false,

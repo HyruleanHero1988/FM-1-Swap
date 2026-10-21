@@ -20,11 +20,14 @@ class Fm1Engine(
     private val saveFile: File?,
     val mhz: Int = EmulatorClock.DEFAULT,
     private val playInBackground: Boolean = false,
+    /** A flash probe boots silently. It still renders, so a start is heard by the engine and not the room. */
+    private val audible: Boolean = true,
 ) : Fm1PanelSource, AutoCloseable {
 
     sealed class Status {
         data object Booting : Status()
-        data class Running(val load: Float) : Status()
+        /** [live] is set once the firmware has made sound or drawn past its boot frame. */
+        data class Running(val load: Float, val live: Boolean = false) : Status()
         data class Stopped(val message: String) : Status()
     }
 
@@ -86,6 +89,7 @@ class Fm1Engine(
             return
         }
         val track = openTrack()
+        if (!audible) track.setVolume(0f)
         try {
             Fm1Native.pot(handle, Fm1Panel.POT_START)
             track.play()
@@ -133,6 +137,7 @@ class Fm1Engine(
             }
             if (!started) {
                 started = made > 0 || lastRevision.let { it != -1 && it != bootRevision }
+                if (started) status = Status.Running(0f, live = true)
                 if (!started && Fm1Native.ms(handle) >= NEVER_STARTED_MS) {
                     status = Status.Stopped(NEVER_STARTED)
                     return
@@ -153,7 +158,7 @@ class Fm1Engine(
             }
             if (now - windowStart >= 1_000_000_000L) {
                 val audioNanos = windowFrames * 1_000_000_000L / SAMPLE_RATE
-                status = Status.Running(busyNanos.toFloat() / audioNanos.coerceAtLeast(1))
+                status = Status.Running(busyNanos.toFloat() / audioNanos.coerceAtLeast(1), live = started)
                 busyNanos = 0
                 windowFrames = 0
                 windowStart = now

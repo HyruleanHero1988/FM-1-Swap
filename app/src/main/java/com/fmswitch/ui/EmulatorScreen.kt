@@ -82,6 +82,7 @@ fun EmulatorScreen(
     onSave: suspend () -> Result<StoredFirmware>,
     onRetry: () -> Unit,
     onBack: () -> Unit,
+    onTry: (sha: String, started: Boolean) -> Unit,
 ) {
     val theme = LocalPhosphor.current
     val context = LocalContext.current
@@ -123,6 +124,7 @@ fun EmulatorScreen(
                 chooseClock = slot.chooseClock,
                 runInBackground = slot.runInBackground,
                 onStatus = slot.onStatus,
+                onTry = slot.onTry,
             )
         }
     }
@@ -135,6 +137,7 @@ fun EmulatorScreen(
             chooseClock = chooseClock,
             runInBackground = runInBackground,
             onStatus = reportStatus,
+            onTry = onTry,
         )
     }
 
@@ -252,6 +255,7 @@ private data class RunningSlot(
     val chooseClock: Boolean,
     val runInBackground: Boolean,
     val onStatus: (String) -> Unit,
+    val onTry: (String, Boolean) -> Unit,
 )
 
 @Composable
@@ -292,6 +296,7 @@ private fun RunningEmulator(
     chooseClock: Boolean,
     runInBackground: Boolean,
     onStatus: (String) -> Unit = {},
+    onTry: (String, Boolean) -> Unit = { _, _ -> },
 ) {
     val context = LocalContext.current
     val theme = LocalPhosphor.current
@@ -344,10 +349,21 @@ private fun RunningEmulator(
     }
     var status by remember(running) { mutableStateOf(running.status) }
     val currentOnStatus by rememberUpdatedState(onStatus)
+    val currentOnTry by rememberUpdatedState(onTry)
     LaunchedEffect(running) {
+        var reported: Boolean? = null
         while (true) {
             status = running.status
             currentOnStatus(statusLine(status))
+            val started = when (val now = status) {
+                is Fm1Engine.Status.Running -> if (now.live) true else null
+                is Fm1Engine.Status.Stopped -> false
+                Fm1Engine.Status.Booting -> null
+            }
+            if (started != null && started != reported) {
+                reported = started
+                currentOnTry(prepared.sha256, started)
+            }
             delay(300)
         }
     }

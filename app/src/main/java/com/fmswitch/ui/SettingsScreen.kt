@@ -59,7 +59,7 @@ fun SettingsScreen(model: AppViewModel) {
             MonoText(SafetyNotice.ROM_RECOVERY, size = 14)
             SafetyNotice.ROM_LINKS.forEach { link ->
                 BasicText(
-                    "▸ ${link.label.uppercase()}",
+                    "\u25b8 ${link.label.uppercase()}",
                     style = pixelText(11.sp, bold = true, color = theme.bright),
                     modifier = Modifier
                         .padding(top = 8.dp)
@@ -144,18 +144,22 @@ fun SettingsScreen(model: AppViewModel) {
                 PixelToggle("START IN USB RECOVERY MODE", model.settings.simulatedRecoveryMode) {
                     model.settings.simulatedRecoveryMode = it
                     model.configureTransport()
+                    model.bumpTheme()
                 }
                 PixelToggle("PULL THE CABLE AT 45%", model.settings.simulatedCablePull) {
                     model.settings.simulatedCablePull = it
                     model.configureTransport()
+                    model.bumpTheme()
                 }
                 PixelToggle("READ BACKWARDS, LIKE V15", model.settings.simulatedReadsBackwards) {
                     model.settings.simulatedReadsBackwards = it
                     model.configureTransport()
+                    model.bumpTheme()
                 }
                 PixelToggle("VERIFY AFTER WRITING, LIKE FELUCCA", model.settings.simulatedVerifies) {
                     model.settings.simulatedVerifies = it
                     model.configureTransport()
+                    model.bumpTheme()
                 }
                 PixelButton("RESET SIMULATED FM-1", enabled = !model.isWriting) { model.configureTransport() }
             }
@@ -163,6 +167,7 @@ fun SettingsScreen(model: AppViewModel) {
         PixelPanel(title = "FLASHING") {
             PixelToggle("ALWAYS VIA OFFICIAL FIRMWARE", model.settings.alwaysViaOfficial) {
                 model.settings.alwaysViaOfficial = it
+                model.bumpTheme()
             }
             PixelToggle("SHOW BETA RELEASES", model.settings.showBeta) {
                 model.settings.showBeta = it
@@ -189,7 +194,7 @@ fun SettingsScreen(model: AppViewModel) {
                 size = 14,
             )
             BasicText(
-                "▸ FM-SWITCH (iOS)",
+                "\u25b8 FM-SWITCH (iOS)",
                 style = pixelText(11.sp, bold = true, color = theme.bright),
                 modifier = Modifier
                     .padding(top = 8.dp)
@@ -198,7 +203,7 @@ fun SettingsScreen(model: AppViewModel) {
                     },
             )
             BasicText(
-                "▸ FM1KIT",
+                "\u25b8 FM1KIT",
                 style = pixelText(11.sp, bold = true, color = theme.bright),
                 modifier = Modifier
                     .padding(top = 8.dp)
@@ -207,7 +212,7 @@ fun SettingsScreen(model: AppViewModel) {
                     },
             )
             BasicText(
-                "▸ FM1-EMU (TRY)",
+                "\u25b8 FM1-EMU (TRY)",
                 style = pixelText(11.sp, bold = true, color = theme.bright),
                 modifier = Modifier
                     .padding(top = 8.dp)

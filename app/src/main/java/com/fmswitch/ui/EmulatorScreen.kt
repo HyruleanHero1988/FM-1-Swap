@@ -19,10 +19,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.displayCutout
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.union
@@ -139,16 +139,18 @@ fun EmulatorScreen(
     }
 
     if (landscape) {
-        // The panel is centered at the FM-1's shape. Every other control is clipped
-        // to the leftover strip, so it cannot land on the knobs or the screen.
+        // The panel keeps the FM-1's shape and sits against the far edge. Every other
+        // control is clipped to the leftover strip, so it cannot land on the knobs or the screen.
         BoxWithConstraints(Modifier.fillMaxSize().background(theme.background)) {
-            val fit = EmulatorFrame.fit(maxWidth.value, maxHeight.value)
-            val beside = fit.side >= fit.bar
+            // 88dp holds BACK and AUTHOR'S in the pixel font, plus the button's own padding.
+            val fit = EmulatorFrame.fit(maxWidth.value, maxHeight.value, minChrome = 88f)
+            val panel = EmulatorFrame.panelRect(maxWidth.value, maxHeight.value, fit)
+            val chrome = EmulatorFrame.chromeRect(maxWidth.value, maxHeight.value, fit)
             Box(
                 Modifier
-                    .align(Alignment.Center)
-                    .width(fit.panelWidth.dp)
-                    .height(fit.panelHeight.dp),
+                    .offset(panel.x.dp, panel.y.dp)
+                    .width(panel.width.dp)
+                    .height(panel.height.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 when (prepared) {
@@ -170,24 +172,23 @@ fun EmulatorScreen(
             }
             Column(
                 Modifier
-                    .then(
-                        if (beside) {
-                            Modifier.align(Alignment.CenterStart).width(fit.side.dp).fillMaxHeight()
-                        } else {
-                            Modifier.align(Alignment.TopCenter).fillMaxWidth().height(fit.bar.dp)
-                        },
-                    )
+                    .offset(chrome.x.dp, chrome.y.dp)
+                    .width(chrome.width.dp)
+                    .height(chrome.height.dp)
                     .clipToBounds()
                     .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.displayCutout))
                     .verticalScroll(rememberScrollState())
-                    .padding(6.dp),
+                    .padding(4.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                PixelButton("◂ BACK", compact = true, modifier = Modifier.fillMaxWidth(), onClick = onBack)
+                // ‹ is in the pixel font. The other arrow is not, and a fallback glyph
+                // was wide enough to push BACK out of this strip.
+                PixelButton("‹ BACK", compact = true, wrap = true, modifier = Modifier.fillMaxWidth(), onClick = onBack)
                 if (canSave) {
                     PixelButton(
                         if (saving) "SAVING" else "SAVE",
                         compact = true,
+                        wrap = true,
                         enabled = !saving,
                         modifier = Modifier.fillMaxWidth(),
                         onClick = ::keep,
@@ -196,7 +197,7 @@ fun EmulatorScreen(
                 saveError?.let { MonoText(it, size = 11) }
                 BasicText(entry.name.uppercase(), style = pixelText(13.sp, bold = true, color = theme.bright, glow = true))
                 if (authorEmulator != null) {
-                    PixelButton("AUTHOR'S EMU", compact = true, modifier = Modifier.fillMaxWidth()) {
+                    PixelButton("AUTHOR'S EMU", compact = true, wrap = true, modifier = Modifier.fillMaxWidth()) {
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(authorEmulator)))
                     }
                 }
@@ -267,6 +268,7 @@ private fun ClockRow(mhz: Int, onClock: (Int) -> Unit, narrow: Boolean = false) 
                 PixelButton(
                     "$choice",
                     compact = true,
+                    wrap = true,
                     prominent = choice == mhz,
                     modifier = Modifier.fillMaxWidth(),
                 ) { if (choice != mhz) onClock(choice) }
@@ -341,17 +343,17 @@ private fun RunningEmulator(
         return
     }
     var status by remember(running) { mutableStateOf(running.status) }
-    val currentChooseClock by rememberUpdatedState(chooseClock)
     val currentOnStatus by rememberUpdatedState(onStatus)
     LaunchedEffect(running) {
         while (true) {
             status = running.status
-            currentOnStatus(statusLine(status, running.mhz, currentChooseClock))
+            currentOnStatus(statusLine(status))
             delay(300)
         }
     }
-    if (!expand) {
-        MonoText(statusLine(status, running.mhz, chooseClock), size = 12, dim = status !is Fm1Engine.Status.Stopped)
+    val line = statusLine(status)
+    if (!expand && line.isNotEmpty()) {
+        MonoText(line, size = 12, dim = status !is Fm1Engine.Status.Stopped)
     }
     Box(
         Modifier.then(if (expand) Modifier.fillMaxSize() else Modifier.fillMaxWidth()),
@@ -387,14 +389,9 @@ private fun RunningEmulator(
     }
 }
 
-private fun statusLine(status: Fm1Engine.Status, mhz: Int, showClock: Boolean): String = when (status) {
+/** Booting and a stopped engine still say why. A running engine does not print its load. */
+private fun statusLine(status: Fm1Engine.Status): String = when (status) {
     Fm1Engine.Status.Booting -> "BOOTING…"
-    is Fm1Engine.Status.Running -> {
-        val load = (status.load * 100).toInt()
-        val clock = if (showClock) " · $mhz MHz" else ""
-        val hint = if (status.load > 0.95f && showClock) ", LOWER THE CLOCK" else ""
-        val overloaded = if (status.load > 0.95f) " · TOO MUCH FOR THIS PHONE$hint" else ""
-        "RUNNING$clock · LOAD $load%$overloaded"
-    }
+    is Fm1Engine.Status.Running -> ""
     is Fm1Engine.Status.Stopped -> status.message
 }

@@ -130,6 +130,7 @@ fun RootScreen(model: AppViewModel) {
                         onSave = { model.save(entry) },
                         onRetry = { model.openEmulator(entry) },
                         onBack = { model.closeEmulator() },
+                        onTry = { sha, started -> model.noteTry(sha, started) },
                     )
                 }
             }

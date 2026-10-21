@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
@@ -22,6 +24,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,16 +33,22 @@ import androidx.compose.ui.window.Dialog
 import com.fmswitch.fm1kit.supportsBaudGirlBackup
 import com.fmswitch.model.AppViewModel
 import com.fmswitch.model.BackupRestore
+import com.fmswitch.model.FlashProbe
 import com.fmswitch.model.StoredFirmware
+import com.fmswitch.model.flashCanProceed
+import com.fmswitch.model.riskWarning
 import com.fmswitch.theme.LocalPhosphor
 import com.fmswitch.theme.MonoText
 import com.fmswitch.theme.NoteText
+import com.fmswitch.theme.PixelBox
 import com.fmswitch.theme.PixelButton
 import com.fmswitch.theme.PixelPanel
 import com.fmswitch.theme.PixelProgressBar
 import com.fmswitch.theme.PixelTag
+import com.fmswitch.theme.PixelToggle
 import com.fmswitch.theme.ScreenHeader
 import com.fmswitch.theme.formattedBytes
+import com.fmswitch.theme.monoText
 import com.fmswitch.theme.pixelText
 
 @Composable
@@ -172,6 +182,15 @@ fun FlashConfirmSheet(
     var backedUp by remember { mutableStateOf(false) }
     val missingOfficial = (requiresOfficial || model.settings.alwaysViaOfficial) &&
         target.source != "official" && model.library.official == null
+    val stepKey = steps.joinToString("|") { it.sha256.lowercase() }
+    androidx.compose.runtime.DisposableEffect(stepKey) {
+        model.beginFlashProbe(steps)
+        onDispose { model.cancelFlashProbe() }
+    }
+    val probe = model.flashProbe
+    val failed = (probe as? FlashProbe.Settled)?.failed.orEmpty()
+    var understood by remember(failed) { mutableStateOf(false) }
+    val checking = probe is FlashProbe.Idle || probe is FlashProbe.Checking
     androidx.compose.runtime.LaunchedEffect(steps.firstOrNull()?.id, model.identity?.text) {
         val first = steps.firstOrNull() ?: return@LaunchedEffect
         if (model.identity?.isLoader == true) {
@@ -184,10 +203,14 @@ fun FlashConfirmSheet(
     }
     val switching = checkedKind == com.fmswitch.fm1kit.InstallKind.SWITCHING_FIRMWARE
     val sameIdentity = checkedKind == com.fmswitch.fm1kit.InstallKind.SAME_IDENTITY
+    val sheetCap = (LocalConfiguration.current.screenHeightDp - 48).dp
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Column(
             Modifier
+                .fillMaxWidth()
+                .heightIn(max = sheetCap)
                 .background(theme.background)
+                .verticalScroll(rememberScrollState())
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -216,17 +239,44 @@ fun FlashConfirmSheet(
                 com.fmswitch.theme.PixelToggle("I'VE BACKED UP", backedUp) { backedUp = it }
             }
             NoteText("Takes a minute or two per step. Stay in the app until it finishes.")
+            when (probe) {
+                FlashProbe.Idle, is FlashProbe.Checking -> {
+                    MonoText(
+                        if (probe is FlashProbe.Checking) "Checking ${probe.name} in the emulator…"
+                        else "Checking this firmware in the emulator…",
+                        size = 15,
+                    )
+                    PixelProgressBar(null)
+                    NoteText("A package TRY has never settled is booted silently before it can be written. Cancel if you don't want to wait.")
+                }
+                is FlashProbe.Settled -> {
+                    probe.note?.let { MonoText(it, size = 14) }
+                    if (probe.failed.isNotEmpty()) {
+                        RiskNotice(probe.failed, understood) { understood = it }
+                    }
+                }
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 PixelButton("CANCEL", modifier = Modifier.weight(1f), onClick = onDismiss)
                 PixelButton(
                     when {
+                        checking -> "CHECKING"
+                        failed.isNotEmpty() -> "CONTINUE"
                         switching -> "SWITCH"
                         sameIdentity -> "INSTALL"
                         else -> "START"
                     },
                     modifier = Modifier.weight(1f),
                     prominent = true,
-                    enabled = !missingOfficial && (!switching || backedUp || autoBackup),
+                    enabled = flashCanProceed(
+                        checking = checking,
+                        risky = failed.isNotEmpty(),
+                        understood = understood,
+                        missingOfficial = missingOfficial,
+                        switching = switching,
+                        backedUp = backedUp,
+                        autoBackup = autoBackup,
+                    ),
                 ) {
                     model.flash(
                         steps,
@@ -239,6 +289,30 @@ fun FlashConfirmSheet(
         }
     }
 }
+
+@Composable
+private fun RiskNotice(names: List<String>, understood: Boolean, onUnderstood: (Boolean) -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(RiskWash, PixelBox())
+            .border(3.dp, RiskRed, PixelBox())
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        BasicText("RISK", style = pixelText(34.sp, bold = true, color = RiskRed))
+        BasicText(riskWarning(names), style = monoText(17.sp, RiskRed))
+        BasicText(
+            "A later TRY that gets this firmware running clears this warning.",
+            style = monoText(14.sp, RiskSoft),
+        )
+        PixelToggle("I UNDERSTAND", understood, onUnderstood)
+    }
+}
+
+private val RiskRed = Color(0xFFFF3B30)
+private val RiskSoft = Color(0xFFFF8A80)
+private val RiskWash = Color(0xFF3A0C0C)
 
 @Composable
 fun BackupRestoreSheet(model: AppViewModel, onDismiss: () -> Unit) {

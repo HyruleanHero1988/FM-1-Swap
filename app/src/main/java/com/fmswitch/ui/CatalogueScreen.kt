@@ -66,7 +66,7 @@ fun CatalogueScreen(model: AppViewModel) {
     val curation = model.settings.curation
     val curatedIds = curation.toSet()
     val matching = model.catalogue.entries.filter { entry ->
-        (model.settings.showBeta || !entry.beta) &&
+        (model.settings.showBeta || !entry.beta || entry.id in curatedIds) &&
             (model.settings.showLinksOnly || entry.isDownloadable || model.library.items.any { it.catalogueID == entry.id }) &&
             (!model.settings.curatedOnly || entry.id in curatedIds) &&
             CatalogueSearch.matches(entry, search)

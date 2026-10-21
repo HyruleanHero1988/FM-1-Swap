@@ -88,6 +88,14 @@ class AppSettings(private val prefs: SharedPreferences) {
         get() = FirmwareSort.entries.firstOrNull { it.id == prefs.getString("firmwareSort", FirmwareSort.CURATION.id) }
             ?: FirmwareSort.CURATION
         set(value) { prefs.edit().putString("firmwareSort", value.id).apply() }
+
+    init {
+        if (CurationSeed.shouldApply(prefs.getInt("curationSeed", 0))) {
+            curation = CurationSeed.IDS
+            firmwareSort = FirmwareSort.CURATION
+            prefs.edit().putInt("curationSeed", CurationSeed.VERSION).apply()
+        }
+    }
     var alwaysViaOfficial: Boolean
         get() = prefs.getBoolean("alwaysViaOfficial", false)
         set(value) { prefs.edit().putBoolean("alwaysViaOfficial", value).apply() }

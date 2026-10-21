@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.fmswitch.emu.Afterglow
 import com.fmswitch.emu.Fm1Panel
 import com.fmswitch.emu.Fm1PanelSource
+import com.fmswitch.theme.LocalPhosphor
 import com.fmswitch.theme.PixelFont
 import com.fmswitch.theme.mix
 import kotlin.math.PI
@@ -105,6 +106,7 @@ fun Fm1PanelView(
     val heat = remember { FloatArray(MATRIX_IDS) }
     val sweep = remember { FloatArray(Fm1Panel.encoders.size + 1) }
     val beam = remember(phosphor, glow) { phosphor?.let { Beam(it, glow) } }
+    val page = LocalPhosphor.current.background
 
     fun knobAngle(i: Int): Float =
         if (i == Fm1Panel.encoders.size) potAngle(pot.toInt()) else (clicks[i] ?: 0) * CLICK_DEGREES * DEG
@@ -234,7 +236,7 @@ fun Fm1PanelView(
             )
             if (beam != null) {
                 withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {
-                    drawPhosphorPanel(beam, measurer, density.fontScale * density.density, heat, sweep, ::knobAngle)
+                    drawPhosphorPanel(beam, page, measurer, density.fontScale * density.density, heat, sweep, ::knobAngle)
                     drawLcd()
                 }
                 return@Canvas
@@ -331,8 +333,6 @@ private fun DrawScope.knob(cx: Float, cy: Float, r: Float, angle: Float) {
     )
 }
 
-private val PhosphorBlack = Color(0xFF020403)
-
 /** Halo passes under each beam line: width in panel units to opacity. */
 private val Halo = listOf(16f to 0.045f, 9f to 0.09f, 4.5f to 0.2f)
 private const val CORE = 1.8f
@@ -371,6 +371,7 @@ private fun DrawScope.phosphorFill(b: Beam, heat: Float, x: Float, y: Float, w: 
 
 private fun DrawScope.drawPhosphorPanel(
     b: Beam,
+    field: Color,
     measurer: TextMeasurer,
     textScale: Float,
     heat: FloatArray,
@@ -424,7 +425,7 @@ private fun DrawScope.drawPhosphorPanel(
         label(k.label, k.cx, k.cy - k.r - 24f, 18f, 0.8f)
     }
 
-    drawRect(PhosphorBlack, size = Size(Fm1Panel.W, Fm1Panel.H))
+    drawRect(field, size = Size(Fm1Panel.W, Fm1Panel.H))
     beamRect(b, 0.55f, 14f, 14f, Fm1Panel.W - 28, Fm1Panel.H - 28, 30f)
     beamRect(b, 0.7f, 352f, 24f, 516f, 516f, 22f)
     beamRect(b, 0.35f, 50f, 388f, 260f, 64f, 14f)

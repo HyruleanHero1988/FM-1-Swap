@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -114,13 +115,14 @@ fun PixelButton(
     prominent: Boolean = false,
     compact: Boolean = false,
     enabled: Boolean = true,
+    wrap: Boolean = false,
     onClick: () -> Unit,
 ) {
     val theme = LocalPhosphor.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val edge = if (enabled) theme.bright else theme.faint
-    val depth = if (compact) 2.dp else 3.dp
+    val depth = if (compact || wrap) 2.dp else 3.dp
     Box(
         modifier
             .padding(bottom = depth, end = depth)
@@ -137,17 +139,20 @@ fun PixelButton(
         BasicText(
             text = label.uppercase(),
             style = pixelText(
-                if (compact) 10.sp else 13.sp,
+                if (compact || wrap) 10.sp else 13.sp,
                 bold = true,
                 color = if (prominent) theme.background else edge,
-            ),
-            maxLines = 1,
+            ).copy(textAlign = if (wrap) TextAlign.Center else TextAlign.Unspecified),
+            maxLines = if (wrap) 3 else 1,
             modifier = Modifier
                 .offset(if (pressed) depth else 0.dp, if (pressed) depth else 0.dp)
-                .then(if (!compact) Modifier.fillMaxWidth() else Modifier)
+                .then(if (!compact || wrap) Modifier.fillMaxWidth() else Modifier)
                 .background(if (prominent) edge else theme.surface, PixelBox(2.dp))
                 .border(2.dp, edge, PixelBox(2.dp))
-                .padding(horizontal = if (compact) 8.dp else 14.dp, vertical = if (compact) 6.dp else 11.dp),
+                .padding(
+                    horizontal = if (wrap) 3.dp else if (compact) 8.dp else 14.dp,
+                    vertical = if (compact || wrap) 6.dp else 11.dp,
+                ),
         )
     }
 }

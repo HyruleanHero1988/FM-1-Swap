@@ -66,7 +66,7 @@ data class EditorArchive(
         }
 
         private val OBJECT = Regex(
-            """\\{"id":(\\d+),"(?:size|len)":(\\d+),"crc":(\\d+),"data":"([A-Za-z0-9+/=]*)"\\}""",
+            """\{"id":(\d+),"(?:size|len)":(\d+),"crc":(\d+),"data":"([A-Za-z0-9+/=]*)"\}""",
         )
     }
 }
@@ -493,7 +493,7 @@ class EditorLibrarian(
         }
 
         internal fun firmwareAtLeast(version: String, major: Int, minor: Int, patch: Int): Boolean {
-            val match = Regex("""(\\d+)\\.(\\d+)(?:\\.(\\d+))?""").find(version) ?: return false
+            val match = Regex("""(\d+)\.(\d+)(?:\.(\d+))?""").find(version) ?: return false
             val got = intArrayOf(match.groupValues[1].toInt(), match.groupValues[2].toInt(), match.groupValues[3].toIntOrNull() ?: 0)
             val want = intArrayOf(major, minor, patch)
             for (index in 0..2) if (got[index] != want[index]) return got[index] > want[index]
@@ -613,6 +613,6 @@ private fun jsonString(value: String): String = buildString {
 }
 
 private fun jsonField(text: String, name: String): String? {
-    val match = Regex(""""$name"\\s*:\\s*"((?:\\\\.|[^"\\\\])*)"""").find(text) ?: return null
+    val match = Regex(""""$name"\s*:\s*"((?:\\.|[^"\\])*)"""").find(text) ?: return null
     return match.groupValues[1].replace("\\\"", "\"").replace("\\\\", "\\")
 }

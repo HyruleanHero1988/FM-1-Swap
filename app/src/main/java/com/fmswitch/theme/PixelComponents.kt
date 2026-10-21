@@ -283,9 +283,16 @@ fun PixelToggle(title: String, isOn: Boolean, onToggle: (Boolean) -> Unit) {
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        MonoText(title, size = 14)
-        Spacer(Modifier.weight(1f))
-        BasicText(if (isOn) "[■]" else "[ ]", style = monoText(17.sp, theme.bright))
+        // The mark is measured first, at its own width, and is not allowed to wrap.
+        // The title takes whatever is left, so a long line cannot split the brackets.
+        MonoText(title, size = 14, modifier = Modifier.weight(1f))
+        BasicText(
+            if (isOn) "[■]" else "[ ]",
+            style = monoText(17.sp, theme.bright),
+            modifier = Modifier.padding(start = 8.dp),
+            maxLines = 1,
+            softWrap = false,
+        )
     }
 }
 

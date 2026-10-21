@@ -3,6 +3,7 @@ package com.fmswitch.model
 import android.content.Context
 import com.fmswitch.fm1kit.BaudGirlPatternBank
 import com.fmswitch.fm1kit.BaudGirlSnapshot
+import com.fmswitch.fm1kit.EditorArchive
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -25,6 +26,9 @@ data class DeviceBackup(
     val firmwareProduct: String? = null,
     val presetCount: Int = 0,
     val patternCount: Int = 0,
+    val archiveFile: String? = null,
+    val archiveKind: String? = null,
+    val archiveObjects: Int = 0,
 ) {
     val title: String
         get() {
@@ -37,6 +41,7 @@ data class DeviceBackup(
             if (firmwareName != null) add(firmwareName)
             if (presetCount > 0) add("$presetCount presets")
             if (patternCount > 0) add("$patternCount patterns")
+            if (archiveObjects > 0) add("$archiveKind backup · $archiveObjects objects")
             if (isEmpty()) add("identity only")
         }.joinToString("  ·  ")
 }
@@ -61,17 +66,23 @@ class BackupStore(private val context: Context) {
         snapshot: BaudGirlSnapshot?,
         firmware: StoredFirmware?,
         firmwareBytes: ByteArray?,
+        archive: EditorArchive? = null,
     ): DeviceBackup {
         val id = UUID.randomUUID().toString()
         val folder = File(directory, id).apply { mkdirs() }
         var presetsName: String? = null
         var patternsName: String? = null
         var firmwareName: String? = null
+        var archiveName: String? = null
         if (snapshot != null) {
             presetsName = "presets.syx"
             patternsName = "patterns.syx"
             File(folder, presetsName).writeBytes(snapshot.presetsFile())
             File(folder, patternsName).writeBytes(snapshot.patternsFile())
+        }
+        if (archive != null) {
+            archiveName = "archive.json"
+            File(folder, archiveName).writeText(archive.toJson())
         }
         if (firmware != null && firmwareBytes != null) {
             firmwareName = firmware.fileName
@@ -88,6 +99,9 @@ class BackupStore(private val context: Context) {
             firmwareProduct = firmware?.product,
             presetCount = snapshot?.presets?.size ?: 0,
             patternCount = if (snapshot != null) 16 else 0,
+            archiveFile = archiveName,
+            archiveKind = archive?.kind?.title,
+            archiveObjects = archive?.objects?.size ?: 0,
         )
         items = listOf(item) + items
         persist()
@@ -111,6 +125,12 @@ class BackupStore(private val context: Context) {
             ?.let { BaudGirlSnapshot.parsePatterns(it) }
             ?: BaudGirlPatternBank()
         return BaudGirlSnapshot(backup.identity, presets, patterns)
+    }
+
+    fun loadArchive(backup: DeviceBackup): EditorArchive? {
+        val name = backup.archiveFile ?: return null
+        val text = file(backup, name).takeIf { it.exists() }?.readText() ?: return null
+        return EditorArchive.parse(text)
     }
 
     fun loadPatterns(backup: DeviceBackup): BaudGirlPatternBank? {

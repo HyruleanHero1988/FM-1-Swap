@@ -48,6 +48,7 @@ class TryRiskTest {
         assertTrue(flashCanProceed(checking = false, risky = true, understood = true, missingOfficial = false, switching = false, backedUp = false, autoBackup = false))
         assertFalse(flashCanProceed(checking = false, risky = true, understood = true, missingOfficial = false, switching = true, backedUp = false, autoBackup = false))
         assertTrue(flashCanProceed(checking = false, risky = false, understood = false, missingOfficial = false, switching = true, backedUp = false, autoBackup = true))
+        assertFalse(flashCanProceed(checking = false, risky = false, understood = false, missingOfficial = false, switching = true, backedUp = false, autoBackup = false, backupPending = true))
         assertFalse(flashCanProceed(checking = false, risky = false, understood = true, missingOfficial = true, switching = false, backedUp = false, autoBackup = false))
     }
 

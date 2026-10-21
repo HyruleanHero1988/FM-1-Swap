@@ -82,8 +82,9 @@ fun flashCanProceed(
     switching: Boolean,
     backedUp: Boolean,
     autoBackup: Boolean,
+    backupPending: Boolean = false,
 ): Boolean {
-    if (checking || missingOfficial) return false
+    if (checking || missingOfficial || backupPending) return false
     if (switching && !backedUp && !autoBackup) return false
     if (risky && !understood) return false
     return true

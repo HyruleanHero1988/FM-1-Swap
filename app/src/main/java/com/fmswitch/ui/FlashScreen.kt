@@ -98,10 +98,10 @@ fun FlashScreen(model: AppViewModel) {
             }
             is FlashPhase.BackingUp -> PixelPanel(title = "SAVING A COPY FIRST") {
                 MonoText(
-                    "Reading the running firmware's 128 presets and 16 patterns so they aren't lost if this flash overwrites them. The write has not started yet.",
+                    "Reading what this firmware can give back — FM-1+VA presets and patterns, or a Felucca or SLOOP editor backup — before anything is written.",
                     size = 14,
                 )
-                NoteText("Same dump Baud Girl's Device Manager uses: a presets .syx and a patterns .syx, kept on this phone.")
+                NoteText("Kept on this phone. The write has not started.")
             }
             else -> PixelPanel(title = "KEEP THIS SCREEN OPEN") {
                 MonoText(

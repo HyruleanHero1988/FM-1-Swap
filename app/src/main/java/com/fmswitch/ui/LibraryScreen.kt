@@ -30,7 +30,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.fmswitch.fm1kit.mightHaveEditorBackup
 import com.fmswitch.fm1kit.supportsBaudGirlBackup
+import com.fmswitch.model.BackupOffer
 import com.fmswitch.model.AppViewModel
 import com.fmswitch.model.BackupRestore
 import com.fmswitch.model.FlashProbe
@@ -120,7 +122,7 @@ fun LibraryScreen(model: AppViewModel) {
         }
         if (model.backups.items.isNotEmpty()) {
             PixelPanel(title = "BACKUPS") {
-                NoteText("Taken automatically before a flash: presets, patterns, and a copy of the running firmware when this phone already had that .fwsc.")
+                NoteText("Taken automatically before a flash, when the running firmware allows it: FM-1+VA presets and patterns, or a Felucca or SLOOP editor backup, plus a copy of that firmware when this phone already had the .fwsc.")
                 model.backups.items.forEach { backup ->
                     Column(
                         Modifier
@@ -132,7 +134,7 @@ fun LibraryScreen(model: AppViewModel) {
                         MonoText(backup.summary, size = 13, dim = true)
                         Spacer(Modifier.height(8.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if (backup.presetsFile != null) {
+                            if (backup.presetsFile != null || backup.archiveFile != null) {
                                 PixelButton("RESTORE", compact = true, prominent = true, enabled = !model.isWriting) {
                                     model.restoreBackup(backup, presets = true, patterns = true)
                                 }
@@ -183,23 +185,30 @@ fun FlashConfirmSheet(
     val missingOfficial = (requiresOfficial || model.settings.alwaysViaOfficial) &&
         target.source != "official" && model.library.official == null
     val stepKey = steps.joinToString("|") { it.sha256.lowercase() }
-    androidx.compose.runtime.DisposableEffect(stepKey) {
+    androidx.compose.runtime.DisposableEffect(stepKey, model.identity?.text) {
+        model.prepareBackupOffer()
         model.beginFlashProbe(steps)
-        onDispose { model.cancelFlashProbe() }
+        onDispose {
+            model.cancelFlashProbe()
+            model.cancelBackupProbe()
+        }
     }
     val probe = model.flashProbe
     val failed = (probe as? FlashProbe.Settled)?.failed.orEmpty()
     var understood by remember(failed) { mutableStateOf(false) }
-    val checking = probe is FlashProbe.Idle || probe is FlashProbe.Checking
-    androidx.compose.runtime.LaunchedEffect(steps.firstOrNull()?.id, model.identity?.text) {
-        val first = steps.firstOrNull() ?: return@LaunchedEffect
+    val backupPending = model.backupOffer is BackupOffer.Checking ||
+        (model.backupOffer is BackupOffer.Unknown && model.identity?.mightHaveEditorBackup == true)
+    val checking = probe is FlashProbe.Idle || probe is FlashProbe.Checking || backupPending
+    androidx.compose.runtime.LaunchedEffect(stepKey, model.identity?.text) {
+        val first = steps.firstOrNull()
         if (model.identity?.isLoader == true) {
             checkedKind = null
-            return@LaunchedEffect
+        } else if (first != null) {
+            runCatching { model.check(first) }
+                .onSuccess { checkedKind = it.kind }
+                .onFailure { checkError = it.message }
         }
-        runCatching { model.check(first) }
-            .onSuccess { checkedKind = it.kind }
-            .onFailure { checkError = it.message }
+        model.finishBackupOffer()
     }
     val switching = checkedKind == com.fmswitch.fm1kit.InstallKind.SWITCHING_FIRMWARE
     val sameIdentity = checkedKind == com.fmswitch.fm1kit.InstallKind.SAME_IDENTITY
@@ -231,12 +240,28 @@ fun FlashConfirmSheet(
                 NoteText("The FM-1 is in its update loader, so this finishes that update.")
             }
             checkError?.let { MonoText(it, size = 14) }
-            val autoBackup = model.identity?.supportsBaudGirlBackup == true && model.identity?.isLoader != true
-            if (autoBackup) {
-                NoteText("Before writing, FM-SWITCH will save the 128 presets and 16 patterns, the same dump Baud Girl's Device Manager uses, plus a copy of this firmware if this phone already has that .fwsc.")
-            } else if (switching) {
-                MonoText("Switching firmware can erase the FM-1's projects and samples. Back them up first.", size = 14)
-                com.fmswitch.theme.PixelToggle("I'VE BACKED UP", backedUp) { backedUp = it }
+            val autoBackup = model.identity?.supportsBaudGirlBackup == true || model.backupOffer.auto
+            when {
+                model.backupOffer is BackupOffer.Checking || backupPending -> MonoText(
+                    "Seeing whether this firmware can be backed up from the FM-1…",
+                    size = 15,
+                )
+                model.identity?.supportsBaudGirlBackup == true -> NoteText(
+                    "Before writing, FM-SWITCH will save the 128 presets and 16 patterns, the same dump Baud Girl's Device Manager uses, plus a copy of this firmware if this phone already has that .fwsc.",
+                )
+                model.backupOffer is BackupOffer.Felucca -> NoteText(
+                    "Before writing, FM-SWITCH will save a Felucca-style backup: the music now playing, the projects, user presets, settings and samples. That backup includes the FM6 voice bank only when the firmware lists it. Felucca itself leaves the bank out, so keep its .syx if you use one.",
+                )
+                model.backupOffer is BackupOffer.Sloop -> NoteText(
+                    "Before writing, FM-SWITCH will save a SLOOP-style backup: projects, presets, the FM6 bank, samples and settings, the same file the SLOOP web editor writes.",
+                )
+                switching -> {
+                    MonoText(
+                        "This firmware has no backup this app can take. Switching can erase its projects and samples. Back them up in its own editor first.",
+                        size = 14,
+                    )
+                    com.fmswitch.theme.PixelToggle("I'VE BACKED UP", backedUp) { backedUp = it }
+                }
             }
             NoteText("Takes a minute or two per step. Stay in the app until it finishes.")
             when (probe) {
@@ -276,6 +301,7 @@ fun FlashConfirmSheet(
                         switching = switching,
                         backedUp = backedUp,
                         autoBackup = autoBackup,
+                        backupPending = backupPending,
                     ),
                 ) {
                     model.flash(
@@ -337,10 +363,10 @@ fun BackupRestoreSheet(model: AppViewModel, onDismiss: () -> Unit) {
                 is BackupRestore.Writing -> {
                     MonoText("Writing ${state.label.lowercase()} back to the FM-1…", size = 15)
                     PixelProgressBar(state.fraction.toFloat())
-                    NoteText("Keep the cable connected. Preset writes are paced so the FM-1 can store each one.")
+                    NoteText("Keep the cable connected, and stop playback on the FM-1. A restore replaces what it is holding.")
                 }
-                BackupRestore.Succeeded -> MonoText(
-                    "The FM-1 now holds the presets and patterns from that backup.",
+                BackupRestore.Succeeded ->                 MonoText(
+                    "The FM-1 now holds that backup.",
                     size = 15,
                 )
                 is BackupRestore.Failed -> MonoText(state.message, size = 15)

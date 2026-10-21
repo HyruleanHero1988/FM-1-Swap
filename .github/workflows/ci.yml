@@ -2,6 +2,9 @@ name: CI
 
 on:
   push:
+    branches: [main]
+    paths-ignore:
+      - "release/screenshots/**"
   pull_request:
   workflow_dispatch:
 
@@ -147,8 +150,17 @@ jobs:
           src = pathlib.Path("release/screenshots")
           dst = pathlib.Path(os.environ["RUNNER_TEMP"]) / "screenshots"
           dst.mkdir(parents=True, exist_ok=True)
-          for encoded in sorted(src.glob("*.jpg.b64")):
-              (dst / encoded.name.removesuffix(".b64")).write_bytes(base64.b64decode(encoded.read_text()))
+          root = src / "pieces"
+          names = sorted(p.name for p in root.iterdir() if p.is_dir())
+          if names != ["before-you-start", "firmware-list", "flashed"]:
+              raise SystemExit(f"expected the three screenshots, found {names}")
+          for name in names:
+              text = "".join(p.read_text() for p in sorted((root / name).glob("*.txt")))
+              jpg = base64.b64decode(text)
+              if not jpg.startswith(b"\xff\xd8"):
+                  raise SystemExit(f"{name} is not a jpeg")
+              (dst / f"{name}.jpg").write_bytes(jpg)
+              print(f"decoded {name}.jpg ({len(jpg)} bytes)")
           PY
           badging=$(${ANDROID_SDK_ROOT:-$ANDROID_HOME}/build-tools/35.0.0/aapt dump badging FM-SWITCH.apk)
           echo "$badging" | grep -q "package: name='com.fmswitch' "

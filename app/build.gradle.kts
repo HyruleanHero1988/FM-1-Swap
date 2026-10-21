@@ -1,4 +1,5 @@
 import java.util.Base64
+import java.util.zip.ZipInputStream
 
 plugins {
     alias(libs.plugins.android.application)
@@ -6,6 +7,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
 }
+
+materialiseLauncherIcons()
 
 android {
     namespace = "com.fmswitch"
@@ -92,6 +95,28 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.kotlinx.coroutines.test)
+}
+
+/** Launcher art is binary, so the committed copies are these zips. Writes the mipmap PNGs before resources are merged. */
+fun materialiseLauncherIcons() {
+    val res = file("src/main/res")
+    listOf("launcher-icons-a.zip.b64", "launcher-icons-b.zip.b64").forEach { name ->
+        val bytes = Base64.getMimeDecoder().decode(file(name).readText())
+        ZipInputStream(bytes.inputStream()).use { zip ->
+            while (true) {
+                val entry = zip.nextEntry ?: break
+                if (entry.isDirectory) continue
+                val path = entry.name
+                require(!path.startsWith("/") && ".." !in path && path.startsWith("mipmap-")) { path }
+                val dest = res.resolve(path)
+                val data = zip.readBytes()
+                if (!dest.exists() || !dest.readBytes().contentEquals(data)) {
+                    dest.parentFile.mkdirs()
+                    dest.writeBytes(data)
+                }
+            }
+        }
+    }
 }
 
 /**

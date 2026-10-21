@@ -59,7 +59,7 @@ fun SettingsScreen(model: AppViewModel) {
             MonoText(SafetyNotice.ROM_RECOVERY, size = 14)
             SafetyNotice.ROM_LINKS.forEach { link ->
                 BasicText(
-                    "\u25b8 ${link.label.uppercase()}",
+                    "▸ ${link.label.uppercase()}",
                     style = pixelText(11.sp, bold = true, color = theme.bright),
                     modifier = Modifier
                         .padding(top = 8.dp)
@@ -194,7 +194,7 @@ fun SettingsScreen(model: AppViewModel) {
                 size = 14,
             )
             BasicText(
-                "\u25b8 FM-SWITCH (iOS)",
+                "▸ FM-SWITCH (iOS)",
                 style = pixelText(11.sp, bold = true, color = theme.bright),
                 modifier = Modifier
                     .padding(top = 8.dp)
@@ -203,7 +203,7 @@ fun SettingsScreen(model: AppViewModel) {
                     },
             )
             BasicText(
-                "\u25b8 FM1KIT",
+                "▸ FM1KIT",
                 style = pixelText(11.sp, bold = true, color = theme.bright),
                 modifier = Modifier
                     .padding(top = 8.dp)
@@ -212,7 +212,7 @@ fun SettingsScreen(model: AppViewModel) {
                     },
             )
             BasicText(
-                "\u25b8 FM1-EMU (TRY)",
+                "▸ FM1-EMU (TRY)",
                 style = pixelText(11.sp, bold = true, color = theme.bright),
                 modifier = Modifier
                     .padding(top = 8.dp)

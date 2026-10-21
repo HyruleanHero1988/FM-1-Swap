@@ -115,6 +115,7 @@ fun CatalogueScreen(model: AppViewModel) {
             textStyle = monoText(14.sp, theme.ink),
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(bottom = 12.dp)
                 .background(theme.surface)
                 .padding(10.dp),
             decorationBox = { inner ->

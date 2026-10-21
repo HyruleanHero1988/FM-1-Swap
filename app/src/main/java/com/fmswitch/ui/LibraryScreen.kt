@@ -109,7 +109,7 @@ fun LibraryScreen(model: AppViewModel) {
                         else -> PixelTag("SAVED")
                     }
                 }
-                MonoText("${item.version}  →  ${item.product}  ·  ${formattedBytes(item.size)}", size = 13, dim = true)
+                MonoText("${item.version}  ·  ${item.product}  ·  ${formattedBytes(item.size)}", size = 13, dim = true)
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     PixelButton("TRY", compact = true, prominent = true) { model.trySaved(item) }

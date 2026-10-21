@@ -26,6 +26,7 @@ import com.fmswitch.fm1kit.FM1Identity
 import com.fmswitch.model.AppViewModel
 import com.fmswitch.model.FlashPhase
 import com.fmswitch.model.VoiceRestore
+import com.fmswitch.model.flashArrow
 import com.fmswitch.theme.BlinkingCursor
 import com.fmswitch.theme.LocalPhosphor
 import com.fmswitch.theme.MonoText
@@ -65,7 +66,8 @@ fun FlashScreen(model: AppViewModel) {
         }
         val current = job.steps[job.index]
         BasicText(current.name.uppercase(), style = pixelText(22.sp, bold = true, color = theme.bright, glow = true))
-        MonoText("${current.version} → ${current.product}", size = 15, dim = true)
+        val from = job.fromLabels.getOrElse(job.index) { "Unknown" }
+        MonoText(flashArrow(from, current), size = 15, dim = true)
         Row {
             BasicText(job.phase.label, style = pixelText(13.sp, bold = true, color = theme.bright))
             if (job.phase.isRunning) BlinkingCursor()

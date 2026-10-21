@@ -102,6 +102,8 @@ data class FlashJob(
     val confirmsSameIdentity: Boolean = false,
     val index: Int = 0,
     val phase: FlashPhase = FlashPhase.Preparing,
+    /** Firmware this step replaces, one entry per step, captured when the flash starts. */
+    val fromLabels: List<String> = emptyList(),
 )
 
 sealed class VoiceRestore {
@@ -444,10 +446,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         log = emptyList()
         lastBackup = null
         val autoBackup = identity?.supportsBaudGirlBackup == true || backupOffer.auto
+        val running = deviceFirmwareLabel(
+            identityText = identity?.text,
+            loader = identity?.isLoader == true,
+            saved = library.items,
+            catalogue = catalogue.entries,
+            lastInstall = identity?.text?.let { history.lastInstall(it) },
+        )
         job = FlashJob(
             steps,
             confirmsSwitchingFirmware = confirmsSwitchingFirmware || autoBackup,
             confirmsSameIdentity = confirmsSameIdentity,
+            fromLabels = flashFromLabels(running, steps),
         )
         viewModelScope.launch {
             runFlash(0)
@@ -544,6 +554,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             appendLog("Nothing to keep: no matching .fwsc is saved on this phone.")
             lastBackup = null
             return
+        }
+        archive?.firmware?.let { name ->
+            val running = job
+            if (running != null) job = running.copy(fromLabels = withDeviceFirmwareName(running.fromLabels, name))
         }
         lastBackup = withContext(Dispatchers.IO) {
             backups.save(current.text, snapshot, firmware, bytes, archive)

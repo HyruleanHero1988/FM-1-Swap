@@ -27,15 +27,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Point Pages at this workflow
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages" -f build_type=workflow \
-            || gh api --method PUT "repos/${GITHUB_REPOSITORY}/pages" -f build_type=workflow \
-            || true
-
       - name: Assemble screenshots
         run: |
           python3 - << 'PY'
@@ -62,13 +53,23 @@ jobs:
           shutil.rmtree(root)
           PY
 
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
+      # GITHUB_TOKEN cannot create the Pages site. Once Pages is set to
+      # GitHub Actions in the repository settings, this step succeeds and
+      # the artifact is published.
+      - name: Configure GitHub Pages
+        id: pages
+        continue-on-error: true
+        uses: actions/configure-pages@v5
+
+      - name: Pages is not turned on
+        if: steps.pages.outcome != 'success'
+        run: echo "The guide was built. Publish it from Settings, Pages, with GitHub Actions as the source, then run this workflow again."
 
       - uses: actions/upload-pages-artifact@v3
+        if: steps.pages.outcome == 'success'
         with:
           path: docs
 
       - id: deployment
+        if: steps.pages.outcome == 'success'
         uses: actions/deploy-pages@v4

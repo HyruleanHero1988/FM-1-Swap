@@ -266,7 +266,7 @@ class FirmwareLibrary internal constructor(
             error("The downloaded file doesn't match its published size or checksum, so it was not saved.")
         }
         if (entry.product != null && package_.product != entry.product) {
-            error("The file reports ${package_.product}, but the catalogue says ${entry.product}. Not saved.")
+            error("This file says ${package_.product}, but the listing says ${entry.product}. Not saved.")
         }
         return bytes to package_
     }
@@ -460,7 +460,7 @@ class CatalogueStore(private val context: Context) {
             if (problems.isNotEmpty()) errorMessage = problems.joinToString(" ")
         } catch (_: Throwable) {
             errorMessage = if (catalogue == null || catalogue?.bundled == true) {
-                "Couldn't refresh the list. Showing the copy shipped with the app."
+                "Couldn't refresh the list. Showing the one that came with the app."
             } else {
                 "Couldn't refresh; showing the list saved earlier."
             }

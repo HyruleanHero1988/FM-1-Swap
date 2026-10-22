@@ -272,7 +272,8 @@ fun FlashConfirmSheet(
                         size = 15,
                     )
                     PixelProgressBar(null)
-                    NoteText("Cancel if you don't want to wait.")
+                    NoteText("SKIP CHECK writes without waiting for this.")
+                    PixelButton("SKIP CHECK") { model.skipFlashProbe(steps) }
                 }
                 is FlashProbe.Settled -> {
                     probe.note?.let { MonoText(it, size = 14) }

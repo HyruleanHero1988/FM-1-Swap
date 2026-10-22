@@ -159,7 +159,7 @@ fun VoiceRestoreSheet(model: AppViewModel, onDismiss: () -> Unit) {
                     PixelToggle("REPLACE EVERY VOICE", understood) { understood = it }
                 }
                 is VoiceRestore.Writing -> {
-                    MonoText("Writing factory voices\u2026", size = 15)
+                    MonoText("Writing factory voices…", size = 15)
                     PixelProgressBar(state.fraction.toFloat())
                 }
                 VoiceRestore.Succeeded -> MonoText("Done: the FM-1's four voice banks now hold V15's 128 factory voices.", size = 15)

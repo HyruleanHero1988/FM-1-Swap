@@ -41,8 +41,8 @@ data class DeviceBackup(
             if (firmwareName != null) add(firmwareName)
             if (presetCount > 0) add("$presetCount presets")
             if (patternCount > 0) add("$patternCount patterns")
-            if (archiveObjects > 0) add("$archiveKind backup · $archiveObjects objects")
-            if (isEmpty()) add("identity only")
+            if (archiveObjects > 0) add("$archiveKind backup")
+            if (isEmpty()) add("name only")
         }.joinToString("  ·  ")
 }
 

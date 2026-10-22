@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths-ignore:
       - "release/screenshots/**"
+      - "docs/**"
+      - ".github/workflows/pages.yml"
   pull_request:
   workflow_dispatch:
 

@@ -174,17 +174,25 @@ fun Fm1PanelView(
                                         }
                                         change.consume()
                                     }
+                                    change.pressed && grab == null -> {
+                                        // The finger came down off a key. Sliding onto one plays it.
+                                        val id = Fm1Panel.slideKey(null, Fm1Panel.hit(x, y, slop = 0f))
+                                        if (id != null) {
+                                            press(id)
+                                            grabs[change.id] = Grab.Press(id)
+                                        }
+                                        change.consume()
+                                    }
                                     change.pressed && grab != null -> {
                                         val dx = (change.position.x - change.previousPosition.x) / scale
                                         val dy = (change.position.y - change.previousPosition.y) / scale
                                         when (grab) {
                                             is Grab.Press -> {
-                                                // slide along the keyboard: the finger plays the key it is on
-                                                val hit = Fm1Panel.hit(x, y, slop = 0f) as? Fm1Panel.Hit.Press
-                                                if (grab.id >= 14 && hit != null && hit.id >= 14 && hit.id != grab.id) {
+                                                val id = Fm1Panel.slideKey(grab.id, Fm1Panel.hit(x, y, slop = 0f))
+                                                if (id != null) {
                                                     release(grab)
-                                                    press(hit.id)
-                                                    grabs[change.id] = Grab.Press(hit.id)
+                                                    press(id)
+                                                    grabs[change.id] = Grab.Press(id)
                                                 }
                                             }
                                             is Grab.Turn -> {

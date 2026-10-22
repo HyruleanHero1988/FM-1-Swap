@@ -80,6 +80,19 @@ object Fm1Panel {
         return null
     }
 
+    /**
+     * The keyboard key a moving finger should play.
+     * A finger that came down off the keys starts the key it slides onto.
+     * A finger already on a key moves to the next one.
+     * A button or a knob stays what it is, and empty space starts nothing.
+     */
+    fun slideKey(holdingId: Int?, hit: Hit?): Int? {
+        val id = (hit as? Hit.Press)?.id ?: return null
+        if (id < 14) return null
+        if (holdingId == null || (holdingId >= 14 && holdingId != id)) return id
+        return null
+    }
+
     private fun inCircle(x: Float, y: Float, k: Knob, slop: Float): Boolean {
         val dx = x - k.cx
         val dy = y - k.cy

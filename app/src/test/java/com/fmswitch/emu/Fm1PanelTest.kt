@@ -22,4 +22,17 @@ class Fm1PanelTest {
         assertEquals(Fm1Panel.Hit.Press(15), Fm1Panel.hit(130f, 620f))
         assertNull(Fm1Panel.hit(640f, 300f))
     }
+
+    @Test
+    fun aFingerThatMissedCanSlideOntoAKey() {
+        val gap = Fm1Panel.hit(61f + 62f, 760f)
+        assertNull(gap)
+        assertEquals(14, Fm1Panel.slideKey(null, Fm1Panel.hit(70f, 760f)))
+        assertNull(Fm1Panel.slideKey(null, gap))
+        assertNull(Fm1Panel.slideKey(null, Fm1Panel.Hit.Press(8)))
+        assertNull(Fm1Panel.slideKey(null, Fm1Panel.Hit.Pot))
+        assertEquals(16, Fm1Panel.slideKey(14, Fm1Panel.Hit.Press(16)))
+        assertNull(Fm1Panel.slideKey(14, Fm1Panel.Hit.Press(14)))
+        assertNull(Fm1Panel.slideKey(8, Fm1Panel.Hit.Press(16)))
+    }
 }

@@ -107,7 +107,6 @@ fun CatalogueScreen(model: AppViewModel) {
             ) { model.setCuratedOnly(!model.settings.curatedOnly) }
         }
         Spacer(Modifier.height(8.dp))
-        NoteText("KEEP adds a firmware to your list. MY CURATION puts that list first, in the order you set. CURATED hides everything else.")
         Spacer(Modifier.height(8.dp))
         BasicTextField(
             value = search,
@@ -136,7 +135,7 @@ fun CatalogueScreen(model: AppViewModel) {
                     model.settings.curatedOnly ->
                         "Nothing in your list matches. Turn CURATED off to search the whole catalogue."
                     else ->
-                        "No firmwares match. Refresh the list, or turn on LINKS-ONLY under SETUP if you want listings without a package."
+                        "No firmwares match. Refresh the list, or under SETUP turn on SHOW LISTINGS WITHOUT A PACKAGE."
                 },
                 size = 14,
                 dim = true,
@@ -166,7 +165,6 @@ fun CatalogueScreen(model: AppViewModel) {
                         MonoText("${entry.author ?: "unknown"}  ·  ${entry.version ?: ""}", size = 13, dim = true)
                         val rankBits = buildList {
                             entry.stars?.takeIf { it > 0 }?.let { add("★ $it") }
-                            if (entry.pinned) add("PINNED")
                         }
                         if (rankBits.isNotEmpty()) MonoText(rankBits.joinToString("  ·  "), size = 12, dim = true)
                     }
@@ -190,11 +188,11 @@ fun CatalogueScreen(model: AppViewModel) {
         val shipped = model.catalogue.catalogue
         when {
             shipped?.bundled == true ->
-                NoteText("List shipped with the app. REFRESH pulls the latest from the hub.")
+                NoteText("This list came with the app. REFRESH gets a newer one.")
             shipped?.hubUpdated != null ->
-                NoteText("Hub rebuilt ${shipped.hubUpdated}. REFRESH pulls again.")
+                NoteText("Updated ${shipped.hubUpdated}. REFRESH gets a newer one.")
             else ->
-                NoteText("Listed by GitHub stars, official V15 first. Shots from each project's GitHub page, or from fm1-editor.com and the publishers.")
+                NoteText("Screenshots come from each firmware's own page.")
         }
     }
 }
@@ -255,9 +253,9 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         }
         NoteText(
             if (model.settings.autoSaveTried) {
-                "TRY plays this package on the virtual FM-1 and saves it under SAVED, ready to flash later (SETUP ▸ SAVE WHAT YOU TRY). Neither TRY nor SAVE writes to a connected FM-1."
+                "TRY plays this on the virtual FM-1 and keeps it under SAVED. It does not write to a connected FM-1."
             } else {
-                "TRY plays this package on the virtual FM-1 and does not keep it. SAVE puts the same file under SAVED so you can flash it later. Neither one writes to a connected FM-1."
+                "TRY plays this on the virtual FM-1 and does not keep it. SAVE keeps a copy under SAVED. Neither writes to a connected FM-1."
             },
         )
         if (keptAt >= 0) {
@@ -269,17 +267,17 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
             }
         } else {
             PixelButton("KEEP", compact = true, prominent = true) { model.toggleCurated(entry.id) }
-            NoteText("KEEP puts this on your list. SORT ▸ MY CURATION shows that list first. CURATED hides the rest.")
+            NoteText("KEEP adds this to your list.")
         }
         error?.let { MonoText(it, size = 14) }
         PixelPanel(title = "DETAILS") {
-            MonoText("Identity  ${entry.product ?: "unknown"}", size = 14)
+            MonoText("Reports  ${entry.product ?: "unknown"}", size = 14)
             MonoText("Size  ${entry.size?.let { formattedBytes(it) } ?: "unknown"}", size = 14)
-            entry.sha256?.let { MonoText("SHA-256  ${it.take(16)}…", size = 14) }
+            entry.sha256?.let { MonoText("Checksum  ${it.take(16)}…", size = 14) }
             if (entry.requiresOfficialFirmware) MonoText("Needs official firmware running first.", size = 14)
             RescueMode.summary(entry.id)?.let { MonoText("USB recovery  $it", size = 14) }
-            entry.stars?.takeIf { it > 0 }?.let { MonoText("GitHub stars  $it", size = 14) }
-            entry.installs?.takeIf { it > 0 }?.let { MonoText("Hub installs  $it", size = 14) }
+            entry.stars?.takeIf { it > 0 }?.let { MonoText("Stars  $it", size = 14) }
+            entry.installs?.takeIf { it > 0 }?.let { MonoText("Installs  $it", size = 14) }
         }
         if (entry.links.isNotEmpty()) {
             PixelPanel(title = "LINKS") {

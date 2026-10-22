@@ -168,7 +168,10 @@ jobs:
           if names != ["before-you-start", "firmware-list", "flashed"]:
               raise SystemExit(f"expected the three screenshots, found {names}")
           for name in names:
-              text = "".join(p.read_text() for p in sorted((root / name).glob("*.txt")))
+              text = "".join(
+                  p.read_text()
+                  for p in sorted((root / name).glob("*.txt"), key=lambda p: int(p.stem))
+              )
               jpg = base64.b64decode(text)
               if not jpg.startswith(b"\xff\xd8"):
                   raise SystemExit(f"{name} is not a jpeg")

@@ -35,15 +35,16 @@ jobs:
           out = pathlib.Path("docs/images")
           names = sorted(p.name for p in root.iterdir() if p.is_dir())
           expected = [
-              "try-baud-girl",
               "try-clipper",
               "try-official-open",
-              "try-sloop",
           ]
           if names != expected:
               raise SystemExit(f"expected {expected}, found {names}")
           for name in names:
-              text = "".join(p.read_text() for p in sorted((root / name).glob("*.txt")))
+              text = "".join(
+                  p.read_text()
+                  for p in sorted((root / name).glob("*.txt"), key=lambda p: int(p.stem))
+              )
               jpg = base64.b64decode(text)
               if not jpg.startswith(b"\xff\xd8"):
                   raise SystemExit(f"{name} is not a jpeg")
@@ -53,7 +54,10 @@ jobs:
           shutil.rmtree(root)
           logo_root = pathlib.Path("docs/images/logo-pieces")
           if logo_root.is_dir():
-              text = "".join(p.read_text() for p in sorted(logo_root.glob("*.txt")))
+              text = "".join(
+                  p.read_text()
+                  for p in sorted(logo_root.glob("*.txt"), key=lambda p: int(p.stem))
+              )
               png = base64.b64decode(text)
               if not png.startswith(b"\x89PNG"):
                   raise SystemExit("logo is not a png")

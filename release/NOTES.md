@@ -8,7 +8,7 @@ The PATCHES screen sends a hosted DX7 patch, or a bank of 32, to a connected FM-
 
 ## What has been tried on a real FM-1
 
-FM-1 Swap has been used to swap firmwares on a real FM-1, including SLOOP, Felucca Rainbow, and Clipper. Those swaps completed. One of them started on SLOOP 2.7.1, which reported `FM-1_900`. FM-1 Swap wrote Rainbow Mode 1.1.5-rb, and the FM-1 came back reporting `FM-1_911`.
+FM-1 Swap has been used to swap firmwares on a real FM-1, including SLOOP, Felucca Rainbow, and Clipper. Those swaps completed. The pictures here are from a write that started on Clipper, which reported `FM-1_900`. FM-1 Swap wrote Rainbow Mode 1.1.5-rb, and the FM-1 came back reporting `FM-1_911`.
 
 ## If a flash goes wrong
 
@@ -22,10 +22,10 @@ If the FM-1 will not start at all, not even in USB recovery, FM-1 Swap cannot re
 
 ## Pictures
 
-These shots are from a write that started on SLOOP. The status line on the firmware list is the FM-1 reporting `FM-1_900` before Rainbow Mode was written.
+These shots are from a write that started on Clipper. The status line on the firmware list is the FM-1 reporting `FM-1_900` before Rainbow Mode was written.
 
 ![Firmware list, with the FM-1 reporting FM-1_900](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.2.0/firmware-list.jpg)
 
 ![The flash finished and the FM-1 reported FM-1_911](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.2.0/flashed.jpg)
 
-![The notice the app shows before the first flash](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.2.0/before-you-start.jpg)
+![The safety notice on SETUP, the same text shown the first time the app opens](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.2.0/before-you-start.jpg)

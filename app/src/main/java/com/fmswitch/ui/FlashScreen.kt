@@ -100,7 +100,7 @@ fun FlashScreen(model: AppViewModel) {
             }
             is FlashPhase.BackingUp -> PixelPanel(title = "SAVING A COPY FIRST") {
                 MonoText(
-                    "Reading what this firmware can give back — FM-1+VA presets and patterns, or a Felucca or SLOOP editor backup — before anything is written.",
+                    "Saving a copy of what this firmware can give back, before anything is written.",
                     size = 14,
                 )
                 NoteText("Kept on this phone. The write has not started.")

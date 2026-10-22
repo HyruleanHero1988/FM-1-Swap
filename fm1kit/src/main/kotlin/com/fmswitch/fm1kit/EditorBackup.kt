@@ -239,12 +239,12 @@ class EditorLibrarian(
         args[6] = (size and 0x7f).toByte()
         args[7] = ((size shr 7) and 0x7f).toByte()
         val body = request(connection, cmd, args, readTimeoutMs, attempts = 3)
-            ?: throw FM1UpdateError.BackupFailed("the FM-1 didn't answer a backup read")
-        if (body.size < 9) throw FM1UpdateError.BackupFailed("a backup read came back short")
+            ?: throw FM1UpdateError.BackupFailed("the FM-1 didn't answer")
+        if (body.size < 9) throw FM1UpdateError.BackupFailed("the FM-1's reply was incomplete")
         val rc = body[1].toUInt8()
         if (rc != 0) throw FM1UpdateError.BackupFailed(rcMessage(rc))
         if (body[0].toUInt8() != id || u35(body, 2) != offset || (body[7].toUInt8() or (body[8].toUInt8() shl 7)) != size) {
-            throw FM1UpdateError.BackupFailed("a backup read came back for the wrong range")
+            throw FM1UpdateError.BackupFailed("the FM-1's reply didn't match what was asked")
         }
         return unpack7(body.copyOfRange(9, body.size), size)
     }
@@ -288,8 +288,8 @@ class EditorLibrarian(
 
     private suspend fun put(connection: MidiConnection, cmd: Int, args: ByteArray, timeoutMs: Long = readTimeoutMs): Int {
         val body = request(connection, cmd, args, timeoutMs, attempts = 1)
-            ?: throw FM1UpdateError.BackupFailed("the FM-1 didn't answer a backup write")
-        if (body.size < 3) throw FM1UpdateError.BackupFailed("a backup write came back short")
+            ?: throw FM1UpdateError.BackupFailed("the FM-1 didn't answer")
+        if (body.size < 3) throw FM1UpdateError.BackupFailed("the FM-1's reply was incomplete")
         return body[2].toUInt8()
     }
 
@@ -298,7 +298,7 @@ class EditorLibrarian(
             sample(connection, CMD_SMP_ERASE, byteArrayOf(slot.toByte()), writeTimeoutMs, slot)
             return
         }
-        if (bytes.size < DATA_OFF) throw FM1UpdateError.BackupFailed("a sample backup is too short")
+        if (bytes.size < DATA_OFF) throw FM1UpdateError.BackupFailed("a sample in the backup is incomplete")
         sample(connection, CMD_SMP_BEGIN, byteArrayOf(slot.toByte()), readTimeoutMs, slot)
         var offset = DATA_OFF
         while (offset < bytes.size) {
@@ -322,9 +322,9 @@ class EditorLibrarian(
 
     private suspend fun sample(connection: MidiConnection, cmd: Int, args: ByteArray, timeoutMs: Long, slot: Int) {
         val body = request(connection, cmd, args, timeoutMs, attempts = 1)
-            ?: throw FM1UpdateError.BackupFailed("the FM-1 didn't answer a sample write")
+            ?: throw FM1UpdateError.BackupFailed("the FM-1 didn't answer")
         if (body.isEmpty() || body[0].toUInt8() != slot) {
-            throw FM1UpdateError.BackupFailed("a sample write came back for the wrong slot")
+            throw FM1UpdateError.BackupFailed("the FM-1's reply didn't match what was sent")
         }
         val rc = body.last().toUInt8()
         if (rc != 0) throw FM1UpdateError.BackupFailed(rcMessage(rc))
@@ -451,9 +451,9 @@ class EditorLibrarian(
                 val length = u35(body, at + 1)
                 val crc = u35Long(body, at + 6)
                 if (length > if (id >= 32) 81_920 else 16_384) {
-                    throw FM1UpdateError.BackupFailed("a backup object is larger than this app will read")
+                    throw FM1UpdateError.BackupFailed("part of the backup is too large to read")
                 }
-                if (length == 0 && crc != 0L) throw FM1UpdateError.BackupFailed("an empty backup object had a checksum")
+                if (length == 0 && crc != 0L) throw FM1UpdateError.BackupFailed("the backup file looks damaged")
                 meta += ObjectMeta(id, length, crc)
             }
             return meta
@@ -501,12 +501,12 @@ class EditorLibrarian(
         }
 
         private fun rcMessage(rc: Int): String = when (rc) {
-            1 -> "the FM-1 refused that backup object"
+            1 -> "the FM-1 refused part of the backup"
             2 -> "the FM-1 rejected the backup"
             3 -> "stop playback on the FM-1 first"
-            4 -> "the FM-1 couldn't write its flash"
+            4 -> "the FM-1 couldn't save it"
             5 -> "start the backup again"
-            else -> "the FM-1 answered backup status $rc"
+            else -> "the FM-1 refused the backup"
         }
 
         private fun isoNow(): String {
@@ -521,7 +521,7 @@ private class Cursor(private val bytes: ByteArray) {
         private set
 
     fun byte(): Int {
-        if (index >= bytes.size) throw FM1UpdateError.BackupFailed("the FM-1's editor reply was short")
+        if (index >= bytes.size) throw FM1UpdateError.BackupFailed("the FM-1's reply was incomplete")
         return bytes[index++].toUInt8()
     }
 
@@ -556,7 +556,7 @@ internal fun u35(value: Long): ByteArray {
 internal fun u35(bytes: ByteArray, offset: Int): Int = u35Long(bytes, offset).toInt()
 
 internal fun u35Long(bytes: ByteArray, offset: Int): Long {
-    if (bytes.size < offset + 5) throw FM1UpdateError.BackupFailed("a backup number was cut short")
+    if (bytes.size < offset + 5) throw FM1UpdateError.BackupFailed("the backup file looks damaged")
     var value = 0L
     for (index in 0 until 5) value = value or ((bytes[offset + index].toUInt8().toLong()) shl (7 * index))
     return value and 0xffff_ffffL
@@ -586,18 +586,18 @@ internal fun unpack7(packed: ByteArray, size: Int): ByteArray {
     var source = 0
     var dest = 0
     while (dest < size) {
-        if (source >= packed.size) throw FM1UpdateError.BackupFailed("a backup chunk was short")
+        if (source >= packed.size) throw FM1UpdateError.BackupFailed("the backup file looks damaged")
         val count = minOf(7, size - dest)
         val mask = packed[source++].toUInt8()
-        if (mask ushr count != 0) throw FM1UpdateError.BackupFailed("a backup chunk was damaged")
+        if (mask ushr count != 0) throw FM1UpdateError.BackupFailed("the backup file looks damaged")
         for (index in 0 until count) {
-            if (source >= packed.size) throw FM1UpdateError.BackupFailed("a backup chunk was short")
+            if (source >= packed.size) throw FM1UpdateError.BackupFailed("the backup file looks damaged")
             val low = packed[source++].toUInt8()
-            if (low > 127) throw FM1UpdateError.BackupFailed("a backup chunk was damaged")
+            if (low > 127) throw FM1UpdateError.BackupFailed("the backup file looks damaged")
             out[dest++] = (low or ((mask ushr index and 1) shl 7)).toByte()
         }
     }
-    if (source != packed.size) throw FM1UpdateError.BackupFailed("a backup chunk had trailing bytes")
+    if (source != packed.size) throw FM1UpdateError.BackupFailed("the backup file looks damaged")
     return out
 }
 

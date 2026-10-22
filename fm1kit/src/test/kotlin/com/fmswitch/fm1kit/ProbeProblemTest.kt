@@ -40,7 +40,7 @@ class ProbeProblemTest {
     fun saysWhenNothingAnswersTheHandshake() = runBlocking {
         val updater = FM1Updater(transport { Silent(it) }, UpdaterTiming.Fast)
         assertNull(updater.find())
-        assertEquals("FM-1: opened, but nothing answered the FM-1 handshake.", updater.lastProbeProblem)
+        assertEquals("FM-1: opened, but the FM-1 didn't answer.", updater.lastProbeProblem)
     }
 
     @Test

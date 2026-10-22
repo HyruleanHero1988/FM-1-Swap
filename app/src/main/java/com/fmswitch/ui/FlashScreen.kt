@@ -107,7 +107,7 @@ fun FlashScreen(model: AppViewModel) {
             }
             else -> PixelPanel(title = "KEEP THIS SCREEN OPEN") {
                 MonoText(
-                    "Keep FM-SWITCH in the foreground and don't unplug the FM-1 until this finishes. Auto-lock is paused.",
+                    "Keep FM-1 Swap in the foreground and don't unplug the FM-1 until this finishes. Auto-lock is paused.",
                     size = 14,
                 )
                 NoteText("An install takes from about 35 seconds to a minute. If it is interrupted, the FM-1 waits in update mode and RESUME carries on.")
@@ -159,7 +159,7 @@ fun VoiceRestoreSheet(model: AppViewModel, onDismiss: () -> Unit) {
                     PixelToggle("REPLACE EVERY VOICE", understood) { understood = it }
                 }
                 is VoiceRestore.Writing -> {
-                    MonoText("Writing factory voices…", size = 15)
+                    MonoText("Writing factory voices\u2026", size = 15)
                     PixelProgressBar(state.fraction.toFloat())
                 }
                 VoiceRestore.Succeeded -> MonoText("Done: the FM-1's four voice banks now hold V15's 128 factory voices.", size = 15)

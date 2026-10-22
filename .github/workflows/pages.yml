@@ -31,32 +31,33 @@ jobs:
         run: |
           python3 - << 'PY'
           import base64, pathlib, shutil
-          root = pathlib.Path("docs/images/pieces")
+
+          def piece_key(p):
+              return tuple(int(part) for part in p.stem.split("-"))
+
           out = pathlib.Path("docs/images")
-          names = sorted(p.name for p in root.iterdir() if p.is_dir())
-          expected = [
-              "try-clipper",
-              "try-official-open",
-          ]
-          if names != expected:
-              raise SystemExit(f"expected {expected}, found {names}")
-          for name in names:
-              text = "".join(
-                  p.read_text()
-                  for p in sorted((root / name).glob("*.txt"), key=lambda p: int(p.stem))
-              )
-              jpg = base64.b64decode(text)
-              if not jpg.startswith(b"\xff\xd8"):
-                  raise SystemExit(f"{name} is not a jpeg")
-              dest = out / f"{name}.jpg"
-              dest.write_bytes(jpg)
-              print(f"{dest.name} {len(jpg)}")
-          shutil.rmtree(root)
+          root = pathlib.Path("docs/images/pieces")
+          if root.is_dir():
+              for folder in sorted(p for p in root.iterdir() if p.is_dir()):
+                  dest = out / f"{folder.name}.jpg"
+                  if dest.exists():
+                      print(f"skip {dest.name} (already present)")
+                      continue
+                  text = "".join(
+                      p.read_text()
+                      for p in sorted(folder.glob("*.txt"), key=piece_key)
+                  )
+                  jpg = base64.b64decode(text)
+                  if not jpg.startswith(b"\xff\xd8"):
+                      raise SystemExit(f"{folder.name} is not a jpeg")
+                  dest.write_bytes(jpg)
+                  print(f"{dest.name} {len(jpg)}")
+              shutil.rmtree(root)
           logo_root = pathlib.Path("docs/images/logo-pieces")
           if logo_root.is_dir():
               text = "".join(
                   p.read_text()
-                  for p in sorted(logo_root.glob("*.txt"), key=lambda p: int(p.stem))
+                  for p in sorted(logo_root.glob("*.txt"), key=piece_key)
               )
               png = base64.b64decode(text)
               if not png.startswith(b"\x89PNG"):

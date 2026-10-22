@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FM-SWITCH — install firmware on an M-VAVE FM-1</title>
-  <meta name="description" content="FM-SWITCH installs firmware on an M-VAVE FM-1 from an Android phone, and lets you hear a firmware before you write it. Not affiliated with M-VAVE.">
+  <title>FM-1 Swap — install firmware on an M-VAVE FM-1</title>
+  <meta name="description" content="FM-1 Swap installs firmware on an M-VAVE FM-1 from an Android phone, and lets you hear a firmware before you write it. Not affiliated with M-VAVE.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%230c0e0d' width='32' height='32'/%3E%3Ctext x='4' y='24' fill='%237be39a' font-family='monospace' font-size='22'%3EF%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -184,9 +184,9 @@
 <body>
   <header class="top">
     <div class="wrap">
-      <p class="mark">FM-SWITCH</p>
+      <p class="mark">FM-1 Swap</p>
       <h1>Install firmware on an FM-1 from your phone.</h1>
-      <p class="lede">FM-SWITCH writes firmware to an M-VAVE FM-1 over a USB cable, and it can play a firmware on the phone before you write it. It is not affiliated with M-VAVE. Flashing custom firmware can leave the instrument unable to start.</p>
+      <p class="lede">FM-1 Swap writes firmware to an M-VAVE FM-1 over a USB cable, and it can play a firmware on the phone before you write it. It is not affiliated with M-VAVE. Flashing custom firmware can leave the instrument unable to start.</p>
       <div class="actions">
         <a class="download" href="https://github.com/HyruleanHero1988/FM-SWITCH/releases/latest/download/FM-SWITCH.apk">Download the APK</a>
         <a class="ghost" href="https://github.com/HyruleanHero1988/FM-SWITCH/releases/latest">Release page</a>
@@ -213,7 +213,7 @@
     <div class="wrap">
       <section id="install">
         <h2>Install</h2>
-        <p>The file to install is <span class="mono">FM-SWITCH.apk</span> from the GitHub release linked above. It is the release build. The phone needs Android 8 or newer. A computer emulator will not see a USB FM-1.</p>
+        <p>The file to install is <span class="mono">FM-SWITCH.apk</span> from the GitHub release linked above. On the phone the app is called FM-1 Swap. It is the release build. The phone needs Android 8 or newer. A computer emulator will not see a USB FM-1.</p>
         <ol>
           <li>Download the APK on the phone, or copy it across.</li>
           <li>Open it and allow install from the browser or the files app when Android asks.</li>
@@ -312,7 +312,7 @@
 
       <section id="backups">
         <h2>Backups</h2>
-        <p>Before a write, when the running firmware allows it, FM-SWITCH saves a copy on the phone.</p>
+        <p>Before a write, when the running firmware allows it, FM-1 Swap saves a copy on the phone.</p>
         <ul>
           <li>FM-1+VA, the Baud Girl range, gives its 128 presets and 16 patterns, plus a copy of the firmware if that file is already on the phone.</li>
           <li>Felucca gives the music now playing, the projects, your presets, settings, and samples. The FM6 voice bank is included only when that firmware lists it. If you already keep Felucca's own backup, hold onto that too.</li>
@@ -337,7 +337,7 @@
             <tr><td>Felucca 1.6.1</td><td>No USB recovery. Holding OCT− while switching on starts it as usual.</td></tr>
           </tbody>
         </table>
-        <p>If the FM-1 will not start at all, not even in USB recovery, FM-SWITCH cannot help. A computer that sees a USB device with UBOOT in the name, such as <span class="mono">WL80UBOOT</span>, is seeing the chip's own download mode. Tools built on <a href="https://github.com/kagaimiq/jl-uboot-tool">jl-uboot-tool</a> can put the official firmware back. Melodee, FuMi-1, and Hortator are among the firmwares that publish one, with instructions. If the chip never gets that far, recovery needs an <a href="https://github.com/kurogedelic/FM-1-transporter">FM-1 Transporter</a>. This app has not tried either.</p>
+        <p>If the FM-1 will not start at all, not even in USB recovery, FM-1 Swap cannot help. A computer that sees a USB device with UBOOT in the name, such as <span class="mono">WL80UBOOT</span>, is seeing the chip's own download mode. Tools built on <a href="https://github.com/kagaimiq/jl-uboot-tool">jl-uboot-tool</a> can put the official firmware back. Melodee, FuMi-1, and Hortator are among the firmwares that publish one, with instructions. If the chip never gets that far, recovery needs an <a href="https://github.com/kurogedelic/FM-1-transporter">FM-1 Transporter</a>. This app has not tried either.</p>
       </section>
 
       <section id="setup">
@@ -363,14 +363,14 @@
 
       <section id="record">
         <h2>What has been tried on a real FM-1</h2>
-        <p>One phone, one FM-1. It was running SLOOP 2.7.1, which reported <span class="mono">FM-1_900</span>. FM-SWITCH wrote Rainbow Mode 1.1.5-rb. The FM-1 came back and reported <span class="mono">FM-1_911</span>. That is the whole hardware record. It is not a test of every phone, cable, or firmware.</p>
+        <p>One phone, one FM-1. It was running SLOOP 2.7.1, which reported <span class="mono">FM-1_900</span>. FM-1 Swap wrote Rainbow Mode 1.1.5-rb. The FM-1 came back and reported <span class="mono">FM-1_911</span>. That is the whole hardware record. It is not a test of every phone, cable, or firmware.</p>
         <p><a class="download" href="https://github.com/HyruleanHero1988/FM-SWITCH/releases/latest/download/FM-SWITCH.apk">Download the APK</a></p>
       </section>
     </div>
   </main>
   <footer>
     <div class="wrap">
-      <p>FM-SWITCH for Android is a port of <a href="https://github.com/ocean/FM-SWITCH">ocean's FM-SWITCH</a>. The protocol follows <a href="https://github.com/ocean/FM1Kit">FM1Kit</a>. TRY runs <a href="https://github.com/joakimeriksson/fm1-emu">Joakim Eriksson's fm1-emu</a>. Official V15 is M-VAVE's, included so you can go back. Not affiliated with M-VAVE.</p>
+      <p>FM-1 Swap is its own Android app. The iOS app is <a href="https://github.com/ocean/FM-SWITCH">ocean's FM-SWITCH</a>. The protocol follows <a href="https://github.com/ocean/FM1Kit">FM1Kit</a>. TRY runs <a href="https://github.com/joakimeriksson/fm1-emu">Joakim Eriksson's fm1-emu</a>. Official V15 is M-VAVE's, included so you can go back. Not affiliated with M-VAVE.</p>
       <p>Source and issues: <a href="https://github.com/HyruleanHero1988/FM-SWITCH">github.com/HyruleanHero1988/FM-SWITCH</a></p>
     </div>
   </footer>

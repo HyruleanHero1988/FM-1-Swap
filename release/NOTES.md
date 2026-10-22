@@ -4,7 +4,7 @@ If you already installed a debug build, uninstall it first. Its package is `com.
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
-The PATCHES screen sends a hosted DX7 patch, or a bank of 32, to a connected FM-1. Official V15, FM-1+VA, and Official Open take a single patch. A bank replaces 32 patches, and you choose that bank on the FM-1. The same banks are on the [patches page](https://hyruleanhero1988.github.io/FM-SWITCH/patches.html).
+The PATCHES screen sends a hosted DX7 patch, or a bank of 32, to a connected FM-1. Official V15, FM-1+VA, and Official Open take a single patch. A bank replaces 32 patches, and you choose that bank on the FM-1. The same banks are on the [patches page](https://hyruleanhero1988.github.io/FM-1-Swap/patches.html).
 
 ## What has been tried on a real FM-1
 
@@ -24,8 +24,8 @@ If the FM-1 will not start at all, not even in USB recovery, FM-1 Swap cannot re
 
 The phone in these shots is the one that did the flash above. The status line on the firmware list is the FM-1 reporting `FM-1_900` before the write.
 
-![Firmware list, with the FM-1 reporting FM-1_900](https://github.com/HyruleanHero1988/FM-SWITCH/releases/download/v0.2.0/firmware-list.jpg)
+![Firmware list, with the FM-1 reporting FM-1_900](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.2.0/firmware-list.jpg)
 
-![The flash finished and the FM-1 reported FM-1_911](https://github.com/HyruleanHero1988/FM-SWITCH/releases/download/v0.2.0/flashed.jpg)
+![The flash finished and the FM-1 reported FM-1_911](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.2.0/flashed.jpg)
 
-![The notice the app shows before the first flash](https://github.com/HyruleanHero1988/FM-SWITCH/releases/download/v0.2.0/before-you-start.jpg)
+![The notice the app shows before the first flash](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.2.0/before-you-start.jpg)

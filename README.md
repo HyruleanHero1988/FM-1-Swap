@@ -15,11 +15,11 @@ Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 ## Download
 
 How it works, what can go wrong, and the install link are on the site:
-[FM-1 Swap](https://hyruleanhero1988.github.io/FM-SWITCH/).
-The same site hosts [DX7 patches](https://hyruleanhero1988.github.io/FM-SWITCH/patches.html)
+[FM-1 Swap](https://hyruleanhero1988.github.io/FM-1-Swap/).
+The same site hosts [DX7 patches](https://hyruleanhero1988.github.io/FM-1-Swap/patches.html)
 that the app's PATCHES screen, and a desktop browser, can send to a connected FM-1.
 
-Install [FM-1 Swap 0.2.0](https://github.com/HyruleanHero1988/FM-SWITCH/releases/tag/v0.2.0)
+Install [FM-1 Swap 0.2.0](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.2.0)
 (`FM-SWITCH.apk`). On the phone the app is called FM-1 Swap. The install file keeps the name
 `FM-SWITCH.apk` so it updates the copy already installed. That is the release build: package `com.fmswitch`, not debuggable.
 Sideload it on a phone. USB MIDI to the FM-1 does not work on an emulator.
@@ -29,7 +29,7 @@ If a debug build is already installed, uninstall it first. The debug package is
 from the same release installs over 0.2.0. Install that file from this GitHub
 release and nowhere else: the signing key is the one committed for CI.
 
-The moving [android-debug](https://github.com/HyruleanHero1988/FM-SWITCH/releases/tag/android-debug)
+The moving [android-debug](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/android-debug)
 tag is the debuggable CI build. It is not the one to hand to someone else.
 
 ## What it does
@@ -96,8 +96,8 @@ sdk.dir=/path/to/Android/sdk
 
 `.github/workflows/ci.yml` runs on every push and pull request: it builds the native emulator,
 runs its tests and the protocol tests, then `assembleDebug` and `assembleRelease`. On `main` it publishes `FM-SWITCH-debug.apk` to the
-[android-debug](https://github.com/HyruleanHero1988/FM-SWITCH/releases/tag/android-debug) tag and `FM-SWITCH.apk` (versionName 0.2.0) to
-[v0.2.0](https://github.com/HyruleanHero1988/FM-SWITCH/releases/tag/v0.2.0). It also uploads the
+[android-debug](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/android-debug) tag and `FM-SWITCH.apk` (versionName 0.2.0) to
+[v0.2.0](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.2.0). It also uploads the
 `app-debug` Actions artifact. You can retrigger it from the Actions tab with **Run workflow**.
 
 CI vendors the Gradle wrapper, bundled V15, and fonts (from the original

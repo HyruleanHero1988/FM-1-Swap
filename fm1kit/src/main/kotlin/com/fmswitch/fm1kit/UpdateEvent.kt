@@ -102,38 +102,38 @@ sealed class FM1UpdateError(message: String) : Exception(message) {
     data class AlreadyInstalled(val identity: String) :
         FM1UpdateError("The FM-1 is already running $identity, so it isn't reinstalled. Choose another firmware.")
     data class SameIdentityNotConfirmed(val identity: String) : FM1UpdateError(
-        "The FM-1 already reports $identity, the same identity as this package. Confirm you mean to reinstall it, or to install another release of the same firmware.",
+        "The FM-1 already reports $identity, the same as this firmware. Confirm you mean to install it again.",
     )
     data object CapabilityUnavailable : FM1UpdateError(
-        "The FM-1's open firmware didn't say whether it's ready to update, so the update didn't start. Switch it off and on again, and try again.",
+        "The FM-1 didn't say it was ready to update, so nothing was written. Switch it off and on, and try again.",
     )
     data object DeviceBusy : FM1UpdateError(
-        "The FM-1's open firmware is busy with another update, so this one didn't start. Close any other updater, switch the FM-1 off and on again, and try again.",
+        "The FM-1 is busy with another update, so this one didn't start. Close any other app that's updating it, switch it off and on, and try again.",
     )
     data class ArmRefused(val code: Int?) : FM1UpdateError(
         if (code == null) {
-            "The FM-1's open firmware didn't answer when asked to prepare for the update, so the update didn't start. Switch it off and on again, and try again."
+            "The FM-1 didn't answer when asked to prepare for the update, so nothing was written. Switch it off and on, and try again."
         } else {
-            "The FM-1's open firmware refused this package (code $code), so the update didn't start."
+            "The FM-1 refused this firmware, so the update didn't start."
         },
     )
     data class BuildMismatch(val expected: FM1BuildID, val reported: FM1BuildID) : FM1UpdateError(
-        "The update finished, but the FM-1 reports build ${reported.hex.take(16)} instead of ${expected.hex.take(16)}.",
+        "The update finished, but the FM-1 came back as a different build than this firmware.",
     )
     data object FactoryVoicesUnavailable :
-        FM1UpdateError("This package isn't M-VAVE's official V15, so it can't restore the factory voices.")
+        FM1UpdateError("This isn't M-VAVE's official V15, so it can't restore the factory voices.")
     data class VoiceRestoreNeedsV15(val device: String) :
-        FM1UpdateError("Restoring the factory voices needs the FM-1 running V15 (FM-1_015), but it reports $device.")
+        FM1UpdateError("Restoring the factory voices needs the FM-1 running V15, but it reports $device.")
     data class VoiceRestoreRefused(val code: Int, val bytesWritten: Int) : FM1UpdateError(
-        "The FM-1 refused to restore the factory voices (code $code) after $bytesWritten of 16384 bytes. Some voices may be wrong or silent until a restore finishes: keep the FM-1 on V15 and try again.",
+        "The FM-1 refused to restore the factory voices. Some voices may be wrong or silent until a restore finishes: keep the FM-1 on V15 and try again.",
     )
     data class VoiceRestoreStalled(val bytesWritten: Int) : FM1UpdateError(
-        "The FM-1 stopped answering while restoring the factory voices, after $bytesWritten of 16384 bytes. Some voices may be wrong or silent until a restore finishes: reconnect the FM-1, keep it on V15, and run the restore again.",
+        "The FM-1 stopped answering while restoring the factory voices. Some voices may be wrong or silent until a restore finishes: reconnect the FM-1, keep it on V15, and run the restore again.",
     )
     data class ModelMismatch(val device: String, val packageProduct: String) :
-        FM1UpdateError("The device is $device but the package is for $packageProduct.")
-    data class Stalled(val phase: Phase, val requests: Int) : FM1UpdateError(phaseMessage(phase, requests, lost = false))
-    data class Disconnected(val phase: Phase, val requests: Int) : FM1UpdateError(phaseMessage(phase, requests, lost = true))
+        FM1UpdateError("This FM-1 is $device, and this firmware is for $packageProduct.")
+    data class Stalled(val phase: Phase, val requests: Int) : FM1UpdateError(phaseMessage(phase, lost = false))
+    data class Disconnected(val phase: Phase, val requests: Int) : FM1UpdateError(phaseMessage(phase, lost = true))
     data object LoaderNotFound :
         FM1UpdateError("The update loader didn't appear. Reconnect the FM-1 and resume the update.")
     data object DeviceDidNotReturn :
@@ -141,13 +141,13 @@ sealed class FM1UpdateError(message: String) : Exception(message) {
     data class IdentityMismatch(val expected: String, val reported: String) :
         FM1UpdateError("The update finished, but the FM-1 reports $reported instead of $expected.")
     data class BadRequest(val address: Long, val length: Int) : FM1UpdateError(
-        "The FM-1 asked for data outside the package ($length bytes at 0x${address.toString(16)}), so the update was stopped without answering. Check the package is complete.",
+        "The FM-1 asked for something that isn't in this firmware, so the update stopped. The file may be incomplete.",
     )
     data class BackupUnavailable(val identity: String) : FM1UpdateError(
-        "The FM-1 reports $identity, which has no FM-1+VA preset and pattern dump. Use that firmware's own editor to back up first, or confirm the switch.",
+        "This firmware has no preset and pattern backup this app can take. Back up in its own editor first, or confirm you want to switch.",
     )
     data class BackupFailed(val detail: String) : FM1UpdateError(
-        "Couldn't back up the presets and patterns before writing ($detail). The flash was not started.",
+        "Couldn't finish the backup: $detail.",
     )
     data class BackupRestoreMismatch(val what: String) : FM1UpdateError(
         "Restoring the backup stopped because the FM-1's copy of $what didn't match what was sent. Reconnect and try again.",
@@ -161,13 +161,13 @@ sealed class FM1UpdateError(message: String) : Exception(message) {
     )
 
     companion object {
-        private fun phaseMessage(phase: Phase, requests: Int, lost: Boolean): String = when (phase) {
+        private fun phaseMessage(phase: Phase, lost: Boolean): String = when (phase) {
             Phase.STAGING ->
-                "The FM-1 stopped after $requests requests while checking the package, before restarting into its update loader. It should still start normally. If it doesn't, and its firmware supports USB recovery mode (holding OCT− while switching it on), start it that way and install again; otherwise recovering it needs a computer."
+                "The FM-1 stopped while checking the firmware, before restarting into its update loader. It should still start normally. If it doesn't, and its firmware can start in USB recovery (hold OCT− while switching it on), start it that way and install again. Otherwise recovery needs a computer."
             Phase.WRITING -> if (lost) {
-                "The update loader disconnected after $requests requests. Reconnect the FM-1 and resume the update; it stays in update mode until one finishes."
+                "The connection dropped while writing. Reconnect the FM-1 and press RESUME. It stays in update mode until an install finishes."
             } else {
-                "The update loader stopped after $requests requests. Keep the FM-1 connected and resume the update; it stays in update mode until one finishes."
+                "The update stopped while writing. Keep the FM-1 connected and press RESUME. It stays in update mode until an install finishes."
             }
         }
     }

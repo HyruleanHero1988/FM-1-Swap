@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FM-1 Swap — install firmware on an M-VAVE FM-1</title>
-  <meta name="description" content="FM-1 Swap installs firmware on an M-VAVE FM-1 from an Android phone, and lets you hear a firmware before you write it. Not affiliated with M-VAVE.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%230c0e0d' width='32' height='32'/%3E%3Ctext x='4' y='24' fill='%237be39a' font-family='monospace' font-size='22'%3EF%3C/text%3E%3C/svg%3E">
+  <title>FM-1 Swap — preview and install FM-1 firmware on Android</title>
+  <meta name="description" content="Preview FM-1 firmware on an Android phone before you install it, and swap saved firmwares with no internet. Not affiliated with M-VAVE.">
+  <link rel="icon" href="images/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
@@ -46,14 +46,48 @@
       font-size: 22px;
       margin: 0 0 18px;
     }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: fit-content;
+      margin: 0 0 20px;
+      text-decoration: none;
+      color: var(--green);
+    }
+    .brand img { width: 104px; height: auto; flex: none; }
+    .brand .mark { margin: 0; font-size: clamp(40px, 7vw, 60px); }
     h1 {
       font-family: VT323, monospace;
-      font-size: clamp(52px, 8vw, 84px);
+      font-size: clamp(34px, 5.5vw, 64px);
       font-weight: 400;
-      line-height: 0.9;
-      margin: 0 0 16px;
+      line-height: 0.95;
+      margin: 0 0 18px;
       color: var(--green);
       text-shadow: 0 0 18px rgba(123, 227, 154, 0.25);
+    }
+    .points {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      list-style: none;
+      padding: 0;
+      margin: 0 0 22px;
+    }
+    .points li {
+      margin: 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 12px 14px 14px;
+      font-size: 16px;
+    }
+    .points strong {
+      display: block;
+      font-family: VT323, monospace;
+      font-size: 28px;
+      font-weight: 400;
+      color: var(--green);
+      margin-bottom: 4px;
     }
     .lede { max-width: 42rem; margin: 0 0 22px; color: var(--ink); }
     .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
@@ -93,7 +127,7 @@
       font-size: 13px;
     }
     nav.sections a { color: var(--muted); text-decoration: none; white-space: nowrap; }
-    nav.sections a:hover { color: var(--green); }
+    nav.sections a:hover, nav.sections a[aria-current="page"] { color: var(--green); }
     main { padding: 36px 0 72px; }
     section { margin: 0 0 56px; }
     h2 {
@@ -175,6 +209,10 @@
       color: var(--muted);
       font-size: 15px;
     }
+    @media (max-width: 720px) {
+      .points { grid-template-columns: 1fr; }
+      .brand img { width: 76px; }
+    }
     @media (max-width: 640px) {
       body { font-size: 17px; }
       .download { width: 100%; text-align: center; }
@@ -184,16 +222,24 @@
 <body>
   <header class="top">
     <div class="wrap">
-      <p class="mark">FM-1 Swap</p>
-      <h1>Install firmware on an FM-1 from your phone.</h1>
-      <p class="lede">FM-1 Swap writes firmware to an M-VAVE FM-1 over a USB cable, and it can play a firmware on the phone before you write it. It is not affiliated with M-VAVE. Flashing custom firmware can leave the instrument unable to start.</p>
+      <a class="brand" href="./">
+        <img src="images/logo.png" alt="" width="208" height="160">
+        <span class="mark">FM-1 Swap</span>
+      </a>
+      <h1>Preview and install firmware on an FM-1 from your Android phone, no internet required.</h1>
+      <ul class="points">
+        <li><strong>Preview</strong> Hear a firmware on the phone before you write it.</li>
+        <li><strong>Android</strong> Made for a phone with Android 8 or newer.</li>
+        <li><strong>Offline</strong> Swap firmwares saved on the phone, with no connection.</li>
+      </ul>
+      <p class="lede">It plugs into an M-VAVE FM-1 with a USB cable. It is not affiliated with M-VAVE. Flashing custom firmware can leave the instrument unable to start.</p>
       <div class="actions">
         <a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest/download/FM-1-Swap.apk">Download the APK</a>
         <a class="ghost" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest">Release page</a>
       </div>
     </div>
   </header>
-  <nav class="sections" aria-label="On this page">
+  <nav class="sections" aria-label="Pages">
     <div class="wrap">
       <ul>
         <li><a href="#install">Install</a></li>

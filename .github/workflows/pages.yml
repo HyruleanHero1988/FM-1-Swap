@@ -51,6 +51,15 @@ jobs:
               dest.write_bytes(jpg)
               print(f"{dest.name} {len(jpg)}")
           shutil.rmtree(root)
+          logo_root = pathlib.Path("docs/images/logo-pieces")
+          if logo_root.is_dir():
+              text = "".join(p.read_text() for p in sorted(logo_root.glob("*.txt")))
+              png = base64.b64decode(text)
+              if not png.startswith(b"\x89PNG"):
+                  raise SystemExit("logo is not a png")
+              (out / "logo.png").write_bytes(png)
+              print(f"logo.png {len(png)}")
+              shutil.rmtree(logo_root)
           PY
 
       # GITHUB_TOKEN cannot create the Pages site. Once Pages is set to

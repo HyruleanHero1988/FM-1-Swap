@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FM-1 Swap — patches</title>
   <meta name="description" content="DX7 patches you can send to an M-VAVE FM-1. Official V15, FM-1+VA, and Official Open.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%230c0e0d' width='32' height='32'/%3E%3Ctext x='4' y='24' fill='%237be39a' font-family='monospace' font-size='22'%3EF%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="images/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
@@ -30,7 +30,37 @@
     a { color: var(--green); text-underline-offset: 3px; }
     .wrap { width: min(1040px, calc(100% - 32px)); margin: 0 auto; }
     header.top { border-bottom: 1px solid var(--line); padding: 28px 0 22px; }
-    .mark { font-family: VT323, monospace; color: var(--green); font-size: 22px; margin: 0 0 12px; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: fit-content;
+      margin: 0 0 18px;
+      text-decoration: none;
+      color: var(--green);
+    }
+    .brand img { width: 84px; height: auto; flex: none; }
+    .brand .mark { margin: 0; font-family: VT323, monospace; font-size: clamp(36px, 7vw, 52px); }
+    nav.sections {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(12, 14, 13, 0.92);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(8px);
+    }
+    nav.sections ul {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      list-style: none;
+      margin: 0;
+      padding: 12px 0;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 13px;
+    }
+    nav.sections a { color: var(--muted); text-decoration: none; white-space: nowrap; }
+    nav.sections a:hover, nav.sections a[aria-current="page"] { color: var(--green); }
     h1 {
       font-family: VT323, monospace;
       font-size: clamp(48px, 8vw, 72px);
@@ -91,17 +121,37 @@
     footer { border-top: 1px solid var(--line); padding: 28px 0 48px; color: var(--muted); font-size: 15px; }
     @media (max-width: 640px) {
       button { font-size: 22px; }
+      .brand img { width: 68px; }
     }
   </style>
 </head>
 <body>
   <header class="top">
     <div class="wrap">
-      <p class="mark"><a href="./">FM-1 Swap</a></p>
+      <a class="brand" href="./">
+        <img src="images/logo.png" alt="" width="208" height="160">
+        <span class="mark">FM-1 Swap</span>
+      </a>
       <h1>Patches you can send.</h1>
       <p>These are DX7 patches for an M-VAVE FM-1. SEND plays one. SEND BANK sends all 32, and you choose which bank on the FM-1 they replace. The phone app does the same thing from its PATCHES screen, over the USB cable. This page sends from a desktop browser that can see the FM-1.</p>
     </div>
   </header>
+  <nav class="sections" aria-label="Pages">
+    <div class="wrap">
+      <ul>
+        <li><a href="./#install">Install</a></li>
+        <li><a href="./#risks">Risks</a></li>
+        <li><a href="./#screens">Screens</a></li>
+        <li><a href="./#try">Hear it first</a></li>
+        <li><a href="./#flash">Flashing</a></li>
+        <li><a href="./#backups">Backups</a></li>
+        <li><a href="./#recovery">Recovery</a></li>
+        <li><a href="./#setup">Setup</a></li>
+        <li><a href="patches.html" aria-current="page">Patches</a></li>
+        <li><a href="./#record">What was tried</a></li>
+      </ul>
+    </div>
+  </nav>
   <main>
     <div class="wrap">
       <div class="panel">

@@ -341,7 +341,7 @@
           say("Connect the FM-1 first. On a phone, use the app's PATCHES screen.");
           return;
         }
-        say("Sending\u2026");
+        say("Sending…");
         const voices = await decodeBank(file);
         const plan = messagesFor(voices, index);
         if (plan.error) {

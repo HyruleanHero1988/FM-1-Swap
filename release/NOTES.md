@@ -8,7 +8,7 @@ The PATCHES screen sends a hosted DX7 patch, or a bank of 32, to a connected FM-
 
 ## What has been tried on a real FM-1
 
-One phone, one FM-1. It was running SLOOP 2.7.1, which reported `FM-1_900`. FM-1 Swap wrote Rainbow Mode 1.1.5-rb. The FM-1 came back and reported `FM-1_911`. That is the whole hardware record. It is not a test of every phone, cable, or firmware.
+FM-1 Swap has been used to swap firmwares on a real FM-1, including SLOOP, Felucca Rainbow, and Clipper. Those swaps completed. One of them started on SLOOP 2.7.1, which reported `FM-1_900`. FM-1 Swap wrote Rainbow Mode 1.1.5-rb, and the FM-1 came back reporting `FM-1_911`.
 
 ## If a flash goes wrong
 
@@ -22,7 +22,7 @@ If the FM-1 will not start at all, not even in USB recovery, FM-1 Swap cannot re
 
 ## Pictures
 
-The phone in these shots is the one that did the flash above. The status line on the firmware list is the FM-1 reporting `FM-1_900` before the write.
+These shots are from a write that started on SLOOP. The status line on the firmware list is the FM-1 reporting `FM-1_900` before Rainbow Mode was written.
 
 ![Firmware list, with the FM-1 reporting FM-1_900](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.2.0/firmware-list.jpg)
 

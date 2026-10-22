@@ -1,25 +1,27 @@
-# FM-SWITCH for Android
+# FM-1 Swap
 
-An Android port of [ocean](https://github.com/ocean)'s [FM-SWITCH](https://github.com/ocean/FM-SWITCH).
-Same job: swap M-VAVE FM-1 firmwares over USB MIDI. The firmware list ships in the
+FM-1 Swap installs firmware on an M-VAVE FM-1 from an Android phone, over USB MIDI.
+The iOS app that did this first is [ocean](https://github.com/ocean)'s [FM-SWITCH](https://github.com/ocean/FM-SWITCH) (MIT).
+This Android app is its own Kotlin / Jetpack Compose project. Behaviour, protocol,
+catalogue, phosphor UI, and bundled V15 follow that iOS app.
+
+The firmware list ships in the
 app (hub, fm1-editor.com, and RedtailWorks, captured when this build was made). REFRESH
 pulls a newer copy. Firmwares you save stay on the phone for offline flashing. M-VAVE's official V15 ships with the app (from
 [fm1_open](https://github.com/m-vave/fm1_open), Apache-2.0), so it's always there to go back to.
-
-This is a Kotlin / Jetpack Compose rewrite, not a wrapper around ocean's original. Behaviour, protocol,
-catalogue, phosphor UI, and bundled V15 follow that project.
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
 ## Download
 
 How it works, what can go wrong, and the install link are on the site:
-[FM-SWITCH](https://hyruleanhero1988.github.io/FM-SWITCH/).
+[FM-1 Swap](https://hyruleanhero1988.github.io/FM-SWITCH/).
 The same site hosts [DX7 patches](https://hyruleanhero1988.github.io/FM-SWITCH/patches.html)
 that the app's PATCHES screen, and a desktop browser, can send to a connected FM-1.
 
-Install [FM-SWITCH 0.2.0](https://github.com/HyruleanHero1988/FM-SWITCH/releases/tag/v0.2.0)
-(`FM-SWITCH.apk`). That is the release build: package `com.fmswitch`, not debuggable.
+Install [FM-1 Swap 0.2.0](https://github.com/HyruleanHero1988/FM-SWITCH/releases/tag/v0.2.0)
+(`FM-SWITCH.apk`). On the phone the app is called FM-1 Swap. The install file keeps the name
+`FM-SWITCH.apk` so it updates the copy already installed. That is the release build: package `com.fmswitch`, not debuggable.
 Sideload it on a phone. USB MIDI to the FM-1 does not work on an emulator.
 
 If a debug build is already installed, uninstall it first. The debug package is
@@ -38,7 +40,7 @@ tag is the debuggable CI build. It is not the one to hand to someone else.
 - Talks to a real FM-1 over class-compliant USB MIDI (Android MIDI API)
 - On **DEVICE**, **PLAY TEST NOTES** sends a C–E–G–C arpeggio on channels 1 and 2, then handshakes again so you can hear whether notes arrive and whether the USB-MIDI port stayed up. Hold C–B to send live notes. Stock firmware listens on channel 2; Felucca on 1–4. Grooveboxes such as SLOOP may stay quiet on a plain note-on — the handshake after is the cable test.
 - **TRY** boots the exact `.fwsc` you would flash on a virtual FM-1 built into the app: [Joakim Eriksson's fm1-emu](https://github.com/joakimeriksson/fm1-emu) (MIT), which emulates the FM-1's JieLi AC791N, compiled to native code for Android (`native/fm1-jni`). Sound comes out of the phone, the screen and LEDs are the firmware's own, and the panel is drawn in Compose: tap keys and buttons (multi-touch), drag knobs up or down. By default the panel is traced as glowing vector lines in your phosphor colour, like a scope's electron beam, with afterglow on keys, LEDs and knob sweeps; **SETUP ▸ PHOSPHOR EMULATOR PANEL** switches back to the realistic panel. The firmware's own screen is never altered in either style. What you save on the emulated FM-1 (patches, patterns, settings) is kept per package. TRY runs the emulated chip at 240 MHz, the same speed as a real FM-1. **SETUP ▸ CHOOSE EMULATOR CLOCK** is off until you turn it on; then the TRY screen offers 100, 160 or 240, remembered per firmware, for a phone whose sound gaps or whose load goes over 100%. **SETUP ▸ RUN EMULATOR IN BACKGROUND** is off too. Off, TRY stops when you switch away or the screen turns off. On, it keeps sounding until you leave the TRY screen, which always stops it. Turning the phone does not stop it: the same session moves between the portrait and landscape frames. Sideways, the panel sits against one edge and the controls use the whole leftover margin, clipped so they cannot cover the knobs or the screen. A running TRY does not print its load. Each audio block may run at most 20 ms of emulated time, so a firmware that stalls costs bounded work. A firmware that has made no sound and drawn nothing after 6 emulated seconds is stopped with an explanation. M-VAVE's Official Open is one of these: its open SDK starts the FM-1's second core in a way fm1-emu doesn't model yet. It does play in M-VAVE's own [FM1 Workbench](https://open.m-vave.com/fm1-workbench), which is its synth engine compiled to WebAssembly rather than an emulated chip; its TRY screen opens that with **AUTHOR'S EMU**. By default the package TRY downloads goes straight into SAVED, ready to flash, so trying a firmware and then flashing it costs one download (**SETUP ▸ SAVE WHAT YOU TRY**). With that off, TRY keeps it only in a cache Android may clear, and SAVE, on the firmware page and on the emulator, puts it under SAVED. Either way a package already on the phone is never downloaded again, and a saved one plays offline. RedtailWorks' HYP-1, LOF-1, ECO-1 and GRAV-1 play in this same TRY emulator. Other firmwares whose authors publish a browser emulator (X0X, AMB-1, hub `/play/` pages) still get an **AUTHOR'S EMU** button. **SETUP ▸ SIMULATED FM-1** remains a protocol dummy for flash tests and makes no sound.
-- Before flashing a package TRY has never settled, FM-SWITCH boots it silently at 240 MHz. If that boot fails to start, or if a TRY you already ran stopped, the sheet shows a red warning and CONTINUE stays off until I UNDERSTAND is checked. A later TRY that does start clears the flag. Cancelling the sheet does not record a result, and the probe does not touch the save a real TRY keeps.
+- Before flashing a package TRY has never settled, FM-1 Swap boots it silently at 240 MHz. If that boot fails to start, or if a TRY you already ran stopped, the sheet shows a red warning and CONTINUE stays off until I UNDERSTAND is checked. A later TRY that does start clears the flag. Cancelling the sheet does not record a result, and the probe does not touch the save a real TRY keeps.
 - Stages, writes, and resumes interrupted flashes using the same protocol as FM1Kit
 - Before a flash, automatically dumps the running firmware when it knows how. FM-1+VA (Baud Girl's range, `FM-1_079` through `FM-1_799`) is saved the same way Baud Girl's Device Manager does: 128 presets and 16 patterns as `.syx` files. Felucca, SLOOP, and anything that still answers their editor backup — Felucca commands 65–67, or SLOOP commands 34–36 on the same FL SysEx header — is saved as the same full backup those web editors write (projects, presets, settings, samples; SLOOP includes the FM6 bank, Felucca's own backup leaves that voice bank out). A copy of the `.fwsc` is kept too when this phone already has it. The write does not start if a dump that the device started then fails. Official V15, the loader, and firmware that never answers those requests still ask you to confirm you've backed up.
 - Restores those backups later from **SAVED**, and restores V15 factory voices after installing official firmware
@@ -115,7 +117,7 @@ file is missing. Enable Actions on the GitHub repo if the workflow is waiting fo
 If the FM-1 won't start, some firmwares boot USB recovery with **OCT−** held at power-on.
 That is a firmware feature, not a ROM one. Official V15 and Felucca 1.6.1 do not offer it.
 A bricked chip that shows up as `WL80UBOOT` needs a computer and jl-uboot-tool;
-FM-SWITCH cannot help there.
+FM-1 Swap cannot help there.
 
 ## Layout
 
@@ -130,9 +132,9 @@ native/fm1-jni/      JNI wrapper around fm1-emu's machine (Rust), built into lib
 
 ## Credits
 
-This Android app exists because of [ocean](https://github.com/ocean)'s original
-[FM-SWITCH](https://github.com/ocean/FM-SWITCH) (MIT), and the
-[FM1Kit](https://github.com/ocean/FM1Kit) protocol library that talks to the FM-1.
+The iOS app is [ocean](https://github.com/ocean)'s original
+[FM-SWITCH](https://github.com/ocean/FM-SWITCH) (MIT). The protocol library in `fm1kit/`
+follows ocean's [FM1Kit](https://github.com/ocean/FM1Kit).
 
 Also:
 

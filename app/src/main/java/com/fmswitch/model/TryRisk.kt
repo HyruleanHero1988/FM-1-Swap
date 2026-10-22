@@ -98,5 +98,5 @@ fun riskWarning(names: List<String>): String {
         else -> unique.dropLast(1).joinToString(", ") + " and " + unique.last()
     }
     val pronoun = if (unique.size > 1) "them" else "it"
-    return "$subject failed to start in the emulator, so it is extremely risky to flash $pronoun to your FM-1. Proceed at your own risk."
+    return "$subject failed to start on the virtual FM-1, so it is extremely risky to flash $pronoun to your FM-1. Proceed at your own risk."
 }

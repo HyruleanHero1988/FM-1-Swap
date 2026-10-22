@@ -140,8 +140,8 @@ object RescueMode {
         "melodee" -> "Hold OCT− while switching on (from 1.3.5)"
         "fimba", "fumi", "hyp1", "redtail-hyp", "redtail-lof", "redtail-eco", "redtail-grav" ->
             "Hold OCT− and OCT+ for 5 s while it runs"
-        "felucca" -> "None: OCT− at switch-on starts it as usual (tried on 1.6.1)"
-        "mvave-official" -> "None: OCT− at switch-on starts it as usual (tried on V15)"
+        "felucca" -> "No USB recovery on 1.6.1. Holding OCT− while switching on starts it as usual."
+        "mvave-official" -> "No USB recovery on V15. Holding OCT− while switching on starts it as usual."
         else -> null
     }
 }
@@ -201,7 +201,7 @@ fun officialCatalogueEntry(): CatalogueEntry = CatalogueEntry(
     name = "FM-1 V15",
     author = "M-VAVE",
     kinds = listOf("official"),
-    what = "M-VAVE's official FM-1 firmware. Bundled with the app (Apache-2.0, unmodified from fm1_open) so you can always go back.",
+    what = "M-VAVE's official FM-1 firmware. It comes with the app, so you can always go back.",
     version = "V15",
     product = "FM-1_015",
     size = 699_956,

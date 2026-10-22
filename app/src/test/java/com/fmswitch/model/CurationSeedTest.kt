@@ -34,7 +34,17 @@ class CurationSeedTest {
     @Test
     fun seedRunsOnce() {
         assertTrue(CurationSeed.shouldApply(0))
+        assertTrue(CurationSeed.shouldApply(1))
         assertFalse(CurationSeed.shouldApply(CurationSeed.VERSION))
+    }
+
+    @Test
+    fun untouchedStarterListIsClearedSoFavoritesBeginUnset() {
+        assertEquals(emptyList<String>(), CurationSeed.favoritesAfterUpgrade(1, CurationSeed.IDS))
+        assertEquals(emptyList<String>(), CurationSeed.favoritesAfterUpgrade(0, emptyList()))
+        val edited = listOf("sloop", "felucca")
+        assertEquals(edited, CurationSeed.favoritesAfterUpgrade(1, edited))
+        assertEquals(CurationSeed.IDS, CurationSeed.favoritesAfterUpgrade(CurationSeed.VERSION, CurationSeed.IDS))
     }
 
     private fun snapshotFile(): File {

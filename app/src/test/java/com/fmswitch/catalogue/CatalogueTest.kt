@@ -175,6 +175,26 @@ class CatalogueBuilderTest {
     }
 
     @Test
+    fun openingOrderLeadsUntilSomeoneFavorites() {
+        val entries = listOf(
+            CatalogueEntry(id = "obscure", name = "BEETLE"),
+            CatalogueEntry(id = "sloop", name = "SLOOP"),
+            CatalogueEntry(id = "felucca", name = "Felucca"),
+            CatalogueEntry(id = "fm1-editor-baud-girl", name = "Baud Girl"),
+        )
+        val ordered = CatalogueOrder.apply(
+            entries,
+            FirmwareSort.CURATION,
+            emptyList(),
+            listOf("fm1-editor-baud-girl", "sloop", "felucca"),
+        )
+        assertEquals(
+            listOf("fm1-editor-baud-girl", "sloop", "felucca", "obscure"),
+            ordered.map { it.id },
+        )
+    }
+
+    @Test
     fun nameAuthorAndNewestSortsIgnorePopularity() {
         val entries = listOf(
             CatalogueEntry(id = "sloop", name = "SLOOP", author = "Zed", date = "2020-01-01"),

@@ -77,7 +77,7 @@ class AppSettings(private val prefs: SharedPreferences) {
     var backgroundEmulator: Boolean
         get() = prefs.getBoolean("backgroundEmulator", false)
         set(value) { prefs.edit().putBoolean("backgroundEmulator", value).apply() }
-    /** Catalogue ids, first in this list is the top of MY CURATION. */
+    /** Catalogue ids the user has favorited. First in this list sits highest. */
     var curation: List<String>
         get() = prefs.getString("curation", null).orEmpty().lineSequence().filter { it.isNotBlank() }.toList()
         set(value) { prefs.edit().putString("curation", value.joinToString("\n")).apply() }
@@ -90,9 +90,9 @@ class AppSettings(private val prefs: SharedPreferences) {
         set(value) { prefs.edit().putString("firmwareSort", value.id).apply() }
 
     init {
-        if (CurationSeed.shouldApply(prefs.getInt("curationSeed", 0))) {
-            curation = CurationSeed.IDS
-            firmwareSort = FirmwareSort.CURATION
+        val stored = prefs.getInt("curationSeed", 0)
+        if (CurationSeed.shouldApply(stored)) {
+            curation = CurationSeed.favoritesAfterUpgrade(stored, curation)
             prefs.edit().putInt("curationSeed", CurationSeed.VERSION).apply()
         }
     }

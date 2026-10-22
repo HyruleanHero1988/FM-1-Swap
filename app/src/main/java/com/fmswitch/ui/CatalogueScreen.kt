@@ -40,6 +40,7 @@ import com.fmswitch.catalogue.CatalogueSearch
 import com.fmswitch.catalogue.FirmwareSort
 import com.fmswitch.catalogue.RescueMode
 import com.fmswitch.model.AppViewModel
+import com.fmswitch.model.CurationSeed
 import com.fmswitch.model.StoredFirmware
 import com.fmswitch.theme.LocalPhosphor
 import com.fmswitch.theme.MonoText
@@ -71,7 +72,7 @@ fun CatalogueScreen(model: AppViewModel) {
             (!model.settings.curatedOnly || entry.id in curatedIds) &&
             CatalogueSearch.matches(entry, search)
     }
-    val visible = CatalogueOrder.apply(matching, model.settings.firmwareSort, curation)
+    val visible = CatalogueOrder.apply(matching, model.settings.firmwareSort, curation, CurationSeed.IDS)
     if (selected != null) {
         val entry = model.catalogue.entry(selected!!.id) ?: selected!!
         FirmwareDetail(model, entry) { selected = null }
@@ -101,7 +102,7 @@ fun CatalogueScreen(model: AppViewModel) {
                 modifier = Modifier.weight(1f),
             )
             PixelButton(
-                if (curation.isEmpty()) "CURATED" else "CURATED ${curation.size}",
+                if (curation.isEmpty()) "FAVORITES" else "FAVORITES ${curation.size}",
                 compact = true,
                 prominent = model.settings.curatedOnly,
             ) { model.setCuratedOnly(!model.settings.curatedOnly) }
@@ -131,9 +132,9 @@ fun CatalogueScreen(model: AppViewModel) {
             MonoText(
                 when {
                     model.settings.curatedOnly && curation.isEmpty() ->
-                        "Your list is empty. Open a firmware and press KEEP, or turn CURATED off."
+                        "No favorites yet. Press FAVORITE on a firmware, or turn FAVORITES off."
                     model.settings.curatedOnly ->
-                        "Nothing in your list matches. Turn CURATED off to search the whole catalogue."
+                        "Nothing in your favorites matches. Turn FAVORITES off to search the whole list."
                     else ->
                         "No firmwares match. Refresh the list, or under SETUP turn on SHOW LISTINGS WITHOUT A PACKAGE."
                 },
@@ -177,7 +178,7 @@ fun CatalogueScreen(model: AppViewModel) {
                         }
                         Spacer(Modifier.height(4.dp))
                         PixelButton(
-                            if (entry.id in curatedIds) "KEPT" else "KEEP",
+                            if (entry.id in curatedIds) "FAVORITED" else "FAVORITE",
                             compact = true,
                             prominent = entry.id in curatedIds,
                         ) { model.toggleCurated(entry.id) }
@@ -259,15 +260,15 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
             },
         )
         if (keptAt >= 0) {
-            MonoText("In your list, place ${keptAt + 1} of ${curation.size}.", size = 14)
+            MonoText("Favorite ${keptAt + 1} of ${curation.size}.", size = 14)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 PixelButton("EARLIER", compact = true, enabled = keptAt > 0) { model.moveCuration(entry.id, earlier = true) }
                 PixelButton("LATER", compact = true, enabled = keptAt < curation.lastIndex) { model.moveCuration(entry.id, earlier = false) }
-                PixelButton("DROP", compact = true) { model.toggleCurated(entry.id) }
+                PixelButton("FAVORITED", compact = true, prominent = true) { model.toggleCurated(entry.id) }
             }
         } else {
-            PixelButton("KEEP", compact = true, prominent = true) { model.toggleCurated(entry.id) }
-            NoteText("KEEP adds this to your list.")
+            PixelButton("FAVORITE", compact = true, prominent = true) { model.toggleCurated(entry.id) }
+            NoteText("FAVORITE marks this firmware. Marked ones stay at the top, and FAVORITES shows only those.")
         }
         error?.let { MonoText(it, size = 14) }
         PixelPanel(title = "DETAILS") {

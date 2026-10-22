@@ -222,7 +222,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PixelButton("◄ BACK", compact = true, onClick = onBack)
+            PixelButton("◂ BACK", compact = true, onClick = onBack)
             Spacer(Modifier.weight(1f))
             if (entry.isOfficial) PixelTag("OFFICIAL")
             if (entry.beta) PixelTag("BETA", inverted = false)

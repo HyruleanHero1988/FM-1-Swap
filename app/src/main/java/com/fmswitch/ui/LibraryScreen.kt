@@ -74,7 +74,7 @@ fun LibraryScreen(model: AppViewModel) {
                 message = if (item.source == "official") {
                     "Official firmware verified and saved."
                 } else {
-                    "Saved ${item.name} (${item.product}). It isn't in the catalogue, so check where it came from."
+                    "Saved ${item.name} (${item.product}). It isn't in the list, so check where it came from."
                 }
             },
             onFailure = { message = it.message },
@@ -92,7 +92,7 @@ fun LibraryScreen(model: AppViewModel) {
                 picker.launch(arrayOf("*/*"))
             }
         }
-        NoteText("TRY plays a saved package on the virtual FM-1. FLASH writes it to a connected FM-1. Packages stay on the phone. M-VAVE's V15 is bundled and kept even if you clear the rest.")
+        NoteText("TRY plays one on the virtual FM-1. FLASH writes it to a connected FM-1. These stay on the phone. Clearing them keeps the bundled V15.")
         message?.let { MonoText(it, size = 14) }
         model.library.sortedItems.forEach { item ->
             Column(
@@ -122,7 +122,7 @@ fun LibraryScreen(model: AppViewModel) {
         }
         if (model.backups.items.isNotEmpty()) {
             PixelPanel(title = "BACKUPS") {
-                NoteText("Taken automatically before a flash, when the running firmware allows it: FM-1+VA presets and patterns, or a Felucca or SLOOP editor backup, plus a copy of that firmware when this phone already had the .fwsc.")
+                NoteText("Saved automatically before a flash, when the firmware allows it.")
                 model.backups.items.forEach { backup ->
                     Column(
                         Modifier
@@ -146,8 +146,8 @@ fun LibraryScreen(model: AppViewModel) {
                 }
             }
         }
-        PixelPanel(title = "CACHE") {
-            MonoText("${model.library.items.size} packages  ·  ${formattedBytes(model.library.items.sumOf { it.size })}", size = 14)
+        PixelPanel(title = "ON THIS PHONE") {
+            MonoText("${model.library.items.size} firmwares  ·  ${formattedBytes(model.library.items.sumOf { it.size })}", size = 14)
             PixelButton("CLEAR SAVED FIRMWARES") { confirmingClear = true }
             if (confirmingClear) {
                 NoteText("This keeps bundled V15 and deletes the rest.")
@@ -247,13 +247,13 @@ fun FlashConfirmSheet(
                     size = 15,
                 )
                 model.identity?.supportsBaudGirlBackup == true -> NoteText(
-                    "Before writing, FM-SWITCH will save the 128 presets and 16 patterns, the same dump Baud Girl's Device Manager uses, plus a copy of this firmware if this phone already has that .fwsc.",
+                    "Before writing, this saves the 128 presets and 16 patterns, and a copy of the firmware if it is already on this phone.",
                 )
                 model.backupOffer is BackupOffer.Felucca -> NoteText(
-                    "Before writing, FM-SWITCH will save a Felucca-style backup: the music now playing, the projects, user presets, settings and samples. That backup includes the FM6 voice bank only when the firmware lists it. Felucca itself leaves the bank out, so keep its .syx if you use one.",
+                    "Before writing, this saves the music now playing, the projects, your presets, settings and samples. The FM6 voice bank is included only when this firmware lists it. If you already keep Felucca's own backup, hold onto that too.",
                 )
                 model.backupOffer is BackupOffer.Sloop -> NoteText(
-                    "Before writing, FM-SWITCH will save a SLOOP-style backup: projects, presets, the FM6 bank, samples and settings, the same file the SLOOP web editor writes.",
+                    "Before writing, this saves the projects, presets, FM6 bank, samples and settings.",
                 )
                 switching -> {
                     MonoText(
@@ -267,12 +267,12 @@ fun FlashConfirmSheet(
             when (probe) {
                 FlashProbe.Idle, is FlashProbe.Checking -> {
                     MonoText(
-                        if (probe is FlashProbe.Checking) "Checking ${probe.name} in the emulator…"
-                        else "Checking this firmware in the emulator…",
+                        if (probe is FlashProbe.Checking) "Checking whether ${probe.name} starts…"
+                        else "Checking whether this firmware starts…",
                         size = 15,
                     )
                     PixelProgressBar(null)
-                    NoteText("A package TRY has never settled is booted silently before it can be written. Cancel if you don't want to wait.")
+                    NoteText("Cancel if you don't want to wait.")
                 }
                 is FlashProbe.Settled -> {
                     probe.note?.let { MonoText(it, size = 14) }
@@ -328,16 +328,11 @@ private fun RiskNotice(names: List<String>, understood: Boolean, onUnderstood: (
     ) {
         BasicText("RISK", style = pixelText(34.sp, bold = true, color = RiskRed))
         BasicText(riskWarning(names), style = monoText(17.sp, RiskRed))
-        BasicText(
-            "A later TRY that gets this firmware running clears this warning.",
-            style = monoText(14.sp, RiskSoft),
-        )
         PixelToggle("I UNDERSTAND", understood, onUnderstood)
     }
 }
 
 private val RiskRed = Color(0xFFFF3B30)
-private val RiskSoft = Color(0xFFFF8A80)
 private val RiskWash = Color(0xFF3A0C0C)
 
 @Composable

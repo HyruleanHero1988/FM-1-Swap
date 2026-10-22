@@ -100,10 +100,10 @@ class BaudGirlLibrarian(
                 connection.send(message)
                 val retry = waitReply(connection)
                 if (retry.status != 0) {
-                    throw FM1UpdateError.BackupRestoreMismatch("pattern write status ${retry.status}")
+                    throw FM1UpdateError.BackupRestoreMismatch("a pattern")
                 }
             } else if (reply.status != 0) {
-                throw FM1UpdateError.BackupRestoreMismatch("pattern write status ${reply.status}")
+                throw FM1UpdateError.BackupRestoreMismatch("a pattern")
             }
         }
         progress(messages.size, messages.size)
@@ -113,7 +113,7 @@ class BaudGirlLibrarian(
         val reply = request(connection, BaudGirlSysex.encodePresetRead(slot)) { decoded ->
             decoded.kind == BaudGirlSysex.KIND_PRESET && decoded.argument == slot
         }
-        if (reply.status != 0) throw FM1UpdateError.BackupFailed("preset ${slot + 1} was refused (status ${reply.status})")
+        if (reply.status != 0) throw FM1UpdateError.BackupFailed("preset ${slot + 1} was refused")
         if (reply.data.size != BaudGirlSysex.PRESET_REPLY_DATA) {
             throw FM1UpdateError.BackupFailed("preset ${slot + 1} came back the wrong size")
         }
@@ -128,7 +128,7 @@ class BaudGirlLibrarian(
         val reply = request(connection, BaudGirlSysex.encodeMemoryRead(address, length)) { decoded ->
             decoded.kind == BaudGirlSysex.KIND_MEMORY
         }
-        if (reply.status != 0) throw FM1UpdateError.BackupFailed("a memory read was refused (status ${reply.status})")
+        if (reply.status != 0) throw FM1UpdateError.BackupFailed("a read was refused")
         if (reply.data.size != length) throw FM1UpdateError.BackupFailed("a memory read came back the wrong size")
         return reply.data
     }
@@ -158,7 +158,7 @@ class BaudGirlLibrarian(
                 }
             }
         }
-        throw FM1UpdateError.BackupFailed("the FM-1 didn't answer a librarian request")
+        throw FM1UpdateError.BackupFailed("the FM-1 didn't answer")
     }
 
     private suspend fun waitReply(connection: MidiConnection): BaudGirlSysex.Reply {

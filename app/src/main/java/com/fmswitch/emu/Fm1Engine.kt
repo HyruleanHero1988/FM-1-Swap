@@ -78,14 +78,14 @@ class Fm1Engine(
     private fun boot() {
         Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
         if (!Fm1Native.available) {
-            status = Status.Stopped("This build has no native emulator for this phone's CPU.")
+            status = Status.Stopped("This phone can't run the virtual FM-1.")
             return
         }
         val saved = saveFile?.takeIf { it.isFile }?.let { runCatching { it.readBytes() }.getOrNull() }
         var handle = Fm1Native.boot(pkg, saved, mhz, true)
         if (handle == 0L && saved != null) handle = Fm1Native.boot(pkg, null, mhz, true)
         if (handle == 0L) {
-            status = Status.Stopped("The emulator could not unpack this package.")
+            status = Status.Stopped("This firmware couldn't be opened.")
             return
         }
         val track = openTrack()
@@ -95,7 +95,7 @@ class Fm1Engine(
             track.play()
             run(handle, track, saved)
         } catch (error: Throwable) {
-            status = Status.Stopped(error.message ?: "The emulator stopped.")
+            status = Status.Stopped(error.message ?: "The virtual FM-1 stopped.")
         } finally {
             runCatching { track.stop() }
             track.release()
@@ -132,7 +132,7 @@ class Fm1Engine(
             val made = Fm1Native.render(handle, block, budget)
             busyNanos += System.nanoTime() - t0
             if (made < 0) {
-                status = Status.Stopped("The firmware stopped (the emulator hit something it can't run).")
+                status = Status.Stopped("This firmware stopped. The virtual FM-1 can't run this part of it.")
                 return
             }
             if (!started) {
@@ -218,10 +218,8 @@ class Fm1Engine(
         private const val INSNS_PER_MHZ_PER_BLOCK = 20_000
         private const val NEVER_STARTED_MS = 6_000L
         const val NEVER_STARTED =
-            "This firmware never got going: after 6 emulated seconds it has made no sound and drawn nothing. " +
-                "It waits on FM-1 hardware that fm1-emu doesn't model yet, and a real FM-1 may run it fine. " +
-                "If there's an AUTHOR'S EMU button, the publisher's own simulator can play it " +
-                "(M-VAVE's Official Open runs in their FM1 Workbench)."
+            "This firmware didn't start here. It made no sound and drew nothing. A real FM-1 may still run it. " +
+                "If there's an AUTHOR'S EMU button, that can play it."
         private const val FRAME_NANOS = 33_000_000L
         private const val SAVE_NANOS = 3_000_000_000L
 

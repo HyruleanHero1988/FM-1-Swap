@@ -48,6 +48,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -142,6 +145,7 @@ fun EmulatorScreen(
     }
 
     if (landscape) {
+        HideSystemBars()
         // The panel keeps the FM-1's shape and sits against the far edge. Every other
         // control is clipped to the leftover strip, so it cannot land on the knobs or the screen.
         BoxWithConstraints(Modifier.fillMaxSize().background(theme.background)) {
@@ -242,6 +246,25 @@ fun EmulatorScreen(
                     slot?.let { running(it) }
                 }
             }
+        }
+    }
+}
+
+/** Sideways TRY hides the status and navigation bars. Turning upright, or leaving TRY, brings them back. A swipe from the screen edge shows them for a moment. */
+@Composable
+private fun HideSystemBars() {
+    val view = LocalView.current
+    DisposableEffect(view) {
+        val window = (view.context as? Activity)?.window
+        val controller = window?.let { WindowInsetsControllerCompat(it, view) }
+            ?: return@DisposableEffect onDispose {}
+        val previous = controller.systemBarsBehavior
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        controller.hide(WindowInsetsCompat.Type.systemBars())
+        onDispose {
+            controller.show(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior = previous
         }
     }
 }
@@ -385,7 +408,7 @@ private fun RunningEmulator(
     if (!expand) {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             MonoText(
-                "Tap keys and buttons (several at once is fine); drag a knob up or down to turn it, MASTER for volume. Sound comes from this phone. Turn it sideways for a bigger panel.",
+                "Tap keys and buttons (several at once is fine); drag a knob up or down to turn it, MASTER for volume. Sound comes from this phone. Turn it sideways for a bigger panel, and the clock and notification icons move off the screen.",
                 size = 13,
             )
             MonoText(

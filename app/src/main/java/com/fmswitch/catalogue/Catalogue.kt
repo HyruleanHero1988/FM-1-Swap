@@ -132,16 +132,16 @@ object HubFeed {
 
 object RescueMode {
     fun summary(id: String): String? = when (id) {
-        "choralroot" -> "Hold OCT− while switching on (from 0.16)"
+        "choralroot" -> "Hold OCT\u2212 while switching on (from 0.16)"
         "dinghy", "etch", "floyd", "ghoulbox", "jangada", "sloop", "sloopbanks", "sloopdx", "winampfm", "zp12",
         "fm1-editor-clipper",
         ->
-            "Hold OCT− while switching on"
-        "melodee" -> "Hold OCT− while switching on (from 1.3.5)"
+            "Hold OCT\u2212 while switching on"
+        "melodee" -> "Hold OCT\u2212 while switching on (from 1.3.5)"
         "fimba", "fumi", "hyp1", "redtail-hyp", "redtail-lof", "redtail-eco", "redtail-grav" ->
-            "Hold OCT− and OCT+ for 5 s while it runs"
-        "felucca" -> "No USB recovery on 1.6.1. Holding OCT− while switching on starts it as usual."
-        "mvave-official" -> "No USB recovery on V15. Holding OCT− while switching on starts it as usual."
+            "Hold OCT\u2212 and OCT+ for 5 s while it runs"
+        "felucca" -> "No USB recovery on 1.6.1. Holding OCT\u2212 while switching on starts it as usual."
+        "mvave-official" -> "No USB recovery on V15. Holding OCT\u2212 while switching on starts it as usual."
         else -> null
     }
 }
@@ -151,9 +151,9 @@ object SafetyNotice {
     const val TEXT =
         "Not affiliated with M-Vave. Though this utility makes every attempt to correctly reset and safely flash your device, flashing custom firmware is at your own risk."
     const val RECOVERY =
-        "If your FM-1 won't start, some firmwares can start it in USB recovery mode if you hold down the \"OCT−\" key while switching it on. Then connect it and flash a firmware from the SAVED screen. Not every firmware does this, and if yours doesn't, recovery needs a computer: SETUP says more."
+        "If your FM-1 won't start, some firmwares can start it in USB recovery mode if you hold down the \"OCT\u2212\" key while switching it on. Then connect it and flash a firmware from the SAVED screen. Not every firmware does this, and if yours doesn't, recovery needs a computer: SETUP says more."
     const val ROM_RECOVERY =
-        "If the FM-1 won't start at all, not even in USB recovery mode, FM-SWITCH can't help. If a computer sees a USB device with UBOOT in its name (such as WL80UBOOT), the FM-1's chip is in its own download mode, and tools built on jl-uboot-tool can put the official firmware back. Some firmwares (Melodee, FuMi-1 and Hortator among them) publish one with instructions. If it never gets that far, recovery needs an FM-1 Transporter. FM-SWITCH hasn't tried any of these."
+        "If the FM-1 won't start at all, not even in USB recovery mode, FM-1 Swap can't help. If a computer sees a USB device with UBOOT in its name (such as WL80UBOOT), the FM-1's chip is in its own download mode, and tools built on jl-uboot-tool can put the official firmware back. Some firmwares (Melodee, FuMi-1 and Hortator among them) publish one with instructions. If it never gets that far, recovery needs an FM-1 Transporter. FM-1 Swap hasn't tried any of these."
     val ROM_LINKS = listOf(
         CatalogueLink("jl-uboot-tool", "https://github.com/kagaimiq/jl-uboot-tool"),
         CatalogueLink("FM-1 Transporter", "https://github.com/kurogedelic/FM-1-transporter"),
@@ -166,7 +166,7 @@ fun fetchBytes(url: String, maxBytes: Int? = null): ByteArray {
         readTimeout = 60_000
         instanceFollowRedirects = true
         requestMethod = "GET"
-        setRequestProperty("User-Agent", "FM-SWITCH-Android/0.1")
+        setRequestProperty("User-Agent", "FM-1-Swap/0.2")
         if (url.contains("api.github.com")) {
             setRequestProperty("Accept", "application/vnd.github+json")
             val token = System.getenv("GITHUB_TOKEN") ?: System.getenv("GH_TOKEN")

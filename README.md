@@ -9,6 +9,8 @@ FM-1 Swap is a Kotlin / Jetpack Compose app. It plays a firmware on the phone be
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
+If you found this useful, consider [tipping me on Ko-fi](https://ko-fi.com/hyruleanhero1988).
+
 ## Download
 
 How it works, what can go wrong, and the install link are on the site:

@@ -59,7 +59,7 @@ fun SettingsScreen(model: AppViewModel) {
             MonoText(SafetyNotice.ROM_RECOVERY, size = 14)
             SafetyNotice.ROM_LINKS.forEach { link ->
                 BasicText(
-                    "▸ ${link.label.uppercase()}",
+                    "\u25b8 ${link.label.uppercase()}",
                     style = pixelText(11.sp, bold = true, color = theme.bright),
                     modifier = Modifier
                         .padding(top = 8.dp)
@@ -184,25 +184,25 @@ fun SettingsScreen(model: AppViewModel) {
             NoteText("On, TRY keeps the firmware under SAVED. Off, it does not keep it. A firmware already on the phone is not downloaded again.")
         }
         PixelPanel(title = "BUILD") {
-            MonoText("FM-SWITCH  ${BuildConfig.VERSION_NAME}", size = 14)
+            MonoText("FM-1 SWAP  ${BuildConfig.VERSION_NAME}", size = 14)
             NoteText("If a new download says App not installed, uninstall this one once, then install the new file. After that, later downloads install over this one.")
         }
         PixelPanel(title = "CREDITS") {
             MonoText(
-                "Android port of ocean's FM-SWITCH for the M-VAVE FM-1. Protocol from FM1Kit (MIT) and the FM-1-RE notes (WTFPL). Bundled V15 is M-VAVE's, Apache-2.0, unmodified from fm1_open. The hosted patches are the FM-1's own four banks, captured by KingParamount, and Aquanode's CC0 banks. TRY runs Joakim Eriksson's fm1-emu (MIT), compiled into the app. Pixel fonts: Silkscreen, Departure Mono and VT323 (SIL OFL). Not affiliated with M-VAVE.",
+                "FM-1 Swap for the M-VAVE FM-1. The iOS app is ocean's FM-SWITCH. Protocol from FM1Kit (MIT) and the FM-1-RE notes (WTFPL). Bundled V15 is M-VAVE's, Apache-2.0, unmodified from fm1_open. The hosted patches are the FM-1's own four banks, captured by KingParamount, and Aquanode's CC0 banks. TRY runs Joakim Eriksson's fm1-emu (MIT), compiled into the app. Pixel fonts: Silkscreen, Departure Mono and VT323 (SIL OFL). Not affiliated with M-VAVE.",
                 size = 14,
             )
             BasicText(
-                "▸ FM-SWITCH (iOS)",
+                "\u25b8 FM-SWITCH (iOS)",
                 style = pixelText(11.sp, bold = true, color = theme.bright),
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .clickable {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/HyruleanHero1988/FM-SWITCH")))
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/ocean/FM-SWITCH")))
                     },
             )
             BasicText(
-                "▸ FM1KIT",
+                "\u25b8 FM1KIT",
                 style = pixelText(11.sp, bold = true, color = theme.bright),
                 modifier = Modifier
                     .padding(top = 8.dp)
@@ -211,7 +211,7 @@ fun SettingsScreen(model: AppViewModel) {
                     },
             )
             BasicText(
-                "▸ FM1-EMU (TRY)",
+                "\u25b8 FM1-EMU (TRY)",
                 style = pixelText(11.sp, bold = true, color = theme.bright),
                 modifier = Modifier
                     .padding(top = 8.dp)

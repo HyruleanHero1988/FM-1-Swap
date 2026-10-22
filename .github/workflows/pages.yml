@@ -1,0 +1,72 @@
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Publish the site
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Point Pages at this workflow
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages" -f build_type=workflow \
+            || gh api --method PUT "repos/${GITHUB_REPOSITORY}/pages" -f build_type=workflow \
+            || true
+
+      - name: Assemble screenshots
+        run: |
+          python3 - << 'PY'
+          import base64, pathlib, shutil
+          root = pathlib.Path("docs/images/pieces")
+          out = pathlib.Path("docs/images")
+          names = sorted(p.name for p in root.iterdir() if p.is_dir())
+          expected = [
+              "try-baud-girl",
+              "try-clipper",
+              "try-official-open",
+              "try-sloop",
+          ]
+          if names != expected:
+              raise SystemExit(f"expected {expected}, found {names}")
+          for name in names:
+              text = "".join(p.read_text() for p in sorted((root / name).glob("*.txt")))
+              jpg = base64.b64decode(text)
+              if not jpg.startswith(b"\xff\xd8"):
+                  raise SystemExit(f"{name} is not a jpeg")
+              dest = out / f"{name}.jpg"
+              dest.write_bytes(jpg)
+              print(f"{dest.name} {len(jpg)}")
+          shutil.rmtree(root)
+          PY
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

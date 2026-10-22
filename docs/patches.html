@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FM-SWITCH — patches</title>
+  <title>FM-1 Swap — patches</title>
   <meta name="description" content="DX7 patches you can send to an M-VAVE FM-1. Official V15, FM-1+VA, and Official Open.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%230c0e0d' width='32' height='32'/%3E%3Ctext x='4' y='24' fill='%237be39a' font-family='monospace' font-size='22'%3EF%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -97,7 +97,7 @@
 <body>
   <header class="top">
     <div class="wrap">
-      <p class="mark"><a href="./">FM-SWITCH</a></p>
+      <p class="mark"><a href="./">FM-1 Swap</a></p>
       <h1>Patches you can send.</h1>
       <p>These are DX7 patches for an M-VAVE FM-1. SEND plays one. SEND BANK sends all 32, and you choose which bank on the FM-1 they replace. The phone app does the same thing from its PATCHES screen, over the USB cable. This page sends from a desktop browser that can see the FM-1.</p>
     </div>
@@ -138,7 +138,7 @@
 
     document.querySelector("#connect").addEventListener("click", async () => {
       if (!navigator.requestMIDIAccess) {
-        say("This browser can't send MIDI. Send the patch from the FM-SWITCH app, with the FM-1 plugged into the phone.");
+        say("This browser can't send MIDI. Send the patch from the FM-1 Swap app, with the FM-1 plugged into the phone.");
         return;
       }
       try {

@@ -129,7 +129,7 @@
   <header class="top">
     <div class="wrap">
       <a class="brand" href="./">
-        <img src="images/logo.png" alt="" width="208" height="160">
+        <img src="images/logo.png" alt="" width="192" height="192">
         <span class="mark">FM-1 Swap</span>
       </a>
       <h1>Patches you can send.</h1>
@@ -341,7 +341,7 @@
           say("Connect the FM-1 first. On a phone, use the app's PATCHES screen.");
           return;
         }
-        say("Sending…");
+        say("Sending\u2026");
         const voices = await decodeBank(file);
         const plan = messagesFor(voices, index);
         if (plan.error) {

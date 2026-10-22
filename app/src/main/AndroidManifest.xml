@@ -29,7 +29,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- This is the system "Open FM-SWITCH?" prompt on plug-in.
+            <!-- This is the system "Open FM-1 Swap?" prompt on plug-in.
                  The filter matches USB MIDI (class 1, subclass 3). The activity
                  must leave the UsbDevice closed: opening it takes the port from
                  the MIDI service, the FM-1 drops, and this prompt fires again. -->

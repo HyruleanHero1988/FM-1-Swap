@@ -158,7 +158,7 @@ fun EmulatorScreen(
             ) {
                 when (prepared) {
                     EmulatorPackage.Preparing -> MonoText(
-                        "FETCHING THE PACKAGE YOU WOULD FLASH…",
+                        "GETTING THIS FIRMWARE…",
                         size = 13,
                         dim = true,
                         modifier = Modifier.padding(24.dp),
@@ -167,7 +167,7 @@ fun EmulatorScreen(
                         Modifier.padding(24.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        MonoText("Couldn't get this firmware's package: ${prepared.message}", size = 14)
+                        MonoText("Couldn't get this firmware: ${prepared.message}", size = 14)
                         PixelButton("RETRY", compact = true, onClick = onRetry)
                     }
                     is EmulatorPackage.Ready -> slot?.let { running(it) }
@@ -230,9 +230,9 @@ fun EmulatorScreen(
             BasicText(entry.name.uppercase(), style = pixelText(16.sp, bold = true, color = theme.bright, glow = true))
             saveError?.let { MonoText(it, size = 13) }
             when (prepared) {
-                EmulatorPackage.Preparing -> MonoText("FETCHING THE PACKAGE YOU WOULD FLASH…", size = 13, dim = true)
+                EmulatorPackage.Preparing -> MonoText("GETTING THIS FIRMWARE…", size = 13, dim = true)
                 is EmulatorPackage.Failed -> {
-                    MonoText("Couldn't get this firmware's package: ${prepared.message}", size = 14)
+                    MonoText("Couldn't get this firmware: ${prepared.message}", size = 14)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         PixelButton("RETRY", compact = true, onClick = onRetry)
                     }
@@ -390,14 +390,14 @@ private fun RunningEmulator(
             )
             MonoText(
                 if (chooseClock) {
-                    "If the sound gaps or crackles while the load is low, this firmware needs a faster emulated chip: raise CLOCK. If the load goes over 100%, lower it."
+                    "If the sound gaps or crackles, raise CLOCK. If the phone struggles to keep up, lower it."
                 } else {
-                    "This runs at 240 MHz, the same speed as a real FM-1. If the sound gaps or the load goes over 100%, SETUP ▸ CHOOSE EMULATOR CLOCK turns on 100, 160 and 240."
+                    "This runs at the same speed as a real FM-1. If the sound gaps, or the phone struggles, SETUP ▸ CHOOSE EMULATOR CLOCK turns on 100, 160 and 240."
                 },
                 size = 12,
             )
             MonoText(
-                "This runs the exact .fwsc a flash would write, on Joakim Eriksson's FM-1 emulator compiled into the app. What you save on the emulated FM-1 is kept for this package.",
+                "What you save here is kept for this firmware.",
                 size = 12,
                 dim = true,
             )

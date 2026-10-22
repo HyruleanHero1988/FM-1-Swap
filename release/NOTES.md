@@ -1,4 +1,4 @@
-Install **FM-SWITCH.apk** from this release. It is the release build, package `com.fmswitch`, and it is not debuggable. Do not install the debug APK on the `android-debug` tag, and do not install an APK from anywhere else. The signing key lives in this repository so that a later file from this same release can install over this one. Anyone else with that key could sign an update Android would accept.
+Install **FM-SWITCH.apk** from this release. On the phone the app is **FM-1 Swap**. The file keeps this name so it installs over the copy already there. It is the release build, package `com.fmswitch`, and it is not debuggable. Do not install the debug APK on the `android-debug` tag, and do not install an APK from anywhere else. The signing key lives in this repository so that a later file from this same release can install over this one. Anyone else with that key could sign an update Android would accept.
 
 If you already installed a debug build, uninstall it first. Its package is `com.fmswitch.debug`, and it will not update into this one.
 
@@ -8,7 +8,7 @@ The PATCHES screen sends a hosted DX7 patch, or a bank of 32, to a connected FM-
 
 ## What has been tried on a real FM-1
 
-One phone, one FM-1. It was running SLOOP 2.7.1, which reported `FM-1_900`. FM-SWITCH wrote Rainbow Mode 1.1.5-rb. The FM-1 came back and reported `FM-1_911`. That is the whole hardware record. It is not a test of every phone, cable, or firmware.
+One phone, one FM-1. It was running SLOOP 2.7.1, which reported `FM-1_900`. FM-1 Swap wrote Rainbow Mode 1.1.5-rb. The FM-1 came back and reported `FM-1_911`. That is the whole hardware record. It is not a test of every phone, cable, or firmware.
 
 ## If a flash goes wrong
 
@@ -18,7 +18,7 @@ Some firmwares can be started in USB recovery by holding **OCT−** while switch
 
 Official V15 and Felucca 1.6.1 do not. Holding OCT− while switching those on starts them normally. There is no recovery gesture.
 
-If the FM-1 will not start at all, not even in USB recovery, FM-SWITCH cannot repair it. A computer that sees a USB device with UBOOT in the name, such as `WL80UBOOT`, is seeing the chip's own download mode. Tools built on [jl-uboot-tool](https://github.com/kagaimiq/jl-uboot-tool) can put the official firmware back. Some firmwares, Melodee, FuMi-1 and Hortator among them, publish one with instructions. If the chip never gets that far, recovery needs an [FM-1 Transporter](https://github.com/kurogedelic/FM-1-transporter). This app has not tried either.
+If the FM-1 will not start at all, not even in USB recovery, FM-1 Swap cannot repair it. A computer that sees a USB device with UBOOT in the name, such as `WL80UBOOT`, is seeing the chip's own download mode. Tools built on [jl-uboot-tool](https://github.com/kagaimiq/jl-uboot-tool) can put the official firmware back. Some firmwares, Melodee, FuMi-1 and Hortator among them, publish one with instructions. If the chip never gets that far, recovery needs an [FM-1 Transporter](https://github.com/kurogedelic/FM-1-transporter). This app has not tried either.
 
 ## Pictures
 

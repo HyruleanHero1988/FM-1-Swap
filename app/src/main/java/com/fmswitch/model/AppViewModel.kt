@@ -220,6 +220,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     var emulatorPackage by mutableStateOf<EmulatorPackage>(EmulatorPackage.Preparing)
         private set
     var flashProbe by mutableStateOf<FlashProbe>(FlashProbe.Idle)
+    private var probeGeneration = 0
     var backupOffer by mutableStateOf<BackupOffer>(BackupOffer.Unknown)
         private set
     private var emulatorJob: Job? = null
@@ -361,10 +362,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Boot every selected package that TRY has never settled, silently, at the real FM-1 clock.
      * A package that fails to start is flagged. One that already failed a TRY, foreground or not, is named
-     * without being booted again. Leaving the sheet cancels the probe and does not record a result.
+     * without being booted again. Leaving the sheet, or SKIP CHECK, cancels the probe and does not record
+     * a result for a boot still running.
      */
     fun beginFlashProbe(steps: List<StoredFirmware>) {
         probeJob?.cancel()
+        val generation = ++probeGeneration
         val plan = planFlashTry(steps.map { it.sha256 to it.name }, tryLedger::verdict)
         if (plan.probe.isEmpty()) {
             flashProbe = FlashProbe.Settled(plan.failedNames)
@@ -375,6 +378,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         probeJob = viewModelScope.launch {
             val failed = plan.failedNames.toMutableList()
             for (sha in plan.probe) {
+                if (generation != probeGeneration) return@launch
                 val item = bySha[sha] ?: continue
                 flashProbe = FlashProbe.Checking(item.name)
                 val started = try {
@@ -383,19 +387,32 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {
+                    if (generation != probeGeneration) return@launch
                     flashProbe = FlashProbe.Settled(failed, error.userMessage())
                     return@launch
                 }
+                if (generation != probeGeneration) return@launch
                 if (started) tryLedger.note(sha, started = true) else {
                     tryLedger.note(sha, started = false)
                     failed += item.name
                 }
             }
+            if (generation != probeGeneration) return@launch
             flashProbe = FlashProbe.Settled(failed)
         }
     }
 
+    /** Stop the virtual start check and leave already-known failures on the sheet. */
+    fun skipFlashProbe(steps: List<StoredFirmware>) {
+        probeGeneration++
+        probeJob?.cancel()
+        probeJob = null
+        val failed = planFlashTry(steps.map { it.sha256 to it.name }, tryLedger::verdict).failedNames
+        flashProbe = FlashProbe.Settled(failed)
+    }
+
     fun cancelFlashProbe() {
+        probeGeneration++
         probeJob?.cancel()
         probeJob = null
         flashProbe = FlashProbe.Idle

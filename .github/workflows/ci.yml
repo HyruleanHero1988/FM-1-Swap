@@ -179,3 +179,5 @@ jobs:
               --notes-file release/NOTES.md \
               --latest
           fi
+
+# Release screenshots are on main.

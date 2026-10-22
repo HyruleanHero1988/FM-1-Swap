@@ -59,12 +59,17 @@
     .brand .mark { margin: 0; font-size: clamp(40px, 7vw, 60px); }
     h1 {
       font-family: VT323, monospace;
-      font-size: clamp(34px, 5.5vw, 64px);
+      font-size: clamp(28px, 4.4vw, 36px);
       font-weight: 400;
-      line-height: 0.95;
+      line-height: 1.05;
       margin: 0 0 18px;
       color: var(--green);
       text-shadow: 0 0 18px rgba(123, 227, 154, 0.25);
+    }
+    h1 span { display: block; }
+    @media (min-width: 1000px) {
+      h1 { font-size: 36px; }
+      h1 span { white-space: nowrap; }
     }
     .points {
       display: grid;
@@ -223,13 +228,16 @@
   <header class="top">
     <div class="wrap">
       <a class="brand" href="./">
-        <img src="images/logo.png" alt="" width="208" height="160">
+        <img src="images/logo.png" alt="" width="192" height="192">
         <span class="mark">FM-1 Swap</span>
       </a>
-      <h1>Preview and install firmware on an FM-1 from your Android phone, no internet required.</h1>
+      <h1>
+        <span>Preview and install firmware on an FM-1 from your Android phone.</span>
+        <span>Swap firmware on the go, no computer or internet required!</span>
+      </h1>
       <ul class="points">
         <li><strong>Preview</strong> Hear a firmware on the phone before you write it.</li>
-        <li><strong>Android</strong> Made for a phone with Android 8 or newer.</li>
+        <li><strong>Backups</strong> A copy is saved on the phone before the write, when the firmware can give one.</li>
         <li><strong>Offline</strong> Swap firmwares saved on the phone, with no connection.</li>
       </ul>
       <p class="lede">It plugs into an M-VAVE FM-1 with a USB cable. It is not affiliated with M-VAVE. Flashing custom firmware can leave the instrument unable to start.</p>

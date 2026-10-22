@@ -118,12 +118,12 @@ fun SettingsScreen(model: AppViewModel) {
                 model.settings.chooseEmulatorClock = it
                 model.bumpTheme()
             }
-            NoteText("Off, TRY runs at 240 MHz, the same speed as a real FM-1, and the clock stays off the TRY screen. On, TRY offers 100, 160 and 240, remembered per firmware. Lower it when the sound gaps or the load goes over 100%.")
+            NoteText("Off, TRY runs at the same speed as a real FM-1, and the clock stays off the TRY screen. On, TRY offers 100, 160 and 240, remembered per firmware. Lower it when the sound gaps or the phone struggles.")
             PixelToggle("RUN EMULATOR IN BACKGROUND", model.settings.backgroundEmulator) {
                 model.settings.backgroundEmulator = it
                 model.bumpTheme()
             }
-            NoteText("Off, TRY stops when you switch away or the screen turns off. On, it keeps sounding until you leave the TRY screen. Backing out of the emulator always stops it, even with this on. Turning the phone does not: the panel changes shape and the firmware keeps running.")
+            NoteText("Off, TRY stops when you switch away or the screen turns off. On, it keeps sounding until you leave TRY. Leaving TRY always stops it. Turning the phone does not: the panel changes shape and the firmware keeps running.")
         }
         PixelPanel(title = "CONNECTION") {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -139,29 +139,29 @@ fun SettingsScreen(model: AppViewModel) {
                     }
                 }
             }
-            NoteText("A real FM-1 talks class-compliant USB-MIDI. Plug straight into the phone if you can; hubs often hide the ports. Once the FM-1 answers, FM-SWITCH keeps that port open so the chip doesn't drop USB and blink on and off. Close other MIDI apps first. SIMULATED FM-1 is only a protocol dummy for flashing tests. To play a firmware, open it on FIRMWARE and press TRY.")
+            NoteText("Plug the FM-1 straight into the phone if you can. Hubs often hide it. Close other MIDI apps first. Once it answers, leave this app open so the connection doesn't blink on and off. SIMULATED FM-1 is not a synth. It stands in for an FM-1 so you can try a flash. To hear a firmware, open it on FIRMWARE and press TRY.")
             if (model.settings.transportKind == TransportKind.SIMULATED) {
                 PixelToggle("START IN USB RECOVERY MODE", model.settings.simulatedRecoveryMode) {
                     model.settings.simulatedRecoveryMode = it
                     model.configureTransport()
                     model.bumpTheme()
                 }
-                PixelToggle("PULL THE CABLE AT 45%", model.settings.simulatedCablePull) {
+                PixelToggle("INTERRUPT THE PRETEND FLASH HALFWAY", model.settings.simulatedCablePull) {
                     model.settings.simulatedCablePull = it
                     model.configureTransport()
                     model.bumpTheme()
                 }
-                PixelToggle("READ BACKWARDS, LIKE V15", model.settings.simulatedReadsBackwards) {
+                PixelToggle("READ THE WRITE BACK", model.settings.simulatedReadsBackwards) {
                     model.settings.simulatedReadsBackwards = it
                     model.configureTransport()
                     model.bumpTheme()
                 }
-                PixelToggle("VERIFY AFTER WRITING, LIKE FELUCCA", model.settings.simulatedVerifies) {
+                PixelToggle("CHECK THE WRITE AFTERWARDS", model.settings.simulatedVerifies) {
                     model.settings.simulatedVerifies = it
                     model.configureTransport()
                     model.bumpTheme()
                 }
-                PixelButton("RESET SIMULATED FM-1", enabled = !model.isWriting) { model.configureTransport() }
+                PixelButton("RESET THE STAND-IN", enabled = !model.isWriting) { model.configureTransport() }
             }
         }
         PixelPanel(title = "FLASHING") {
@@ -181,12 +181,11 @@ fun SettingsScreen(model: AppViewModel) {
                 model.settings.autoSaveTried = it
                 model.bumpTheme()
             }
-            NoteText("On, a package TRY downloads goes straight into SAVED, so playing it again or flashing it later costs no more data. Off, TRY keeps it only in a cache Android may clear. Either way, a package already on the phone is never downloaded twice.")
+            NoteText("On, TRY keeps the firmware under SAVED. Off, it does not keep it. A firmware already on the phone is not downloaded again.")
         }
         PixelPanel(title = "BUILD") {
             MonoText("FM-SWITCH  ${BuildConfig.VERSION_NAME}", size = 14)
-            MonoText("versionCode  ${BuildConfig.VERSION_CODE}", size = 14, dim = true)
-            NoteText("If a new APK says App not installed, uninstall this one once, then install the new file. After that, later APKs overlay.")
+            NoteText("If a new download says App not installed, uninstall this one once, then install the new file. After that, later downloads install over this one.")
         }
         PixelPanel(title = "CREDITS") {
             MonoText(

@@ -14,6 +14,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: android-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Test and assemble
@@ -173,12 +177,12 @@ jobs:
           fi
           shots=("$RUNNER_TEMP"/screenshots/*.jpg)
           if gh release view v0.2.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release edit v0.2.0 --repo "$GITHUB_REPOSITORY" --notes-file release/NOTES.md --latest
+            gh release edit v0.2.0 --repo "$GITHUB_REPOSITORY" --title "FM-1 Swap 0.2.0" --notes-file release/NOTES.md --latest
             gh release upload v0.2.0 FM-SWITCH.apk "${shots[@]}" --clobber --repo "$GITHUB_REPOSITORY"
           else
             gh release create v0.2.0 FM-SWITCH.apk "${shots[@]}" \
               --repo "$GITHUB_REPOSITORY" \
-              --title "FM-SWITCH 0.2.0" \
+              --title "FM-1 Swap 0.2.0" \
               --notes-file release/NOTES.md \
               --latest
           fi

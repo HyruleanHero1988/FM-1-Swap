@@ -68,6 +68,7 @@ fun RootScreen(model: AppViewModel) {
                     when (model.tab) {
                         AppTab.DEVICE -> DeviceScreen(model)
                         AppTab.FIRMWARE -> CatalogueScreen(model)
+                        AppTab.PATCHES -> PatchesScreen(model)
                         AppTab.LIBRARY -> LibraryScreen(model)
                         AppTab.SETTINGS -> SettingsScreen(model)
                     }

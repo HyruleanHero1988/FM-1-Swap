@@ -58,7 +58,7 @@ class FM1Updater(
 
     private fun probeMiss(port: MidiPortDescriptor, identity: FM1Identity?): String =
         if (identity == null) {
-            "${port.name}: opened, but nothing answered the FM-1 handshake."
+            "${port.name}: opened, but the FM-1 didn't answer."
         } else {
             "${port.name}: answered as ${identity.text}, which isn't what this step needs."
         }

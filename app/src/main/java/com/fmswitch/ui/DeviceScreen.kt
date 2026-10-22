@@ -66,7 +66,7 @@ fun DeviceScreen(model: AppViewModel) {
             if (model.identity?.isLoader == true) {
                 MonoText("UPDATE LOADER IS RUNNING", size = 14, dim = true)
             } else if (model.identity != null) {
-                MonoText("FIRMWARE IS RUNNING · USB-MIDI HELD", size = 14, dim = true)
+                MonoText("FIRMWARE IS RUNNING", size = 14, dim = true)
             }
             model.transportError?.let { MonoText(it, size = 13) }
             if (model.identity == null && !model.isScanning && model.ports.isNotEmpty()) {
@@ -77,7 +77,7 @@ fun DeviceScreen(model: AppViewModel) {
         if (identity == null) {
             PixelPanel(title = "CONNECT") {
                 MonoText(
-                    "Plug the FM-1 into this Android device with a USB-C cable. Class-compliant USB-MIDI is enough; no extra driver. SIMULATED FM-1 under SETUP is a protocol dummy for flashing tests, not a synth. To hear a firmware before you write it, open FIRMWARE and press TRY.",
+                    "Plug the FM-1 into this phone with a USB cable. No extra driver is needed. SIMULATED FM-1 under SETUP is not a synth. It stands in for an FM-1 so you can try a flash. To hear a firmware before you write it, open FIRMWARE and press TRY.",
                     size = 14,
                 )
             }
@@ -93,7 +93,7 @@ fun DeviceScreen(model: AppViewModel) {
             PixelPanel(title = "PROBABLY") {
                 MonoText(model.probablyRunning(identity), size = 15)
                 if (model.catalogue.entriesMatching(identity.text).size > 1 && model.history.lastInstall(identity.text) == null) {
-                    NoteText("Several firmwares share this ID, so the device can't say which one it is.")
+                    NoteText("Several firmwares report this, so this can't tell which one is running.")
                 }
             }
         }
@@ -109,7 +109,7 @@ fun DeviceScreen(model: AppViewModel) {
         if (identity != null) {
             PixelPanel(title = "MIDI CHECK") {
                 MonoText(
-                    "Sends a short C–E–G–C on channels 1 and 2, then asks the FM-1 who it is again. If you hear it, notes are getting through. If the identity still sticks, the USB-MIDI port didn't drop. Grooveboxes like SLOOP may stay quiet on a plain note — the handshake after is the cable test.",
+                    "Sends a short C–E–G–C. If you hear it, notes are getting through. Some firmwares, such as SLOOP, stay quiet on a plain note. The FM-1 answering again afterwards means the cable is fine.",
                     size = 14,
                 )
                 PixelButton(
@@ -133,13 +133,13 @@ fun DeviceScreen(model: AppViewModel) {
                     MidiCheck.Idle -> {}
                     is MidiCheck.Played -> {
                         val heard = if (check.simulated) {
-                            "The protocol dummy heard ${check.notesSent} MIDI events and still answers as ${check.identity}. It makes no sound — that's expected. On a real FM-1 you should hear the notes."
+                            "The stand-in heard the notes and still answers as ${check.identity}. It makes no sound. On a real FM-1 you should hear them."
                         } else if (check.loader) {
-                            "Notes went out and the update loader still answers. You won't hear a synth in loader mode."
+                            "Notes went out and the update loader still answers. You won't hear anything in this mode."
                         } else if (check.stillAnswering) {
-                            "Notes went out (${check.notesSent} events) and the FM-1 still answers as ${check.identity}. If you heard the arpeggio, USB MIDI is solid."
+                            "Notes went out and the FM-1 still answers as ${check.identity}. If you heard them, the cable is fine."
                         } else {
-                            "Notes were sent, but the FM-1 didn't answer the handshake afterwards. Unplug and scan again."
+                            "Notes were sent, but the FM-1 didn't answer afterwards. Unplug it and scan again."
                         }
                         MonoText(heard, size = 14)
                     }

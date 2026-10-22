@@ -149,7 +149,7 @@ private fun StatusLine(model: AppViewModel) {
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        BasicText("FM-SWITCH", style = pixelText(12.sp, bold = true, color = theme.bright))
+        BasicText("FM-1 SWAP", style = pixelText(12.sp, bold = true, color = theme.bright))
         Spacer(Modifier.weight(1f))
         BasicText(model.transportName, style = pixelText(9.sp, color = theme.muted))
         Spacer(Modifier.height(0.dp).padding(4.dp))
@@ -217,7 +217,7 @@ fun SafetyNoticeScreen(model: AppViewModel) {
             .padding(20.dp),
     ) {
         BasicText(
-            "FM-SWITCH",
+            "FM-1 SWAP",
             style = pixelText(28.sp, bold = true, color = theme.bright, glow = true),
             modifier = Modifier.padding(top = 40.dp, bottom = 22.dp),
         )

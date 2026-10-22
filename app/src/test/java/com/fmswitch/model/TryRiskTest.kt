@@ -55,11 +55,11 @@ class TryRiskTest {
     @Test
     fun theWarningNamesEveryFirmwareThatFailed() {
         assertEquals(
-            "Baud Girl failed to start in the emulator, so it is extremely risky to flash it to your FM-1. Proceed at your own risk.",
+            "Baud Girl failed to start on the virtual FM-1, so it is extremely risky to flash it to your FM-1. Proceed at your own risk.",
             riskWarning(listOf("Baud Girl")),
         )
         assertEquals(
-            "Baud Girl and V15 failed to start in the emulator, so it is extremely risky to flash them to your FM-1. Proceed at your own risk.",
+            "Baud Girl and V15 failed to start on the virtual FM-1, so it is extremely risky to flash them to your FM-1. Proceed at your own risk.",
             riskWarning(listOf("Baud Girl", "V15", "Baud Girl")),
         )
     }

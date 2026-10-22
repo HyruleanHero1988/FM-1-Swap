@@ -54,10 +54,10 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
 enum class AppTab(val title: String, val glyph: String) {
-    DEVICE("DEVICE", "▣"),
-    FIRMWARE("FIRMWARE", "≡"),
-    LIBRARY("SAVED", "▼"),
-    SETTINGS("SETUP", "◆"),
+    DEVICE("DEVICE", "\u25a3"),
+    FIRMWARE("FIRMWARE", "\u2261"),
+    LIBRARY("SAVED", "\u25bc"),
+    SETTINGS("SETUP", "\u25c6"),
 }
 
 sealed class FlashPhase {
@@ -75,8 +75,8 @@ sealed class FlashPhase {
         get() = when (this) {
             Preparing -> "CONNECTING"
             is BackingUp -> "BACKING UP"
-            is Staging -> "CHECKING PACKAGE"
-            WaitingForLoader -> "WAITING FOR LOADER"
+            is Staging -> "CHECKING THE FILE"
+            WaitingForLoader -> "RESTARTING"
             is Writing -> "WRITING"
             is Verifying -> "VERIFYING"
             Rebooting -> "REBOOTING"
@@ -486,7 +486,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 captureBackup()
             } catch (error: Exception) {
-                appendLog("✕ ${error.userMessage()}")
+                appendLog("\u2715 ${error.userMessage()}")
                 job = job?.copy(phase = FlashPhase.Failed(error.userMessage(), canResume = false))
                 return
             }
@@ -500,7 +500,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         for (index in startIndex until current.steps.size) {
             val item = current.steps[index]
             job = job?.copy(index = index, phase = FlashPhase.Preparing)
-            appendLog("▸ ${item.name} ${item.version} (${item.product})")
+            appendLog("\u25b8 ${item.name} ${item.version} (${item.product})")
             try {
                 val package_ = withContext(Dispatchers.IO) { library.loadPackage(item) }
                 simulated?.prepare(package_)
@@ -515,20 +515,20 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 identity = installed
                 history.record(item)
             } catch (error: Exception) {
-                appendLog("✕ ${error.userMessage()}")
+                appendLog("\u2715 ${error.userMessage()}")
                 job = job?.copy(phase = FlashPhase.Failed(error.userMessage(), isResumable(error)))
                 return
             }
         }
         job = job?.copy(phase = FlashPhase.Succeeded(identity?.text.orEmpty()))
-        appendLog("✓ Finished.")
+        appendLog("\u2713 Finished.")
         lastBackup?.let { appendLog("Backup kept on this phone: ${it.summary}.") }
     }
 
     private suspend fun captureBackup() {
         val current = identity
         if (current == null || current.isLoader) {
-            appendLog("No running firmware to back up (update loader).")
+            appendLog("Nothing to back up. The FM-1 is in its update loader.")
             return
         }
         job = job?.copy(phase = FlashPhase.BackingUp(0, 1))
@@ -544,14 +544,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             snapshot = null
             archive = null
-            appendLog("${current.text} has no preset dump this app can take. Keeping a firmware copy if this phone has one.")
+            appendLog("${current.text} has nothing this app can save from it. Keeping a firmware copy if this phone has one.")
         }
         val firmware = library.items.firstOrNull { it.product == current.text }
         val bytes = firmware?.let { item ->
             withContext(Dispatchers.IO) { runCatching { library.file(item).readBytes() }.getOrNull() }
         }
         if (snapshot == null && archive == null && (firmware == null || bytes == null)) {
-            appendLog("Nothing to keep: no matching .fwsc is saved on this phone.")
+            appendLog("Nothing to keep: this phone doesn't have a copy of that firmware.")
             lastBackup = null
             return
         }
@@ -568,7 +568,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             buildString {
                 append("Saved backup of ${saved.identity}")
                 if (saved.presetCount > 0) append(" (${saved.presetCount} presets, ${saved.patternCount} patterns)")
-                if (saved.archiveObjects > 0) append(" (${saved.archiveObjects} objects)")
+                if (saved.archiveObjects > 0) append(" (${saved.archiveObjects} parts)")
                 if (saved.firmwareName != null) append(" plus ${saved.firmwareName}")
                 append(".")
             },
@@ -589,10 +589,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             EditorLibrarian().capture(found.connection, identityText) { done, total -> postBackupProgress(done, total) }
         }
         if (archive == null) {
-            appendLog("$identityText has no editor backup this app can take. Keeping a firmware copy if this phone has one.")
+            appendLog("$identityText has no backup this app can take. Keeping a firmware copy if this phone has one.")
         } else {
             val samples = if (archive.objects.any { it.id >= 32 && it.bytes.isNotEmpty() }) ", including samples" else ""
-            appendLog("Backing up ${archive.objects.size} objects from ${archive.firmware} (${archive.kind.title} backup$samples).")
+            appendLog("Backing up ${archive.firmware} (${archive.kind.title} backup$samples).")
         }
         return archive
     }
@@ -615,13 +615,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             is UpdateEvent.Staging -> job = job?.copy(phase = FlashPhase.Staging(event.requests))
             UpdateEvent.WaitingForLoader -> {
                 job = job?.copy(phase = FlashPhase.WaitingForLoader)
-                appendLog("Package accepted; rebooting into the update loader.")
+                appendLog("The FM-1 accepted it and is restarting into update mode.")
             }
             is UpdateEvent.LoaderFound -> appendLog("Loader: ${event.identity.text}")
             is UpdateEvent.Writing -> job = job?.copy(phase = FlashPhase.Writing(event.fraction))
             is UpdateEvent.Checking -> {
                 if (job?.phase !is FlashPhase.Verifying) {
-                    appendLog("Written; the loader is reading it back to check it.")
+                    appendLog("Written. The FM-1 is reading it back to check it.")
                 }
                 job = job?.copy(phase = FlashPhase.Verifying(event.fraction))
             }
@@ -925,8 +925,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 append(matches.joinToString { "${it.name} ${it.version ?: ""}" }.trim())
                 append(". ")
             }
-            if (OpenFirmware.isOpen(identity.text)) append("M-VAVE's open-source firmware (FM1 Open), or a build of it. ")
-            if (isEmpty()) append("No saved or catalogue firmware reports this ID.")
+            if (OpenFirmware.isOpen(identity.text)) append("M-VAVE's FM1 Open, or a build of it. ")
+            if (isEmpty()) append("This app doesn't know a firmware that reports that.")
         }
     }
 

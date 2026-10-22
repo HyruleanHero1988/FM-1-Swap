@@ -54,10 +54,10 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
 enum class AppTab(val title: String, val glyph: String) {
-    DEVICE("DEVICE", "\u25a3"),
-    FIRMWARE("FIRMWARE", "\u2261"),
-    LIBRARY("SAVED", "\u25bc"),
-    SETTINGS("SETUP", "\u25c6"),
+    DEVICE("DEVICE", "▣"),
+    FIRMWARE("FIRMWARE", "≡"),
+    LIBRARY("SAVED", "▼"),
+    SETTINGS("SETUP", "◆"),
 }
 
 sealed class FlashPhase {
@@ -486,7 +486,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 captureBackup()
             } catch (error: Exception) {
-                appendLog("\u2715 ${error.userMessage()}")
+                appendLog("✕ ${error.userMessage()}")
                 job = job?.copy(phase = FlashPhase.Failed(error.userMessage(), canResume = false))
                 return
             }
@@ -500,7 +500,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         for (index in startIndex until current.steps.size) {
             val item = current.steps[index]
             job = job?.copy(index = index, phase = FlashPhase.Preparing)
-            appendLog("\u25b8 ${item.name} ${item.version} (${item.product})")
+            appendLog("▸ ${item.name} ${item.version} (${item.product})")
             try {
                 val package_ = withContext(Dispatchers.IO) { library.loadPackage(item) }
                 simulated?.prepare(package_)
@@ -515,13 +515,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 identity = installed
                 history.record(item)
             } catch (error: Exception) {
-                appendLog("\u2715 ${error.userMessage()}")
+                appendLog("✕ ${error.userMessage()}")
                 job = job?.copy(phase = FlashPhase.Failed(error.userMessage(), isResumable(error)))
                 return
             }
         }
         job = job?.copy(phase = FlashPhase.Succeeded(identity?.text.orEmpty()))
-        appendLog("\u2713 Finished.")
+        appendLog("✓ Finished.")
         lastBackup?.let { appendLog("Backup kept on this phone: ${it.summary}.") }
     }
 

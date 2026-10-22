@@ -1,4 +1,4 @@
-Install **FM-SWITCH.apk** from this release. On the phone the app is **FM-1 Swap**. The file keeps this name so it installs over the copy already there. It is the release build, package `com.fmswitch`, and it is not debuggable. Do not install the debug APK on the `android-debug` tag, and do not install an APK from anywhere else. The signing key lives in this repository so that a later file from this same release can install over this one. Anyone else with that key could sign an update Android would accept.
+Install **FM-1-Swap.apk** from this release. It is the release build, package `com.fmswitch`, and it is not debuggable. It installs over the copy already on the phone. Do not install the debug APK on the `android-debug` tag, and do not install an APK from anywhere else. The signing key lives in this repository so that a later file from this same release can install over this one. Anyone else with that key could sign an update Android would accept.
 
 If you already installed a debug build, uninstall it first. Its package is `com.fmswitch.debug`, and it will not update into this one.
 

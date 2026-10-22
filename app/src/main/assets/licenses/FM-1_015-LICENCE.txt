@@ -5,7 +5,7 @@ repository (https://github.com/m-vave/fm1_open, sdk/firmware/FM-1_015.fwsc, comm
 and M-VAVE distribute it under the Apache License, Version 2.0, as that repository's
 THIRD_PARTY.md says. SHA-256: db1642b2b6fa5c2cccb11ffd13878068bb28601678d3644049f99dc40e7edb8a
 
-Copyright (c) 珠海笙科智能科技有限公司 (M-VAVE). FM-SWITCH isn't made or endorsed by M-VAVE.
+Copyright (c) 珠海笙科智能科技有限公司 (M-VAVE). FM-1 Swap is independent of M-VAVE.
 
 The licence follows.
 

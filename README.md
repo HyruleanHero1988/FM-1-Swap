@@ -1,14 +1,11 @@
 # FM-1 Swap
 
 FM-1 Swap installs firmware on an M-VAVE FM-1 from an Android phone, over USB MIDI.
-The iOS app that did this first is [ocean](https://github.com/ocean)'s [FM-SWITCH](https://github.com/ocean/FM-SWITCH) (MIT).
-This Android app is its own Kotlin / Jetpack Compose project. Behaviour, protocol,
-catalogue, phosphor UI, and bundled V15 follow that iOS app.
-
-The firmware list ships in the
-app (hub, fm1-editor.com, and RedtailWorks, captured when this build was made). REFRESH
+The firmware list ships in the app (hub, fm1-editor.com, and RedtailWorks, captured when this build was made). REFRESH
 pulls a newer copy. Firmwares you save stay on the phone for offline flashing. M-VAVE's official V15 ships with the app (from
 [fm1_open](https://github.com/m-vave/fm1_open), Apache-2.0), so it's always there to go back to.
+
+FM-1 Swap is a Kotlin / Jetpack Compose app. It plays a firmware on the phone before a write, keeps a backup when the running firmware can give one, and sends DX7 patches to a connected FM-1. The idea of swapping FM-1 firmware from a phone started with [ocean](https://github.com/ocean)'s [FM-SWITCH](https://github.com/ocean/FM-SWITCH).
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
@@ -20,9 +17,8 @@ The same site hosts [DX7 patches](https://hyruleanhero1988.github.io/FM-1-Swap/p
 that the app's PATCHES screen, and a desktop browser, can send to a connected FM-1.
 
 Install [FM-1 Swap 0.2.0](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.2.0)
-(`FM-SWITCH.apk`). On the phone the app is called FM-1 Swap. The install file keeps the name
-`FM-SWITCH.apk` so it updates the copy already installed. That is the release build: package `com.fmswitch`, not debuggable.
-Sideload it on a phone. USB MIDI to the FM-1 does not work on an emulator.
+(`FM-1-Swap.apk`). That is the release build: package `com.fmswitch`, not debuggable.
+It installs over the copy already on the phone. Sideload it on a phone. USB MIDI to the FM-1 does not work on an emulator.
 
 If a debug build is already installed, uninstall it first. The debug package is
 `com.fmswitch.debug` and will not update into this one. After that, a newer APK
@@ -58,8 +54,8 @@ the app is closed. Leave the `UsbDevice` on that intent closed. `UsbManager.open
 again, which brings the prompt back. Plug it in, accept the prompt if Android shows it, and
 leave the DEVICE screen: once the identity sticks, the MIDI port is held open.
 
-The protocol library in `fm1kit/` is a Kotlin port of ocean's [FM1Kit](https://github.com/ocean/FM1Kit)
-(MIT), written from the [FM-1-RE](https://github.com/AL-255/FM-1-RE) notes (WTFPL). It contains
+The protocol library in `fm1kit/` speaks the FM-1's USB MIDI protocol, following [ocean's FM1Kit](https://github.com/ocean/FM1Kit)
+(MIT) and the [FM-1-RE](https://github.com/AL-255/FM-1-RE) notes (WTFPL). It contains
 no GPL installer code.
 
 Once the identity sticks, **DEVICE ▸ PLAY TEST NOTES** is the check that USB MIDI is
@@ -95,13 +91,13 @@ sdk.dir=/path/to/Android/sdk
 ## GitHub Actions
 
 `.github/workflows/ci.yml` runs on every push and pull request: it builds the native emulator,
-runs its tests and the protocol tests, then `assembleDebug` and `assembleRelease`. On `main` it publishes `FM-SWITCH-debug.apk` to the
-[android-debug](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/android-debug) tag and `FM-SWITCH.apk` (versionName 0.2.0) to
+runs its tests and the protocol tests, then `assembleDebug` and `assembleRelease`. On `main` it publishes `FM-1-Swap-debug.apk` to the
+[android-debug](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/android-debug) tag and `FM-1-Swap.apk` (versionName 0.2.0) to
 [v0.2.0](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.2.0). It also uploads the
 `app-debug` Actions artifact. You can retrigger it from the Actions tab with **Run workflow**.
 
-CI vendors the Gradle wrapper, bundled V15, and fonts (from the original
-[FM-SWITCH](https://github.com/ocean/FM-SWITCH) tree) before it runs Gradle, then uploads
+CI vendors the Gradle wrapper, bundled V15, and fonts (fetched from
+[ocean's FM-SWITCH](https://github.com/ocean/FM-SWITCH), where the idea started) before it runs Gradle, then uploads
 `app-debug`. The firmware list is the committed snapshot at
 `app/src/main/assets/catalogue/snapshot.json`; CI only rebakes it for that job if the
 file is missing. Enable Actions on the GitHub repo if the workflow is waiting for approval.
@@ -122,7 +118,7 @@ FM-1 Swap cannot help there.
 ## Layout
 
 ```
-fm1kit/     Kotlin port of the FM-1 protocol, packages, updater, simulated device
+fm1kit/     FM-1 protocol, packages, updater, simulated device
 app/        Jetpack Compose UI (API 26+)
   assets/firmware/   bundled M-VAVE V15 + Apache-2.0 notice
   assets/licenses/   font OFL and fm1-emu MIT notices
@@ -132,8 +128,8 @@ native/fm1-jni/      JNI wrapper around fm1-emu's machine (Rust), built into lib
 
 ## Credits
 
-The iOS app is [ocean](https://github.com/ocean)'s original
-[FM-SWITCH](https://github.com/ocean/FM-SWITCH) (MIT). The protocol library in `fm1kit/`
+The idea of swapping FM-1 firmware from a phone started with [ocean](https://github.com/ocean)'s
+[FM-SWITCH](https://github.com/ocean/FM-SWITCH) (MIT). The protocol in `fm1kit/`
 follows ocean's [FM1Kit](https://github.com/ocean/FM1Kit).
 
 Also:
@@ -148,7 +144,7 @@ Also:
 ## Licences
 
 - App and `fm1kit`: MIT
-- Original FM-SWITCH and FM1Kit: MIT, ocean
+- ocean's FM-SWITCH and FM1Kit: MIT, ocean
 - Bundled `FM-1_015.fwsc`: Apache-2.0, M-VAVE, unmodified from fm1_open
 - Fonts: SIL Open Font License
 - fm1-emu (compiled into `libfm1emu.so`): MIT, Joakim Eriksson

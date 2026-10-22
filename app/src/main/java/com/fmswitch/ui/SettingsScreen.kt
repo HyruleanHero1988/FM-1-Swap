@@ -189,11 +189,11 @@ fun SettingsScreen(model: AppViewModel) {
         }
         PixelPanel(title = "CREDITS") {
             MonoText(
-                "FM-1 Swap for the M-VAVE FM-1. The iOS app is ocean's FM-SWITCH. Protocol from FM1Kit (MIT) and the FM-1-RE notes (WTFPL). Bundled V15 is M-VAVE's, Apache-2.0, unmodified from fm1_open. The hosted patches are the FM-1's own four banks, captured by KingParamount, and Aquanode's CC0 banks. TRY runs Joakim Eriksson's fm1-emu (MIT), compiled into the app. Pixel fonts: Silkscreen, Departure Mono and VT323 (SIL OFL). Not affiliated with M-VAVE.",
+                "FM-1 Swap for the M-VAVE FM-1. The idea of swapping FM-1 firmware from a phone started with ocean. Protocol from FM1Kit (MIT) and the FM-1-RE notes (WTFPL). Bundled V15 is M-VAVE's, Apache-2.0, unmodified from fm1_open. The hosted patches are the FM-1's own four banks, captured by KingParamount, and Aquanode's CC0 banks. TRY runs Joakim Eriksson's fm1-emu (MIT), compiled into the app. Pixel fonts: Silkscreen, Departure Mono and VT323 (SIL OFL). Not affiliated with M-VAVE.",
                 size = 14,
             )
             BasicText(
-                "▸ FM-SWITCH (iOS)",
+                "▸ OCEAN",
                 style = pixelText(11.sp, bold = true, color = theme.bright),
                 modifier = Modifier
                     .padding(top = 8.dp)

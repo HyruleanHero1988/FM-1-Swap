@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draw Android launcher icons from FM-SWITCH's 32 x 32 pixel map."""
+"""Draw the FM-1 Swap launcher icons from the 32 x 32 pixel map."""
 
 import struct
 import zlib

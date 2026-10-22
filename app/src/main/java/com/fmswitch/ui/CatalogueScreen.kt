@@ -222,7 +222,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PixelButton("◂ BACK", compact = true, onClick = onBack)
+            PixelButton("◄ BACK", compact = true, onClick = onBack)
             Spacer(Modifier.weight(1f))
             if (entry.isOfficial) PixelTag("OFFICIAL")
             if (entry.beta) PixelTag("BETA", inverted = false)
@@ -236,12 +236,16 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
             placeholder = "NO SCREENSHOT YET",
         )
         entry.what?.let { MonoText(it, size = 15) }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PixelButton("TRY", prominent = true) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            PixelButton("TRY", prominent = true, modifier = Modifier.weight(1f)) {
                 model.openEmulator(entry)
             }
             if (stored == null && entry.isDownloadable) {
-                PixelButton(if (downloading) "SAVING" else "SAVE", enabled = !downloading) {
+                PixelButton(
+                    if (downloading) "SAVING" else "SAVE",
+                    enabled = !downloading,
+                    modifier = Modifier.weight(1f),
+                ) {
                     scope.launch {
                         error = null
                         model.save(entry).onFailure { error = it.message }
@@ -249,14 +253,14 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
                 }
             }
             if (stored != null) {
-                PixelButton("FLASH", prominent = true) { confirming = stored }
+                PixelButton("FLASH", prominent = true, modifier = Modifier.weight(1f)) { confirming = stored }
             }
         }
         NoteText(
             if (model.settings.autoSaveTried) {
-                "TRY plays this on the virtual FM-1 and keeps it under SAVED. It does not write to a connected FM-1."
+                "SAVE keeps a copy under SAVED without playing it. TRY plays it on the virtual FM-1 and keeps it too. Neither writes to a connected FM-1."
             } else {
-                "TRY plays this on the virtual FM-1 and does not keep it. SAVE keeps a copy under SAVED. Neither writes to a connected FM-1."
+                "SAVE keeps a copy under SAVED without playing it. TRY plays it on the virtual FM-1 and does not keep it. Neither writes to a connected FM-1."
             },
         )
         if (keptAt >= 0) {

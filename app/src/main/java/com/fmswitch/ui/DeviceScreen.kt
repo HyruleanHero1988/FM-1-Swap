@@ -77,7 +77,7 @@ fun DeviceScreen(model: AppViewModel) {
         if (identity == null) {
             PixelPanel(title = "CONNECT") {
                 MonoText(
-                    "Plug the FM-1 into this phone with a USB cable. No extra driver is needed. SIMULATED FM-1 under SETUP is not a synth. It stands in for an FM-1 so you can try a flash. To hear a firmware before you write it, open FIRMWARE and press TRY.",
+                    "Plug the FM-1 into this phone with a USB cable. No extra driver is needed. With the app closed, the phone can ask whether to open it. SIMULATED FM-1 under SETUP is not a synth. It stands in for an FM-1 so you can try a flash. To hear a firmware before you write it, open FIRMWARE and press TRY.",
                     size = 14,
                 )
             }

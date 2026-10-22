@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- USB Audio class, MIDI Streaming subclass. Matched against the device
+         or any interface, so a firmware that changes its vendor id still matches. -->
+    <usb-device class="1" subclass="3" />
+</resources>

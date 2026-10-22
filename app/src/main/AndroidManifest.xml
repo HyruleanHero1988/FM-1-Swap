@@ -29,11 +29,16 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- MIDI service owns the USB device. USB_DEVICE_ATTACHED would steal it
-                 and make the FM-1 appear, drop, and re-enumerate in a loop. -->
+            <!-- This is the system "Open FM-SWITCH?" prompt on plug-in.
+                 The filter matches USB MIDI (class 1, subclass 3). The activity
+                 must leave the UsbDevice closed: opening it takes the port from
+                 the MIDI service, the FM-1 drops, and this prompt fires again. -->
             <intent-filter>
-                <action android:name="android.media.midi.UsbMidiDeviceAttached" />
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
             </intent-filter>
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter" />
         </activity>
     </application>
 </manifest>

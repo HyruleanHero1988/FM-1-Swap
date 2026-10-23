@@ -211,6 +211,17 @@ fun SettingsScreen(model: AppViewModel) {
         }
         PixelPanel(title = "BUILD") {
             MonoText("FM-1 SWAP  ${BuildConfig.VERSION_NAME}", size = 14)
+            BasicText(
+                "▸ TIP ON KO-FI",
+                style = pixelText(11.sp, bold = true, color = theme.bright),
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .clickable {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse("https://ko-fi.com/hyruleanhero1988")),
+                        )
+                    },
+            )
             if (model.appUpdate != null) {
                 Spacer(Modifier.height(8.dp))
                 AppUpdateNotice(model, inSettings = true)

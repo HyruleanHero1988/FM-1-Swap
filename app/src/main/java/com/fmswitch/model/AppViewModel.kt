@@ -296,6 +296,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch { scan(force = true) }
     }
 
+    /** USB MIDI devices this app already has open for the real FM-1. TRY leaves those alone. */
+    fun claimedMidiDeviceIds(): Set<Int> =
+        (transport as? AndroidMidiTransport)?.claimedDeviceIds().orEmpty()
+
     fun scan(force: Boolean = false) {
         if (isWriting) return
         if (isScanning && !force) return

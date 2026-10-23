@@ -194,9 +194,6 @@
       border: 1px solid var(--line);
       padding: 10px;
     }
-    .shots figure:only-child {
-      max-width: 360px;
-    }
     figure img {
       display: block;
       width: 100%;
@@ -296,42 +293,25 @@
       </section>
 
       <section id="screens">
-        <h2>The five screens</h2>
-        <p>The bar along the bottom is DEVICE, FIRMWARE, PATCHES, SAVED, and SETUP. The top line shows whether a real FM-1 is connected, and the name it reports, such as <span class="mono">FM-1_900</span>.</p>
+        <h2>The four screens</h2>
+        <p>The bar along the bottom is DEVICE, FIRMWARE, SAVED, and SETUP. The top line shows whether a real FM-1 is connected, and the name it reports, such as <span class="mono">FM-1_900</span>.</p>
         <div class="shots">
           <figure>
-            <img src="images/firmware-list.jpg" alt="The FIRMWARE screen, with USB MIDI reporting FM-1_900, a name sort, FAVORITE on each row, and FAVORITES 1.">
-            <figcaption>FIRMWARE, with an FM-1 reporting FM-1_900.</figcaption>
+            <img src="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.2.0/before-you-start.jpg" alt="The first-run notice, titled Before you start, with the risk text and an OK button.">
+            <figcaption>The notice shown the first time you open the app.</figcaption>
           </figure>
           <figure>
-            <img src="images/saved.jpg" alt="The SAVED screen listing FM-1 V15, Baud Girl, Clipper, Felucca, and HYP-1, each with TRY and FLASH.">
-            <figcaption>SAVED. Firmwares kept on the phone, ready to try or flash.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/patches.jpg" alt="The PATCHES screen listing FM-1 factory banks 1 to 4 and Aquanode's Aquazone.">
-            <figcaption>PATCHES. The same banks as on the patches page.</figcaption>
+            <img src="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.2.0/firmware-list.jpg" alt="The firmware list on a phone whose FM-1 is reporting FM-1_900.">
+            <figcaption>The firmware list while an FM-1 was reporting FM-1_900.</figcaption>
           </figure>
         </div>
+        <p>A few lines of helper text in the older photos have been shortened since those pictures were taken. The controls are the same.</p>
 
         <h3>DEVICE</h3>
         <p>Plug the FM-1 into the phone with a USB cable. No extra driver. Straight into the phone is best; hubs often hide it. Close other MIDI apps first. With the app closed, the phone can ask whether to open it. If it also asks to allow USB, allow it. <span class="mono">SCAN</span> looks again.</p>
         <p>When the FM-1 answers, the big line is the name it reports. <span class="mono">PLAY TEST NOTES</span> sends a short C–E–G–C. If you hear it, notes are getting through. Some firmwares, such as SLOOP, stay quiet on a plain note. The FM-1 answering again afterwards means the cable is fine. The keys under that send notes while you hold them.</p>
         <p>If several firmwares report the same name, the screen says so, because the device itself cannot tell them apart. If the FM-1 is sitting in its update loader after an interrupted write, the screen says that and sends you to SAVED to finish.</p>
         <p>When the device is running official V15, DEVICE can restore V15's 128 factory voices over all four banks. That replaces every voice in them, including ones you made. V15 cannot read the old voices back first.</p>
-        <div class="shots">
-          <figure>
-            <img src="images/usb-open.jpg" alt="Android lock screen asking Open FM-1 Swap to handle Clipper, with Cancel and OK.">
-            <figcaption>With the app closed, Android can offer to open it when the FM-1 is plugged in.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/device.jpg" alt="The DEVICE screen reporting FM-1_900, firmware is running, and a list of firmwares that share that name.">
-            <figcaption>DEVICE. This FM-1 reported FM-1_900, which several firmwares share.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/device-midi.jpg" alt="DEVICE scrolled to MIDI CHECK, with PLAY TEST NOTES, hold-a-key notes C through B, and a USB port named Clipper.">
-            <figcaption>PLAY TEST NOTES, keys you can hold, and the USB port the phone sees.</figcaption>
-          </figure>
-        </div>
 
         <h3>FIRMWARE</h3>
         <p>This is the list of firmwares. It comes with the app, so you can read it with no connection. <span class="mono">REFRESH</span> gets a newer list. Search is above the rows. <span class="mono">SORT</span> orders them by your list, popularity, name, author, or newest.</p>
@@ -346,53 +326,43 @@
 
       <section id="try">
         <h2>Hear it before you write it</h2>
-        <p><span class="mono">TRY</span> plays the firmware on a virtual FM-1. Sound comes from the phone. Tap keys and buttons, including several at once. Drag a knob up or down to turn it. MASTER is the volume. Turn the phone sideways for a larger panel. The clock and notification icons move off the screen. What you save on that virtual instrument is kept for that firmware.</p>
+        <p><span class="mono">TRY</span> plays the firmware on a virtual FM-1. Sound comes from the phone. Tap keys and buttons, including several at once. Drag a knob up or down to turn it. MASTER is the volume. Turn the phone sideways for a larger panel. The clock and notification icons move off the screen. What you save on that virtual instrument is kept for that firmware. A USB MIDI keyboard plugged into the phone plays too. Official V15 listens on channel 2, and Felucca on channels 1 to 4. The FM-1 already connected for flashing is left alone.</p>
         <p>By default the panel is drawn as glowing lines in the colour you pick under SETUP. Turning that off shows a realistic panel. The firmware's own screen is the same either way.</p>
         <p>TRY runs at the same speed as a real FM-1. If the sound gaps, or the phone struggles, SETUP can offer 100, 160, and 240. The choice is remembered per firmware. Lower it when the phone cannot keep up.</p>
         <p>Leaving TRY always stops it. If <span class="mono">RUN EMULATOR IN BACKGROUND</span> is on, it keeps sounding when you switch away or the screen turns off, until you leave TRY. Turning the phone does not stop it.</p>
         <p>Some publishers also offer their own player. When they do, the TRY screen has <span class="mono">AUTHOR'S EMU</span>, which opens that in the browser. Official Open is one of these: it often does not get going on the virtual FM-1, and M-VAVE's own player can run it.</p>
         <p>With <span class="mono">SAVE WHAT YOU TRY</span> on, TRY keeps the firmware under SAVED. Off, it does not. A firmware already on the phone is not downloaded again. <span class="mono">SAVE</span> on the firmware page, or on the TRY screen, keeps a copy either way.</p>
         <div class="shots">
-          <figure>
-            <img src="images/try-sloop-portrait.jpg" alt="SLOOP on the virtual FM-1 in portrait, phosphor panel, four sequencer tracks on the screen, and the TRY instructions underneath.">
-            <figcaption>SLOOP in TRY, phosphor panel.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/try-baud-girl-portrait.jpg" alt="Baud Girl on the virtual FM-1 in portrait, realistic panel, electric piano patch 001 EMU E.PNO.">
-            <figcaption>Baud Girl in TRY, realistic panel.</figcaption>
-          </figure>
           <figure class="wide">
             <img src="images/try-sloop.jpg" alt="SLOOP running sideways on the virtual FM-1, sequencer screen showing four tracks.">
-            <figcaption>SLOOP with the phone sideways.</figcaption>
+            <figcaption>SLOOP in TRY, phone sideways.</figcaption>
           </figure>
           <figure class="wide">
-            <img src="images/try-baud-girl.jpg" alt="Baud Girl running sideways with the realistic panel, an electric piano patch on the screen.">
-            <figcaption>Baud Girl with the phone sideways.</figcaption>
+            <img src="images/try-baud-girl.jpg" alt="Baud Girl running with the phosphor panel, an electric piano patch on the screen.">
+            <figcaption>Baud Girl with the phosphor panel.</figcaption>
+          </figure>
+          <figure class="wide">
+            <img src="images/try-clipper.jpg" alt="Clipper running with the phosphor panel, a hybrid pad on the screen.">
+            <figcaption>Clipper with the phosphor panel.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/try-official-open.jpg" alt="Official Open on the realistic panel, with an Author's emu button.">
+            <figcaption>Official Open on the realistic panel. AUTHOR'S EMU opens the publisher's player.</figcaption>
           </figure>
         </div>
       </section>
 
       <section id="flash">
         <h2>Flashing</h2>
-        <p>FLASH asks before it writes. On SAVED, and on a firmware page next to TRY and SAVE, it opens a sheet titled <span class="mono">SWITCH FIRMWARE?</span>. The sheet names each step, usually just the firmware you chose. Press <span class="mono">SWITCH</span> to start. The line under the name during the write is what was running, then what is being written, such as Clipper going to Rainbow Mode.</p>
+        <p>FLASH asks before it writes. On a firmware page it is next to TRY and SAVE, and it saves the file first when the phone does not have it yet. The sheet names each step, usually just the firmware you chose. The line under the name during the write is what was running, then what is being written, such as SLOOP going to Rainbow Mode.</p>
         <p>The sheet can check whether the firmware starts on the virtual FM-1. <span class="mono">SKIP CHECK</span> writes without waiting for that. A firmware that already failed the check still shows the red warning.</p>
         <p>Stay on that screen until it finishes. If the cable comes out after the FM-1 has restarted into its update loader, plug it back in and press <span class="mono">RESUME</span>. If it never got that far, the FM-1 should still start as it did before.</p>
         <p>Some firmwares have to be installed by way of the official firmware first. The sheet says so when the official firmware is not saved yet. <span class="mono">ALWAYS VIA OFFICIAL FIRMWARE</span> under SETUP makes every install take that path.</p>
         <p>Switching to a different firmware can erase projects and samples. When this app can take a backup, it does that before the write and will not start the write if the backup fails. When it cannot, you have to confirm that you already backed up in that firmware's own editor.</p>
-        <div class="shots">
-          <figure>
-            <img src="images/flash-confirm.jpg" alt="SWITCH FIRMWARE sheet for Rainbow Mode 1.1.5-rb, saying it will save projects, presets, FM6 bank, samples and settings, with Cancel and Switch.">
-            <figcaption>FLASH asks first. This write was going to keep a SLOOP-style backup, then install Rainbow Mode.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/flashing.jpg" alt="FLASHING screen for Rainbow Mode at 98 percent, with a keep this screen open warning and a log of the Clipper backup and restart into update mode.">
-            <figcaption>Stay on this screen. Clipper was on the way to Rainbow Mode.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/flashed.jpg" alt="FLASHED screen for Rainbow Mode at 100 percent, saying the FM-1 now reports FM-1_911 and a SLOOP 2.7.1 backup is under SAVED.">
-            <figcaption>Finished. The FM-1 came back reporting FM-1_911, and the backup landed under SAVED.</figcaption>
-          </figure>
-        </div>
+        <figure>
+          <img src="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.2.0/flashed.jpg" alt="The flash finished screen for Rainbow Mode, saying the FM-1 now reports FM-1_911.">
+          <figcaption>A finished flash. The FM-1 came back reporting FM-1_911, and a backup of what it had been running was kept under SAVED.</figcaption>
+        </figure>
       </section>
 
       <section id="backups">
@@ -404,12 +374,6 @@
           <li>SLOOP gives the projects, presets, FM6 bank, samples, and settings.</li>
         </ul>
         <p>RESTORE writes that backup back. Keep the cable connected, and stop playback on the FM-1. A restore replaces what the instrument is holding. Official V15, the update loader, and firmwares that never answer a backup request do not get an automatic copy. Those ask you to confirm you have backed up yourself.</p>
-        <div class="shots">
-          <figure>
-            <img src="images/saved-backup.jpg" alt="SAVED after the flash, with the FM-1 reporting FM-1_911, and a backup labelled FM-1_900, SLOOP 2.7.1, with Restore and Remove.">
-            <figcaption>After that write, SAVED listed the SLOOP backup taken from FM-1_900, with RESTORE and REMOVE.</figcaption>
-          </figure>
-        </div>
       </section>
 
       <section id="recovery">
@@ -440,45 +404,21 @@
           <li><span class="mono">RUN EMULATOR IN BACKGROUND</span> keeps TRY sounding when you leave the app, until you leave the TRY screen.</li>
           <li><span class="mono">USB MIDI</span> is a real FM-1. <span class="mono">SIMULATED FM-1</span> is not a synth. It stands in for an FM-1 so you can practice a flash with no instrument connected. The extra switches under it, such as interrupting a pretend flash, apply only to that stand-in.</li>
           <li><span class="mono">ALWAYS VIA OFFICIAL FIRMWARE</span> installs the official firmware on the way to the one you chose, when you are not already installing official firmware.</li>
-          <li><span class="mono">SHOW BETA RELEASES</span> includes firmwares marked beta. Ones you have favorited stay visible either way.</li>
+          <li><span class="mono">SHOW BETA RELEASES</span> includes firmwares marked beta. Ones you have kept stay visible either way.</li>
           <li><span class="mono">SHOW LISTINGS WITHOUT A PACKAGE</span> includes rows that link out but have no file to save or flash.</li>
           <li><span class="mono">SAVE WHAT YOU TRY</span> keeps a firmware under SAVED when you press TRY.</li>
         </ul>
-        <div class="shots">
-          <figure>
-            <img src="images/setup-safety.jpg" alt="SETUP safety and recovery text, including the USB recovery gesture and a warning that FM-1 Swap cannot help if the device will not start at all.">
-            <figcaption>The notice from the first launch stays at the top of SETUP.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/setup-look.jpg" alt="SETUP colour and screen controls: green amber ice rose paper, glow, CRT scanlines, CRT flicker, phosphor emulator panel, emulator clock, and run emulator in background.">
-            <figcaption>Colour, glow, and the TRY panel look.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/setup-connection.jpg" alt="SETUP connection and flashing switches, with USB MIDI selected, simulated FM-1, always via official firmware, show beta releases, and save what you try, plus the 0.2.0 build line.">
-            <figcaption>USB MIDI, the flash options, and the build number.</figcaption>
-          </figure>
-        </div>
       </section>
 
       <section id="patches">
         <h2>Patches</h2>
         <p>The app has a PATCHES screen, and the same banks are on the <a href="patches.html">patches page</a>. SEND plays one patch on a connected FM-1. SEND BANK sends all 32, and you choose which bank on the FM-1 they replace. Official V15 holds a single patch until you press SAVE. FM-1+VA edits the preset you have selected. Official Open takes one patch onto its DX7 track.</p>
         <p>The banks here are the FM-1's own four, captured by KingParamount and shared as DX7 banks, and Aquanode's CC0 banks. Yamaha's cartridge banks are on <a href="https://fm1-editor.com/">fm1-editor.com</a>.</p>
-        <div class="shots">
-          <figure>
-            <img src="images/patches.jpg" alt="The PATCHES screen listing FM-1 factory banks 1 to 4 and Aquanode's Aquazone.">
-            <figcaption>Factory banks and Aquanode's CC0 banks.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/patches-bank.jpg" alt="FM-1 Bank 1 open, with SEND BANK and SEND next to each patch from Piano 1 through Syn Pad 3.">
-            <figcaption>Open a bank for SEND BANK, or SEND on one patch.</figcaption>
-          </figure>
-        </div>
       </section>
 
       <section id="record">
         <h2>What has been tried on a real FM-1</h2>
-        <p>FM-1 Swap has been used to swap firmwares on a real FM-1, including SLOOP, Felucca Rainbow, and Clipper. Those swaps completed. The pictures here are from a write that started on Clipper, which reported <span class="mono">FM-1_900</span>. FM-1 Swap wrote Rainbow Mode 1.1.5-rb, and the FM-1 came back reporting <span class="mono">FM-1_911</span>.</p>
+        <p>FM-1 Swap has been used to swap firmwares on a real FM-1, including SLOOP, Felucca Rainbow, and Clipper. Those swaps completed. One of them started on SLOOP 2.7.1, which reported <span class="mono">FM-1_900</span>. FM-1 Swap wrote Rainbow Mode 1.1.5-rb, and the FM-1 came back reporting <span class="mono">FM-1_911</span>.</p>
         <p><a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest/download/FM-1-Swap.apk">Download the APK</a></p>
       </section>
     </div>

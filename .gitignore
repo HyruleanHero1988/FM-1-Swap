@@ -15,7 +15,7 @@ agent-tools/
 *.class
 app/release/
 app/debug.keystore
-# Written from app/launcher-icons-a.zip.b64 and launcher-icons-b.zip.b64 when Gradle configures the app.
+# Written from app/launcher-icons-*.zip.b64 when Gradle configures the app.
 app/src/main/res/mipmap-*/ic_launcher*.png
 .kotlin/
 app/src/main/jniLibs/

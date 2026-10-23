@@ -46,6 +46,10 @@ class AppSettings(private val prefs: SharedPreferences) {
     var phosphorHex: String
         get() = prefs.getString("phosphorHex", PhosphorPreset.Green.hex) ?: PhosphorPreset.Green.hex
         set(value) { prefs.edit().putString("phosphorHex", value).apply() }
+    /** Home-screen icon body colour. Independent of [phosphorHex]. */
+    var appIcon: AppIcon
+        get() = AppIcon.fromId(prefs.getString("appIcon", AppIcon.BLACK.id))
+        set(value) { prefs.edit().putString("appIcon", value.id).apply() }
     var glow: Float
         get() = prefs.getFloat("glow", 0.25f)
         set(value) { prefs.edit().putFloat("glow", value).apply() }

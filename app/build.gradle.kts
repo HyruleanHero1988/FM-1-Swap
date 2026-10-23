@@ -102,10 +102,16 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
 }
 
-/** Launcher art is binary, so the committed copies are these zips. Writes the mipmap PNGs before resources are merged. Only the top-left knob keeps a white indicator. */
+/** Launcher art is binary, so the committed copies are these zips. Writes the mipmap PNGs before resources are merged. The default black icon keeps the top-left knob's white indicator; the colour zips are hardware body variants. */
 fun materialiseLauncherIcons() {
     val res = file("src/main/res")
-    listOf("launcher-icons-a.zip.b64", "launcher-icons-b.zip.b64").forEach { name ->
+    listOf(
+        "launcher-icons-a.zip.b64",
+        "launcher-icons-b.zip.b64",
+        "launcher-icons-colours-a.zip.b64",
+        "launcher-icons-colours-b.zip.b64",
+        "launcher-icons-colours-c.zip.b64",
+    ).forEach { name ->
         val bytes = Base64.getMimeDecoder().decode(file(name).readText())
         ZipInputStream(bytes.inputStream()).use { zip ->
             while (true) {

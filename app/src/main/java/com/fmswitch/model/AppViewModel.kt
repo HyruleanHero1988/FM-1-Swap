@@ -44,6 +44,7 @@ import com.fmswitch.fm1kit.isOpen
 import com.fmswitch.emu.EmulatorClock
 import com.fmswitch.emu.Fm1Engine
 import com.fmswitch.midi.AndroidMidiTransport
+import com.fmswitch.icon.AppIconApplier
 import com.fmswitch.theme.PhosphorTheme
 import android.os.Handler
 import android.os.Looper
@@ -250,6 +251,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun bumpTheme() {
         glow = settings.glow
+        themeTick++
+    }
+
+    fun setAppIcon(icon: AppIcon) {
+        if (settings.appIcon == icon) return
+        settings.appIcon = icon
+        AppIconApplier.apply(getApplication(), icon)
         themeTick++
     }
 

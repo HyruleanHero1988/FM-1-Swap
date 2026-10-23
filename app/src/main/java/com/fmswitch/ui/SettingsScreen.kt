@@ -2,10 +2,12 @@ package com.fmswitch.ui
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,16 +15,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fmswitch.BuildConfig
 import com.fmswitch.catalogue.SafetyNotice
+import com.fmswitch.model.AppIcon
 import com.fmswitch.model.AppViewModel
 import com.fmswitch.model.TransportKind
 import com.fmswitch.theme.LocalPhosphor
@@ -68,6 +75,24 @@ fun SettingsScreen(model: AppViewModel) {
             }
         }
         PixelPanel(title = "COLOUR + SCREEN") {
+            MonoText("APP ICON", size = 14)
+            Spacer(Modifier.height(6.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                AppIcon.entries.chunked(4).forEach { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        row.forEach { icon ->
+                            AppIconChip(
+                                icon = icon,
+                                selected = model.settings.appIcon == icon,
+                                onClick = { model.setAppIcon(icon) },
+                            )
+                        }
+                    }
+                }
+            }
+            NoteText("The plastic of your FM-1, not the phosphor. Some phones take a moment to change the home-screen picture. A themed icon may flatten it to one colour.")
+            Spacer(Modifier.height(8.dp))
+            MonoText("COLOUR", size = 14)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 PhosphorPreset.entries.forEach { preset ->
                     val selected = model.settings.phosphorHex.equals(preset.hex, true)
@@ -219,6 +244,49 @@ fun SettingsScreen(model: AppViewModel) {
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/joakimeriksson/fm1-emu")))
                     },
             )
+        }
+    }
+}
+
+@Composable
+private fun AppIconChip(icon: AppIcon, selected: Boolean, onClick: () -> Unit) {
+    val theme = LocalPhosphor.current
+    Box(
+        Modifier
+            .size(36.dp)
+            .clickable(onClick = onClick)
+            .border(2.dp, if (selected) theme.bright else theme.dim, PixelBox(2.dp))
+            .padding(4.dp)
+            .background(icon.body, PixelBox(1.dp)),
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
+            val w = size.width
+            val h = size.height
+            val gap = (1.5.dp).toPx()
+            drawRect(
+                Color(0xFF111111),
+                topLeft = Offset(w * 0.10f, h * 0.14f),
+                size = Size(w * 0.30f, h * 0.28f),
+            )
+            val pad = (w * 0.10f).coerceAtLeast(2f)
+            for (row in 0..1) {
+                for (col in 0..3) {
+                    drawRect(
+                        icon.pad,
+                        topLeft = Offset(w * 0.48f + col * (pad + gap), h * 0.14f + row * (pad + gap)),
+                        size = Size(pad, pad),
+                    )
+                }
+            }
+            val keyW = w * 0.08f
+            val keyH = h * 0.22f
+            for (i in 0..6) {
+                drawRect(
+                    icon.key,
+                    topLeft = Offset(w * 0.10f + i * (keyW + gap), h * 0.62f),
+                    size = Size(keyW, keyH),
+                )
+            }
         }
     }
 }

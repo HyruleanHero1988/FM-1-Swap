@@ -132,6 +132,8 @@ fun RootScreen(model: AppViewModel) {
                         onRetry = { model.openEmulator(entry) },
                         onBack = { model.closeEmulator() },
                         onTry = { sha, started -> model.noteTry(sha, started) },
+                        midiSkipKey = model.claimedMidiDeviceIds().sorted().joinToString(","),
+                        midiSkipIds = { model.claimedMidiDeviceIds() },
                     )
                 }
             }

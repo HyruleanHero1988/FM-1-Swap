@@ -51,7 +51,10 @@ class Fm1Engine(
     override fun key(id: Int, down: Boolean) { inputs += Input.Key(id, down) }
     override fun turn(encoder: Int, clicks: Int) { if (clicks != 0) inputs += Input.Enc(encoder, clicks) }
     override fun pot(value: Int) { inputs += Input.Pot(value.coerceIn(0, Fm1Panel.POT_ADC_MAX)) }
-    fun midi(bytes: ByteArray) { inputs += Input.Midi(bytes.copyOf()) }
+    fun midi(bytes: ByteArray) {
+        if (!running || bytes.isEmpty()) return
+        inputs += Input.Midi(bytes.copyOf())
+    }
 
     override fun close() {
         running = false

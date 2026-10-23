@@ -364,6 +364,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             isScanning = true
             try {
                 ports = transport.ports()
+                if (playingFirmware != null) return@launch
                 val current = held
                 if (current != null && current.connection.isLost) {
                     releaseHeld()
@@ -1078,6 +1079,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         playingFirmware = null
         emulatorPackage = EmulatorPackage.Preparing
         isRefreshingCatalogue = false
+        scan(force = false)
     }
 
     fun probablyRunning(identity: FM1Identity): String {

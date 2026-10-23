@@ -94,6 +94,8 @@ class AndroidMidiTransport(context: Context) : MidiTransport {
         }
     }
 
+    fun claimedDeviceIds(): Set<Int> = synchronized(openById) { openById.keys.toSet() }
+
     override fun changes(onChange: () -> Unit): AutoCloseable {
         synchronized(observers) { observers.add(onChange) }
         return AutoCloseable { synchronized(observers) { observers.remove(onChange) } }

@@ -6,6 +6,8 @@ Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
 ## New in 0.5.0
 
+When a newer release of FM-1 Swap is published, a line under the top bar says so. **UPDATE** downloads it. Android asks you to confirm before it installs. **LATER** hides that line. SETUP still shows **UPDATE**.
+
 The first screen can be scrolled. That is the notice that appears the first time the app opens. On a short phone the text was taller than the display, so **OK** sat off the bottom and you could not reach it. The notice now scrolls, and **OK** stays on the screen.
 
 FIRMWARE now has the same groups as the firmware hub. You can show All, Synths, Grooveboxes, Drums, Chords, Trackers, For devs, Other, Vintage, In browser, or From source.

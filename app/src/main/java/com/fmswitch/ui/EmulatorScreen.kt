@@ -320,7 +320,7 @@ private fun ClockRow(mhz: Int, onClock: (Int) -> Unit, narrow: Boolean = false) 
     }
     if (narrow) {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            MonoText("CLOCK \u00b7 MHZ", size = 11, dim = true)
+            MonoText("CLOCK · MHZ", size = 11, dim = true)
             EmulatorClock.CHOICES.forEach { choice ->
                 PixelButton(
                     "$choice",
@@ -464,7 +464,7 @@ private fun RunningEmulator(
                 if (chooseClock) {
                     "If the sound gaps or crackles, raise CLOCK. If the phone struggles to keep up, lower it."
                 } else {
-                    "This runs at the same speed as a real FM-1. If the sound gaps, or the phone struggles, SETUP \u25b8 CHOOSE EMULATOR CLOCK turns on 100, 160 and 240."
+                    "This runs at the same speed as a real FM-1. If the sound gaps, or the phone struggles, SETUP ▸ CHOOSE EMULATOR CLOCK turns on 100, 160 and 240."
                 },
                 size = 12,
             )

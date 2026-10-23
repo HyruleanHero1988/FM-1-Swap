@@ -55,6 +55,7 @@ object RepoShots {
             host == "camo.githubusercontent.com" ||
             host == "img.youtube.com" ||
             host == "i.ytimg.com" ||
+            HubShots.isHubShot(url) ||
             (host == "github.com" && (url.contains("/user-attachments/") || url.contains("/assets/")))
     }
 

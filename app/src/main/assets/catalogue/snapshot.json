@@ -161,7 +161,8 @@
                 }
             ],
             "stars": 186,
-            "installs": 718
+            "installs": 718,
+            "vintage": true
         },
         {
             "id": "jiant",
@@ -303,7 +304,8 @@
                 }
             ],
             "stars": 122,
-            "installs": 356
+            "installs": 356,
+            "builtFromSource": true
         },
         {
             "id": "amb",
@@ -446,7 +448,8 @@
                 }
             ],
             "stars": 68,
-            "installs": 431
+            "installs": 431,
+            "builtFromSource": true
         },
         {
             "id": "skiff",
@@ -538,7 +541,8 @@
                 }
             ],
             "stars": 65,
-            "installs": 271
+            "installs": 271,
+            "vintage": true
         },
         {
             "id": "obervave",
@@ -581,7 +585,9 @@
                 }
             ],
             "stars": 32,
-            "installs": 444
+            "installs": 444,
+            "vintage": true,
+            "builtFromSource": true
         },
         {
             "id": "sloopdx",
@@ -617,7 +623,9 @@
                 }
             ],
             "stars": 27,
-            "installs": 281
+            "installs": 281,
+            "vintage": true,
+            "builtFromSource": true
         },
         {
             "id": "zp12",
@@ -656,7 +664,8 @@
                 }
             ],
             "stars": 32,
-            "installs": 161
+            "installs": 161,
+            "vintage": true
         },
         {
             "id": "fart",
@@ -1045,7 +1054,8 @@
                 }
             ],
             "stars": 11,
-            "installs": 230
+            "installs": 230,
+            "vintage": true
         },
         {
             "id": "rainbow",
@@ -1173,7 +1183,8 @@
                 }
             ],
             "stars": 16,
-            "installs": 128
+            "installs": 128,
+            "vintage": true
         },
         {
             "id": "polly",
@@ -1218,7 +1229,8 @@
                 }
             ],
             "stars": 19,
-            "installs": 81
+            "installs": 81,
+            "vintage": true
         },
         {
             "id": "chord",
@@ -1735,7 +1747,8 @@
                 }
             ],
             "stars": 6,
-            "installs": 100
+            "installs": 100,
+            "vintage": true
         },
         {
             "id": "fm1quest",
@@ -1860,7 +1873,8 @@
                 }
             ],
             "stars": 3,
-            "installs": 114
+            "installs": 114,
+            "vintage": true
         },
         {
             "id": "salt",
@@ -2209,7 +2223,8 @@
                 }
             ],
             "stars": 5,
-            "installs": 49
+            "installs": 49,
+            "vintage": true
         },
         {
             "id": "zen",
@@ -2649,7 +2664,8 @@
                 }
             ],
             "stars": 5,
-            "installs": 10
+            "installs": 10,
+            "builtFromSource": true
         },
         {
             "id": "fm1-editor-fm-lab",
@@ -2796,7 +2812,8 @@
                 }
             ],
             "stars": 2,
-            "installs": 23
+            "installs": 23,
+            "vintage": true
         },
         {
             "id": "386dx",
@@ -3094,7 +3111,8 @@
                 }
             ],
             "stars": 1,
-            "installs": 15
+            "installs": 15,
+            "vintage": true
         },
         {
             "id": "niagara",
@@ -3261,7 +3279,8 @@
                 }
             ],
             "stars": 0,
-            "installs": 19
+            "installs": 19,
+            "vintage": true
         },
         {
             "id": "bunker",
@@ -3367,7 +3386,9 @@
                 }
             ],
             "stars": 0,
-            "installs": 13
+            "installs": 13,
+            "vintage": true,
+            "builtFromSource": true
         },
         {
             "id": "fm1-editor-clipper",
@@ -3946,7 +3967,8 @@
                     "url": "https://github.com/putchdev/opn-1/releases/tag/v2.0.0"
                 }
             ],
-            "stars": 0
+            "stars": 0,
+            "vintage": true
         },
         {
             "id": "fm1-editor-prysm",
@@ -4089,7 +4111,8 @@
                     "url": "https://github.com/putchdev/sid-1/releases/tag/v1.0.0"
                 }
             ],
-            "stars": 0
+            "stars": 0,
+            "vintage": true
         }
     ],
     "snapshotVersion": 1,

@@ -31,7 +31,7 @@ class BakeCatalogue {
             redtail = redtail.entries,
         )
         val resolved = PackageDiscovery.discoverMissing(merged, emptyList())
-        val photographed = RepoShots.fill(resolved, emptyList())
+        val photographed = HubShots.fill(RepoShots.fill(resolved, emptyList()))
         val snapshot = MergedCatalogue(
             hubUpdated = hub.first,
             entries = CatalogueRank.ordered(photographed),
@@ -53,7 +53,7 @@ class BakeCatalogue {
         val json = Json { prettyPrint = true; encodeDefaults = false; ignoreUnknownKeys = true }
         val file = File(moduleRoot(), "src/main/assets/${MergedCatalogue.ASSET_PATH}")
         val current = json.decodeFromString<MergedCatalogue>(file.readText())
-        val photographed = RepoShots.fill(current.entries, emptyList())
+        val photographed = HubShots.fill(RepoShots.fill(current.entries, emptyList()))
         val snapshot = current.copy(entries = photographed)
         file.writeText(json.encodeToString(snapshot) + "\n")
         val gained = photographed.count { it.photoURL != null } - current.entries.count { it.photoURL != null }

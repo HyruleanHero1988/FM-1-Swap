@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.fmswitch.catalogue.CatalogueEntry
+import com.fmswitch.catalogue.FirmwareKind
 import com.fmswitch.catalogue.FirmwareSort
 import com.fmswitch.catalogue.SafetyNotice
 import com.fmswitch.fm1kit.BaudGirlLibrarian
@@ -824,6 +825,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setFirmwareSort(sort: FirmwareSort) {
         settings.firmwareSort = sort
+        listTick++
+    }
+
+    fun setFirmwareKind(kind: FirmwareKind) {
+        settings.firmwareKind = kind
         listTick++
     }
 

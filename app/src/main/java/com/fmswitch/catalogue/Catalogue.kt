@@ -48,6 +48,10 @@ data class CatalogueEntry(
     /** GitHub's short About line, when the project has one. */
     val about: String? = null,
     val isOfficial: Boolean = false,
+    /** A classic instrument rebuilt. The hub keeps these as their own group. */
+    val vintage: Boolean = false,
+    /** GitHub Actions built this file and the hub checked the signature. */
+    val builtFromSource: Boolean = false,
 ) {
     val requiresOfficialFirmware: Boolean get() = loader?.lowercase() == "mvave"
     val isDownloadable: Boolean get() = packageURL != null
@@ -119,8 +123,22 @@ object HubFeed {
             links = links,
             stars = obj["stars"]?.jsonPrimitive?.intOrNull,
             installs = obj["installs"]?.jsonPrimitive?.intOrNull,
+            vintage = obj["vintage"]?.jsonPrimitive?.booleanOrNull ?: false,
+            builtFromSource = builtFromSource(obj),
         )
     }
+
+    private fun builtFromSource(obj: JsonObject): Boolean {
+        val provenance = obj["provenance"] as? JsonObject ?: return false
+        if (provenance["verified"]?.jsonPrimitive?.booleanOrNull != true) return false
+        val commit = provenance.str("commit") ?: return false
+        if (!COMMIT.matches(commit)) return false
+        val signed = provenance.str("sha256")?.lowercase() ?: return false
+        val pkg = obj.str("sha256")?.lowercase() ?: return false
+        return signed == pkg
+    }
+
+    private val COMMIT = Regex("^[0-9a-f]{40}$")
 
     private fun JsonObject.str(key: String): String? {
         val value = this[key] ?: return null

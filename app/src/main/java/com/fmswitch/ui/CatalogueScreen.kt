@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
@@ -37,6 +38,7 @@ import com.fmswitch.catalogue.CatalogueBlurb
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.CatalogueOrder
 import com.fmswitch.catalogue.CatalogueSearch
+import com.fmswitch.catalogue.FirmwareKind
 import com.fmswitch.catalogue.FirmwareSort
 import com.fmswitch.catalogue.RescueMode
 import com.fmswitch.model.AppViewModel
@@ -72,7 +74,14 @@ fun CatalogueScreen(model: AppViewModel) {
             (!model.settings.curatedOnly || entry.id in curatedIds) &&
             CatalogueSearch.matches(entry, search)
     }
-    val visible = CatalogueOrder.apply(matching, model.settings.firmwareSort, curation, CurationSeed.IDS)
+    val kind = model.settings.firmwareKind
+    val kindCounts = FirmwareKind.entries.associateWith { group -> matching.count { group.matches(it) } }
+    val visible = CatalogueOrder.apply(
+        matching.filter { kind.matches(it) },
+        model.settings.firmwareSort,
+        curation,
+        CurationSeed.IDS,
+    )
     if (selected != null) {
         val entry = model.catalogue.entry(selected!!.id) ?: selected!!
         FirmwareDetail(model, entry) { selected = null }
@@ -108,6 +117,18 @@ fun CatalogueScreen(model: AppViewModel) {
             ) { model.setCuratedOnly(!model.settings.curatedOnly) }
         }
         Spacer(Modifier.height(8.dp))
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            val chips = FirmwareKind.entries.filter { group ->
+                group == FirmwareKind.ALL || group == kind || (kindCounts[group] ?: 0) > 0
+            }
+            items(chips, key = { it.id }) { group ->
+                PixelButton(
+                    "${group.label} ${kindCounts[group] ?: 0}",
+                    compact = true,
+                    prominent = group == kind,
+                ) { model.setFirmwareKind(group) }
+            }
+        }
         Spacer(Modifier.height(8.dp))
         BasicTextField(
             value = search,
@@ -135,6 +156,8 @@ fun CatalogueScreen(model: AppViewModel) {
                         "No favorites yet. Press FAVORITE on a firmware, or turn FAVORITES off."
                     model.settings.curatedOnly ->
                         "Nothing in your favorites matches. Turn FAVORITES off to search the whole list."
+                    kind != FirmwareKind.ALL ->
+                        "No firmwares in this group. Press ALL, or clear the search."
                     else ->
                         "No firmwares match. Refresh the list, or under SETUP turn on SHOW LISTINGS WITHOUT A PACKAGE."
                 },

@@ -73,7 +73,7 @@
   },
   "fumi": {
     "photoURL": "https://raw.githubusercontent.com/cartesive/fumi-1/main/docs/img/screen-home.png",
-    "photoAlt": "FuMi-1's HOME screen: 1\u672c, A3, SUIKO tuning, the in scale, and the koto \u7434 large"
+    "photoAlt": "FuMi-1's HOME screen: 1本, A3, SUIKO tuning, the in scale, and the koto 琴 large"
   },
   "chord": {
     "photoURL": "https://raw.githubusercontent.com/math0ne/fm1-chord/main/screenshots/home_c7.png",
@@ -93,7 +93,7 @@
   },
   "bubba": {
     "photoURL": "https://raw.githubusercontent.com/erbubar23/bubba-machine/main/assets/screens/00-home.png",
-    "photoAlt": "HOME: la consola BX-1 con las seis m\u00e1quinas"
+    "photoAlt": "HOME: la consola BX-1 con las seis máquinas"
   },
   "tribe": {
     "photoURL": "https://raw.githubusercontent.com/apiel/fm1-tribe/main/docs/img/screen-splash.png",
@@ -282,5 +282,125 @@
   "sid1": {
     "photoURL": "https://raw.githubusercontent.com/putchdev/sid-1/main/docs/images/fm1-sound.png",
     "photoAlt": "The FM-1's SOUND page: SWEEP PAD's pulse wave, its filter and the main knobs"
+  },
+  "felucca": {
+    "photoURL": "https://thefirmwarehub.com/img/felucca.png",
+    "photoAlt": "Felucca for the M-VAVE FM-1: its screen"
+  },
+  "melodee": {
+    "photoURL": "https://thefirmwarehub.com/img/melodee.png",
+    "photoAlt": "Melodee for the M-VAVE FM-1: its screen"
+  },
+  "clipper": {
+    "photoURL": "https://thefirmwarehub.com/img/clipper.png",
+    "photoAlt": "Clipper for the M-VAVE FM-1: its screen"
+  },
+  "choralroot": {
+    "photoURL": "https://thefirmwarehub.com/img/choralroot.png",
+    "photoAlt": "ChoralRoot for the M-VAVE FM-1: its screen"
+  },
+  "winampfm": {
+    "photoURL": "https://thefirmwarehub.com/img/winampfm.png",
+    "photoAlt": "winampFM Synth for the M-VAVE FM-1: its screen"
+  },
+  "polly": {
+    "photoURL": "https://thefirmwarehub.com/img/polly.png",
+    "photoAlt": "Polly for the M-VAVE FM-1: its screen"
+  },
+  "etch": {
+    "photoURL": "https://thefirmwarehub.com/img/etch.png",
+    "photoAlt": "ETCH for the M-VAVE FM-1: its screen"
+  },
+  "fm106": {
+    "photoURL": "https://thefirmwarehub.com/img/fm106.png",
+    "photoAlt": "FM-106 for the M-VAVE FM-1: its screen"
+  },
+  "duell": {
+    "photoURL": "https://thefirmwarehub.com/img/duell.png",
+    "photoAlt": "DUELL for the M-VAVE FM-1: its screen"
+  },
+  "felucca8": {
+    "photoURL": "https://thefirmwarehub.com/img/felucca8.png",
+    "photoAlt": "Felucca 8 Patterns for the M-VAVE FM-1: its screen"
+  },
+  "pigeon": {
+    "photoURL": "https://thefirmwarehub.com/img/pigeon.png",
+    "photoAlt": "PIGEON for the M-VAVE FM-1: its screen"
+  },
+  "cs1": {
+    "photoURL": "https://thefirmwarehub.com/img/cs1.png",
+    "photoAlt": "CS-1 for the M-VAVE FM-1: its screen"
+  },
+  "hyp1": {
+    "photoURL": "https://thefirmwarehub.com/img/hyp1.png",
+    "photoAlt": "HYP-1 for the M-VAVE FM-1: its screen"
+  },
+  "tonitor": {
+    "photoURL": "https://thefirmwarehub.com/img/tonitor.png",
+    "photoAlt": "Tonitor for the M-VAVE FM-1: its screen"
+  },
+  "tuna": {
+    "photoURL": "https://thefirmwarehub.com/img/tuna.png",
+    "photoAlt": "Tuna for the M-VAVE FM-1: its screen"
+  },
+  "fomajam": {
+    "photoURL": "https://thefirmwarehub.com/img/fomajam.png",
+    "photoAlt": "FOMAJAM for the M-VAVE FM-1: its screen"
+  },
+  "nmsfm": {
+    "photoURL": "https://thefirmwarehub.com/img/nmsfm.png",
+    "photoAlt": "No Man Sky FM for the M-VAVE FM-1: its screen"
+  },
+  "fm1quest": {
+    "photoURL": "https://thefirmwarehub.com/img/fm1quest.png",
+    "photoAlt": "FM1 Quest for the M-VAVE FM-1: its screen"
+  },
+  "cutador": {
+    "photoURL": "https://thefirmwarehub.com/img/cutador.png",
+    "photoAlt": "Cut-A-Dor for the M-VAVE FM-1: its screen"
+  },
+  "mutable": {
+    "photoURL": "https://thefirmwarehub.com/img/mutable.png",
+    "photoAlt": "Mutable Dreams for the M-VAVE FM-1: its screen"
+  },
+  "bunker": {
+    "photoURL": "https://thefirmwarehub.com/img/bunker.png",
+    "photoAlt": "Bunker Evolved for the M-VAVE FM-1: its screen"
+  },
+  "golanadz": {
+    "photoURL": "https://thefirmwarehub.com/img/golanadz.png",
+    "photoAlt": "Golana DZ Edition for the M-VAVE FM-1: its screen"
+  },
+  "modelar": {
+    "photoURL": "https://thefirmwarehub.com/img/modelar.png",
+    "photoAlt": "MODELAR for the M-VAVE FM-1: its screen"
+  },
+  "unholy": {
+    "photoURL": "https://thefirmwarehub.com/img/unholy.png",
+    "photoAlt": "Unholy Union for the M-VAVE FM-1: its screen"
+  },
+  "chipbox": {
+    "photoURL": "https://thefirmwarehub.com/img/chipbox.png",
+    "photoAlt": "Chipbox for the M-VAVE FM-1: its screen"
+  },
+  "loom": {
+    "photoURL": "https://thefirmwarehub.com/img/loom.png",
+    "photoAlt": "LOOM-8 for the M-VAVE FM-1: its screen"
+  },
+  "monk": {
+    "photoURL": "https://thefirmwarehub.com/img/monk.png",
+    "photoAlt": "MONK-1 for the M-VAVE FM-1: its screen"
+  },
+  "flyfish": {
+    "photoURL": "https://thefirmwarehub.com/img/flyfish.png",
+    "photoAlt": "Flyfish for the M-VAVE FM-1: its screen"
+  },
+  "bytemania": {
+    "photoURL": "https://thefirmwarehub.com/img/bytemania.png",
+    "photoAlt": "Bytemania for the M-VAVE FM-1: its screen"
+  },
+  "hera": {
+    "photoURL": "https://thefirmwarehub.com/img/hera.png",
+    "photoAlt": "HERA for the M-VAVE FM-1: its screen"
   }
 }

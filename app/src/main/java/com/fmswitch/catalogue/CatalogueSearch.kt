@@ -33,6 +33,8 @@ object CatalogueSearch {
         entry.what?.let(::add)
         entry.about?.let(::add)
         addAll(entry.kinds)
+        entry.kinds.forEach { kind -> KIND_WORDS[kind]?.let(::addAll) }
+        if (entry.vintage) add("vintage")
         addAll(accounts(entry))
     }
 
@@ -43,6 +45,16 @@ object CatalogueSearch {
 
     private val WHITESPACE = Regex("\\s+")
     private val MARKS = Regex("\\p{M}+")
+    private val KIND_WORDS = mapOf(
+        "synth" to listOf("synth", "synths"),
+        "groove" to listOf("groove", "groovebox", "grooveboxes"),
+        "drums" to listOf("drums", "sampler", "samplers"),
+        "chords" to listOf("chord", "chords"),
+        "tracker" to listOf("tracker", "trackers"),
+        "dev" to listOf("dev", "developer", "developers"),
+        "other" to listOf("other"),
+    )
+
     private val ACCOUNT_PATTERNS = listOf(
         Regex("""^https?://(?:www\.)?github\.com/([A-Za-z0-9-]+)""", RegexOption.IGNORE_CASE),
         Regex("""^https?://([A-Za-z0-9-]+)\.github\.io""", RegexOption.IGNORE_CASE),

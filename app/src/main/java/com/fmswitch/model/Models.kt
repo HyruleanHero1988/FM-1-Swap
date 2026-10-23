@@ -6,9 +6,11 @@ import com.fmswitch.catalogue.AboutOverlay
 import com.fmswitch.catalogue.CatalogueBuilder
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.CatalogueRank
+import com.fmswitch.catalogue.FirmwareKind
 import com.fmswitch.catalogue.FirmwareSort
 import com.fmswitch.catalogue.EditorListing
 import com.fmswitch.catalogue.HubFeed
+import com.fmswitch.catalogue.HubShots
 import com.fmswitch.catalogue.MergedCatalogue
 import com.fmswitch.catalogue.PackageDiscovery
 import com.fmswitch.catalogue.PhotoOverlay
@@ -88,6 +90,9 @@ class AppSettings(private val prefs: SharedPreferences) {
         get() = FirmwareSort.entries.firstOrNull { it.id == prefs.getString("firmwareSort", FirmwareSort.CURATION.id) }
             ?: FirmwareSort.CURATION
         set(value) { prefs.edit().putString("firmwareSort", value.id).apply() }
+    var firmwareKind: FirmwareKind
+        get() = FirmwareKind.fromId(prefs.getString("firmwareKind", FirmwareKind.ALL.id))
+        set(value) { prefs.edit().putString("firmwareKind", value.id).apply() }
 
     init {
         val stored = prefs.getInt("curationSeed", 0)
@@ -446,7 +451,7 @@ class CatalogueStore(private val context: Context) {
             if (problems.isNotEmpty()) errorMessage = problems.joinToString(" ")
             onUpdate()
             val resolved = PackageDiscovery.discoverMissing(merged, previous)
-            val photographed = RepoShots.fill(resolved, previous)
+            val photographed = HubShots.fill(RepoShots.fill(resolved, previous))
             val described = RepoAbout.fill(AboutOverlay.apply(photographed, aboutOverlayText), previous)
             val built = MergedCatalogue(
                 hubUpdated = hub?.first,

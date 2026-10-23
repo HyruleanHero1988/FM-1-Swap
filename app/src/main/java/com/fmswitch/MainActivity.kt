@@ -56,6 +56,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        model.noteReturnedFromUpdate()
         if (!model.isWriting) model.scan(force = false)
     }
 }

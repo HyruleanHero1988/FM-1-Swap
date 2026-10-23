@@ -433,8 +433,13 @@ class FM1Updater(
 
         fun portsToProbe(ports: List<MidiPortDescriptor>): List<MidiPortDescriptor> {
             val named = ports.filter { isProbeable(it) }
-            return (named.ifEmpty { ports }).sortedBy { probeRank(it) }
+            val pool = named.ifEmpty { ports.filter { isGenericMidiName(it.name) } }
+            return pool.sortedBy { probeRank(it) }
         }
+
+        /** "MIDI 2" may still be an FM-1. "AKAI MPK mini 3" is a keyboard, so it is not opened. */
+        fun isGenericMidiName(name: String): Boolean =
+            Regex("""midi(\s+device)?(\s+\d+)?""", RegexOption.IGNORE_CASE).matches(name.trim())
 
         fun knownBuildID(package_: FwscPackage): FM1BuildID? = OfficialFirmware.matching(package_)?.buildID
 

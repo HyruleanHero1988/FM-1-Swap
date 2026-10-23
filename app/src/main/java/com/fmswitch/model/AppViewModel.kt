@@ -1,7 +1,11 @@
 package com.fmswitch.model
 
 import android.app.Application
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -9,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.fmswitch.BuildConfig
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.MissingPackage
 import com.fmswitch.catalogue.catalogueListUpdated
@@ -49,6 +54,27 @@ import com.fmswitch.emu.Fm1Engine
 import com.fmswitch.midi.AndroidMidiTransport
 import com.fmswitch.icon.AppIconApplier
 import com.fmswitch.theme.PhosphorTheme
+import com.fmswitch.update.AppRelease
+import com.fmswitch.update.AppUpdatePhase
+import com.fmswitch.update.CHECK_INTERVAL_MS
+import com.fmswitch.update.INSTALL_ABORTED
+import com.fmswitch.update.MAX_APK_BYTES
+import com.fmswitch.update.PREF_CHECKED_AT
+import com.fmswitch.update.PREF_DISMISSED_VERSION
+import com.fmswitch.update.PREF_INSTALL_STATUS
+import com.fmswitch.update.PREF_OFFER_SIZE
+import com.fmswitch.update.PREF_OFFER_URL
+import com.fmswitch.update.PREF_OFFER_VERSION
+import com.fmswitch.update.RELEASES_LATEST
+import com.fmswitch.update.UPDATE_DOWNLOAD_FAILED
+import com.fmswitch.update.UPDATE_INSTALL_FAILED
+import com.fmswitch.update.UPDATE_SIZE_MISMATCH
+import com.fmswitch.update.UpdateDownloadException
+import com.fmswitch.update.UpdateInstaller
+import com.fmswitch.update.fetchUpdateBytes
+import com.fmswitch.update.offerUpdate
+import com.fmswitch.update.trustedApkUrl
+import com.fmswitch.update.appRelease
 import android.os.Handler
 import android.os.Looper
 import java.io.File
@@ -230,9 +256,20 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private var probeGeneration = 0
     var backupOffer by mutableStateOf<BackupOffer>(BackupOffer.Unknown)
         private set
+    var appUpdate by mutableStateOf<AppRelease?>(null)
+        private set
+    var appUpdateDismissed by mutableStateOf<String?>(null)
+        private set
+    var appUpdatePhase by mutableStateOf<AppUpdatePhase>(AppUpdatePhase.Idle)
+        private set
     private var emulatorJob: Job? = null
     private var catalogueJob: Job? = null
     private var probeJob: Job? = null
+    private var updateJob: Job? = null
+    private var updateChecked = false
+    private val updatePrefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == PREF_INSTALL_STATUS) mainHandler.post { noteReturnedFromUpdate() }
+    }
 
     val theme: PhosphorTheme get() = settings.theme.also { themeTick }
     val isWriting: Boolean get() = job?.phase?.isRunning == true || voiceRestore.isRunning || backupRestore.isRunning
@@ -252,7 +289,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         private set
 
     init {
+        prefs.registerOnSharedPreferenceChangeListener(updatePrefListener)
         configureTransport()
+        restoreAppUpdate()
+        refreshAppUpdate()
     }
 
     fun bumpTheme() {
@@ -1096,7 +1136,150 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         else -> false
     }
 
+    fun startAppUpdate() {
+        val offer = appUpdate ?: return
+        if (appUpdatePhase is AppUpdatePhase.Downloading || appUpdatePhase is AppUpdatePhase.Installing) return
+        val context = getApplication<Application>()
+        if (!context.packageManager.canRequestPackageInstalls()) {
+            appUpdatePhase = AppUpdatePhase.NeedsPermission
+            val screen = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                data = Uri.parse("package:${context.packageName}")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            try {
+                context.startActivity(screen)
+            } catch (_: ActivityNotFoundException) {
+                appUpdatePhase = AppUpdatePhase.Failed(UPDATE_INSTALL_FAILED)
+            }
+            return
+        }
+        downloadAndInstall(offer)
+    }
+
+    /** LATER hides the line for this version. A newer version shows again. */
+    fun dismissAppUpdate() {
+        val version = appUpdate?.version ?: return
+        if (appUpdatePhase !is AppUpdatePhase.Installing) {
+            updateJob?.cancel()
+            updateJob = null
+        }
+        appUpdateDismissed = version
+        appUpdatePhase = AppUpdatePhase.Idle
+        prefs.edit().putString(PREF_DISMISSED_VERSION, version).apply()
+    }
+
+    /**
+     * After the install permission screen, or after Android's confirm sheet.
+     * Cancelling the confirm sheet returns to the offer. Other install failures say so.
+     */
+    fun noteReturnedFromUpdate() {
+        val status = prefs.getString(PREF_INSTALL_STATUS, null)
+        if (status != null) {
+            prefs.edit().remove(PREF_INSTALL_STATUS).apply()
+            appUpdatePhase = when (status) {
+                INSTALL_ABORTED -> AppUpdatePhase.Idle
+                else -> AppUpdatePhase.Failed(UPDATE_INSTALL_FAILED)
+            }
+            return
+        }
+        if (appUpdatePhase is AppUpdatePhase.NeedsPermission &&
+            getApplication<Application>().packageManager.canRequestPackageInstalls()
+        ) {
+            appUpdate?.let { downloadAndInstall(it) }
+        }
+    }
+
+    private fun restoreAppUpdate() {
+        appUpdateDismissed = prefs.getString(PREF_DISMISSED_VERSION, null)
+        val version = prefs.getString(PREF_OFFER_VERSION, null) ?: return
+        val url = prefs.getString(PREF_OFFER_URL, null) ?: return
+        if (!trustedApkUrl(url)) return
+        val stored = AppRelease(version, url, prefs.getLong(PREF_OFFER_SIZE, 0L))
+        appUpdate = offerUpdate(BuildConfig.VERSION_NAME, stored)
+    }
+
+    private fun refreshAppUpdate() {
+        if (BuildConfig.DEBUG || BuildConfig.VERSION_NAME.endsWith("-debug")) return
+        if (updateChecked) return
+        updateChecked = true
+        val last = prefs.getLong(PREF_CHECKED_AT, 0L)
+        val now = System.currentTimeMillis()
+        if (last != 0L && now - last < CHECK_INTERVAL_MS) return
+        viewModelScope.launch {
+            val release = withContext(Dispatchers.IO) {
+                runCatching {
+                    val bytes = fetchUpdateBytes(RELEASES_LATEST, maxBytes = 1_000_000)
+                    appRelease(bytes.toString(Charsets.UTF_8))
+                }.getOrNull()
+            } ?: return@launch
+            prefs.edit().putLong(PREF_CHECKED_AT, System.currentTimeMillis()).apply()
+            val offer = offerUpdate(BuildConfig.VERSION_NAME, release)
+            if (offer == null) {
+                clearStoredOffer()
+                appUpdate = null
+                appUpdatePhase = AppUpdatePhase.Idle
+            } else {
+                persistOffer(offer)
+                appUpdate = offer
+            }
+        }
+    }
+
+    private fun downloadAndInstall(offer: AppRelease) {
+        appUpdatePhase = AppUpdatePhase.Downloading
+        updateJob?.cancel()
+        updateJob = viewModelScope.launch {
+            val apk = try {
+                withContext(Dispatchers.IO) {
+                    val bytes = fetchUpdateBytes(offer.apkUrl, maxBytes = MAX_APK_BYTES)
+                    if (offer.size > 0 && bytes.size.toLong() != offer.size) {
+                        throw UpdateDownloadException(UPDATE_SIZE_MISMATCH)
+                    }
+                    val dir = File(getApplication<Application>().cacheDir, "updates")
+                    if (!dir.isDirectory && !dir.mkdirs()) {
+                        throw UpdateDownloadException(UPDATE_DOWNLOAD_FAILED)
+                    }
+                    File(dir, "FM-1-Swap.apk").also { it.writeBytes(bytes) }
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: UpdateDownloadException) {
+                appUpdatePhase = AppUpdatePhase.Failed(error.message ?: UPDATE_DOWNLOAD_FAILED)
+                return@launch
+            } catch (_: Exception) {
+                appUpdatePhase = AppUpdatePhase.Failed(UPDATE_DOWNLOAD_FAILED)
+                return@launch
+            }
+            appUpdatePhase = AppUpdatePhase.Installing
+            try {
+                withContext(Dispatchers.IO) { UpdateInstaller.commit(getApplication(), apk) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                appUpdatePhase = AppUpdatePhase.Failed(UPDATE_INSTALL_FAILED)
+            }
+        }
+    }
+
+    private fun persistOffer(offer: AppRelease) {
+        prefs.edit()
+            .putString(PREF_OFFER_VERSION, offer.version)
+            .putString(PREF_OFFER_URL, offer.apkUrl)
+            .putLong(PREF_OFFER_SIZE, offer.size)
+            .apply()
+    }
+
+    private fun clearStoredOffer() {
+        prefs.edit()
+            .remove(PREF_OFFER_VERSION)
+            .remove(PREF_OFFER_URL)
+            .remove(PREF_OFFER_SIZE)
+            .apply()
+    }
+
     override fun onCleared() {
+        prefs.unregisterOnSharedPreferenceChangeListener(updatePrefListener)
+        updateJob?.cancel()
         probeJob?.cancel()
         watch?.close()
         releaseHeld()

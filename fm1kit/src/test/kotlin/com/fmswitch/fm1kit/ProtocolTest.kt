@@ -123,5 +123,11 @@ class MidiProbeTest {
         assertEquals("fm1", FM1Updater.portsToProbe(mixed).first().id)
         val unnamed = listOf(MidiPortDescriptor("x", "MIDI 2"))
         assertEquals(listOf("x"), FM1Updater.portsToProbe(unnamed).map { it.id })
+        val keyboard = listOf(
+            MidiPortDescriptor("akai", "AKAI MPK mini 3"),
+            MidiPortDescriptor("x", "MIDI 2"),
+        )
+        assertEquals(listOf("x"), FM1Updater.portsToProbe(keyboard).map { it.id })
+        assertTrue(FM1Updater.portsToProbe(listOf(MidiPortDescriptor("akai", "AKAI MPK mini 3"))).isEmpty())
     }
 }

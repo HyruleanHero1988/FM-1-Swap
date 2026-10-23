@@ -10,6 +10,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.fmswitch.catalogue.CatalogueEntry
+import com.fmswitch.catalogue.MissingPackage
+import com.fmswitch.catalogue.catalogueListUpdated
+import com.fmswitch.catalogue.missingFileAfterRefresh
 import com.fmswitch.catalogue.FirmwareKind
 import com.fmswitch.catalogue.FirmwareSort
 import com.fmswitch.catalogue.SafetyNotice
@@ -145,7 +148,7 @@ sealed class MidiCheck {
 sealed class EmulatorPackage {
     data object Preparing : EmulatorPackage()
     data class Ready(val file: File, val sha256: String) : EmulatorPackage()
-    data class Failed(val message: String) : EmulatorPackage()
+    data class Failed(val message: String, val missing: Boolean = false) : EmulatorPackage()
 }
 
 /** What a flash can save off the running FM-1 before it writes. */
@@ -208,6 +211,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     var probeProblem by mutableStateOf<String?>(null)
         private set
     var catalogueTick by mutableIntStateOf(0)
+    var isRefreshingCatalogue by mutableStateOf(false)
+        private set
     var listTick by mutableIntStateOf(0)
     var libraryTick by mutableIntStateOf(0)
     var themeTick by mutableIntStateOf(0)
@@ -226,6 +231,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     var backupOffer by mutableStateOf<BackupOffer>(BackupOffer.Unknown)
         private set
     private var emulatorJob: Job? = null
+    private var catalogueJob: Job? = null
     private var probeJob: Job? = null
 
     val theme: PhosphorTheme get() = settings.theme.also { themeTick }
@@ -825,9 +831,38 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun refreshCatalogue() {
-        viewModelScope.launch {
+        if (catalogueJob?.isActive == true) return
+        catalogueJob = viewModelScope.launch { refreshCatalogueNow() }
+    }
+
+    /** REFRESH on a missing-file screen. When the list now points somewhere else, download that. */
+    fun refreshMissingFirmware() {
+        val entry = playingFirmware ?: return
+        if (catalogueJob?.isActive == true) return
+        catalogueJob = viewModelScope.launch {
+            refreshCatalogueNow()
+            if (playingFirmware?.id != entry.id) return@launch
+            val fresh = catalogue.entry(entry.id)
+            val still = missingFileAfterRefresh(
+                catalogueListUpdated(catalogue.errorMessage),
+                entry,
+                fresh,
+            )
+            if (still != null) {
+                emulatorPackage = EmulatorPackage.Failed(still, missing = true)
+            } else if (fresh != null) {
+                openEmulator(fresh, cancelRefresh = false)
+            }
+        }
+    }
+
+    private suspend fun refreshCatalogueNow() {
+        isRefreshingCatalogue = true
+        try {
             catalogue.refresh { catalogueTick++ }
             catalogueTick++
+        } finally {
+            isRefreshingCatalogue = false
         }
     }
 
@@ -944,8 +979,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun openEmulator(entry: CatalogueEntry) {
+    fun openEmulator(entry: CatalogueEntry, cancelRefresh: Boolean = true) {
         emulatorJob?.cancel()
+        if (cancelRefresh) catalogueJob?.cancel()
         playingFirmware = entry
         emulatorPackage = EmulatorPackage.Preparing
         val keep = settings.autoSaveTried && entry.isDownloadable
@@ -958,7 +994,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                EmulatorPackage.Failed(error.userMessage())
+                EmulatorPackage.Failed(
+                    error.userMessage(),
+                    missing = error is MissingPackage && error.code == 404,
+                )
             } finally {
                 if (keep) downloadingIds = downloadingIds - entry.id
             }
@@ -994,9 +1033,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun closeEmulator() {
         emulatorJob?.cancel()
+        catalogueJob?.cancel()
         emulatorJob = null
         playingFirmware = null
         emulatorPackage = EmulatorPackage.Preparing
+        isRefreshingCatalogue = false
     }
 
     fun probablyRunning(identity: FM1Identity): String {

@@ -11,8 +11,10 @@ import android.os.Looper
 
 /**
  * While TRY is open, a USB MIDI keyboard's notes are forwarded into the virtual FM-1.
- * Only the first output port is opened, so a device that echoes the same notes on a second
- * port does not play them twice. The FM-1 this app is already talking to is left alone.
+ * Every output port is opened: an MPK mini sends keys on one port and can leave the other
+ * quiet. The same bytes arriving again within a few milliseconds are dropped, so a keyboard
+ * that echoes onto a second port does not play the note twice. The FM-1 this app is already
+ * talking to is left alone.
  */
 class UsbMidiTap(
     context: Context,
@@ -26,6 +28,7 @@ class UsbMidiTap(
     private val opened = mutableMapOf<Int, Opened>()
     private val retired = mutableSetOf<Int>()
     private val failed = mutableMapOf<Int, String>()
+    private val echo = MidiEchoGate()
     private var closed = false
     private var syncing = false
     private var syncAgain = false
@@ -107,7 +110,7 @@ class UsbMidiTap(
             return
         }
         val receiver = Forwarder(target.id)
-        val ports = target.outputPorts.take(1).mapNotNull { number ->
+        val ports = usbMidiPortsToOpen(target.outputPorts).mapNotNull { number ->
             device.openOutputPort(number)?.also { it.connect(receiver) }
         }
         if (ports.isEmpty()) {
@@ -136,7 +139,9 @@ class UsbMidiTap(
             if (closed || count <= 0 || deviceId in skipIds()) return
             val end = (offset + count).coerceAtMost(msg.size)
             if (end <= offset) return
-            onBytes(msg.copyOfRange(offset, end))
+            val bytes = msg.copyOfRange(offset, end)
+            if (!echo.admit(bytes, System.nanoTime())) return
+            onBytes(bytes)
         }
     }
 
@@ -161,6 +166,52 @@ internal data class UsbMidiCandidate(
     val outputPorts: List<Int>,
 )
 
+/** Every output port, in port-number order. Notes are not always on the first one. */
+internal fun usbMidiPortsToOpen(outputPorts: List<Int>): List<Int> =
+    outputPorts.distinct().sorted()
+
+/**
+ * Drops a packet that repeats one just heard, so two ports echoing the same note
+ * do not strike it twice. A later, different packet still goes through.
+ */
+internal class MidiEchoGate(private val windowNs: Long = 12_000_000L) {
+    private var last: ByteArray? = null
+    private var at = Long.MIN_VALUE
+
+    @Synchronized
+    fun admit(bytes: ByteArray, nowNs: Long): Boolean {
+        val prior = last
+        if (prior != null && nowNs >= at && nowNs - at <= windowNs && prior.contentEquals(bytes)) {
+            return false
+        }
+        last = bytes.copyOf()
+        at = nowNs
+        return true
+    }
+}
+
+/**
+ * Channel messages are moved to [channel] (1–16). Official V15 hears channel 2, and so
+ * does Felucca. A keyboard left on channel 1, and pads on channel 10, then play.
+ * SysEx and realtime bytes are left as they arrived.
+ */
+internal fun fm1ListenChannel(bytes: ByteArray, channel: Int = 2): ByteArray {
+    val nibble = (channel - 1).coerceIn(0, 15)
+    var changed = false
+    val out = bytes.copyOf()
+    for (index in out.indices) {
+        val value = out[index].toInt() and 0xFF
+        if (value in 0x80..0xEF) {
+            val rewritten = (value and 0xF0) or nibble
+            if (rewritten != value) {
+                out[index] = rewritten.toByte()
+                changed = true
+            }
+        }
+    }
+    return if (changed) out else bytes
+}
+
 internal fun usbMidiListenTargets(
     devices: List<UsbMidiCandidate>,
     skip: Set<Int>,
@@ -175,7 +226,7 @@ internal fun midiProductName(name: String?, product: String?, manufacturer: Stri
         ?: "MIDI $id"
 
 internal fun usbMidiLine(names: List<String>, failed: List<String>): String = when {
-    names.isNotEmpty() -> "USB MIDI · " + names.joinToString(", ")
+    names.isNotEmpty() -> "USB MIDI \u00b7 " + names.joinToString(", ")
     failed.isNotEmpty() -> "Couldn't open " + failed.joinToString(", ") + "."
     else -> ""
 }

@@ -9,8 +9,8 @@ package com.fmswitch.catalogue
  * panel drawn in Compose.
  *
  * A few publishers also ship a browser emulator (hub `/play/` links, M-VAVE's
- * Workbench). [authorEmulator] finds those as an extra option. RedtailWorks'
- * machines play here, in the same emulator as everything else.
+ * Workbench). [playLink] finds those for the IN BROWSER catalogue chip.
+ * RedtailWorks' machines play here, in the same emulator as everything else.
  */
 object FirmwareEmulator {
     const val CHIP_EMU = "https://joakimeriksson.github.io/fm1-emu/"
@@ -21,8 +21,6 @@ object FirmwareEmulator {
         append(CHIP_EMU)
         chipSlug(entry)?.let { append("?fw=").append(it) }
     }
-
-    fun authorEmulator(entry: CatalogueEntry): String? = playLink(entry)
 
     fun playLink(entry: CatalogueEntry): String? {
         val ranked = entry.links.mapNotNull { link ->

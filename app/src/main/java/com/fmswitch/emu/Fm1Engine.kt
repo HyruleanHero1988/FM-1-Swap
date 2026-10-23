@@ -222,7 +222,7 @@ class Fm1Engine(
         private const val NEVER_STARTED_MS = 6_000L
         const val NEVER_STARTED =
             "This firmware didn't start here. It made no sound and drew nothing. A real FM-1 may still run it. " +
-                "If there's an AUTHOR'S EMU button, that can play it."
+                "If the listing has a browser player, that link is on the firmware's page."
         private const val FRAME_NANOS = 33_000_000L
         private const val SAVE_NANOS = 3_000_000_000L
 

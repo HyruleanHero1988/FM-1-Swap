@@ -15,14 +15,14 @@ class FirmwareEmulatorTest {
                 CatalogueLink("Try it in the browser", "https://rustypawz.github.io/fm1-HYP1/emu/"),
             ),
         )
-        assertNull(FirmwareEmulator.authorEmulator(hyp))
-        assertNull(FirmwareEmulator.authorEmulator(CatalogueEntry(id = "redtail-lof", name = "LOF-1")))
-        assertNull(FirmwareEmulator.authorEmulator(CatalogueEntry(id = "redtail-eco", name = "ECO-1")))
-        assertNull(FirmwareEmulator.authorEmulator(CatalogueEntry(id = "redtail-grav", name = "GRAV-1")))
+        assertNull(FirmwareEmulator.playLink(hyp))
+        assertNull(FirmwareEmulator.playLink(CatalogueEntry(id = "redtail-lof", name = "LOF-1")))
+        assertNull(FirmwareEmulator.playLink(CatalogueEntry(id = "redtail-eco", name = "ECO-1")))
+        assertNull(FirmwareEmulator.playLink(CatalogueEntry(id = "redtail-grav", name = "GRAV-1")))
     }
 
     @Test
-    fun hubPlayLinkIsTheAuthorsEmulator() {
+    fun hubPlayLinkIsTheBrowserPlayer() {
         val x0x = CatalogueEntry(
             id = "x0x",
             name = "X0X",
@@ -30,7 +30,7 @@ class FirmwareEmulatorTest {
                 CatalogueLink("Try it in the browser", "https://charlesvestal.github.io/fm1-x0x/emu/"),
             ),
         )
-        assertEquals("https://charlesvestal.github.io/fm1-x0x/emu/", FirmwareEmulator.authorEmulator(x0x))
+        assertEquals("https://charlesvestal.github.io/fm1-x0x/emu/", FirmwareEmulator.playLink(x0x))
     }
 
     @Test
@@ -44,13 +44,13 @@ class FirmwareEmulatorTest {
                 CatalogueLink("Source", "https://github.com/m-vave/fm1_open"),
             ),
         )
-        assertEquals("https://open.m-vave.com/fm1-workbench", FirmwareEmulator.authorEmulator(open))
+        assertEquals("https://open.m-vave.com/fm1-workbench", FirmwareEmulator.playLink(open))
     }
 
     @Test
-    fun mostFirmwaresHaveNoAuthorEmulator() {
-        assertNull(FirmwareEmulator.authorEmulator(CatalogueEntry(id = "sloop", name = "SLOOP")))
-        assertNull(FirmwareEmulator.authorEmulator(CatalogueEntry(id = "fm1-editor-baud-girl", name = "Baud Girl (FM-1+VA)")))
+    fun mostFirmwaresHaveNoBrowserPlayer() {
+        assertNull(FirmwareEmulator.playLink(CatalogueEntry(id = "sloop", name = "SLOOP")))
+        assertNull(FirmwareEmulator.playLink(CatalogueEntry(id = "fm1-editor-baud-girl", name = "Baud Girl (FM-1+VA)")))
     }
 
     @Test

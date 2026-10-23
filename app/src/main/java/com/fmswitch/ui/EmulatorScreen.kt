@@ -2,13 +2,11 @@ package com.fmswitch.ui
 
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
-import android.net.Uri
 import android.os.PowerManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -57,7 +55,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.currentStateAsState
 import com.fmswitch.catalogue.CatalogueEntry
-import com.fmswitch.catalogue.FirmwareEmulator
 import com.fmswitch.emu.EmulatorClock
 import com.fmswitch.midi.UsbMidiTap
 import com.fmswitch.emu.EmulatorFrame
@@ -94,7 +91,6 @@ fun EmulatorScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val authorEmulator = remember(entry.id, entry.links) { FirmwareEmulator.authorEmulator(entry) }
     var saveError by remember(entry.id) { mutableStateOf<String?>(null) }
     var mhz by remember(entry.id, chooseClock) {
         mutableIntStateOf(EmulatorClock.get(context, entry, chooseClock))
@@ -160,7 +156,7 @@ fun EmulatorScreen(
         // The panel keeps the FM-1's shape and sits against the far edge. Every other
         // control is clipped to the leftover strip, so it cannot land on the knobs or the screen.
         BoxWithConstraints(Modifier.fillMaxSize().background(theme.background)) {
-            // 88dp holds BACK and AUTHOR'S in the pixel font, plus the button's own padding.
+            // 88dp holds BACK in the pixel font, plus the button's own padding.
             val fit = EmulatorFrame.fit(maxWidth.value, maxHeight.value, minChrome = 88f)
             val panel = EmulatorFrame.panelRect(maxWidth.value, maxHeight.value, fit)
             val chrome = EmulatorFrame.chromeRect(maxWidth.value, maxHeight.value, fit)
@@ -214,11 +210,6 @@ fun EmulatorScreen(
                 }
                 saveError?.let { MonoText(it, size = 11) }
                 BasicText(entry.name.uppercase(), style = pixelText(13.sp, bold = true, color = theme.bright, glow = true))
-                if (authorEmulator != null) {
-                    PixelButton("AUTHOR'S EMU", compact = true, wrap = true, modifier = Modifier.fillMaxWidth()) {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(authorEmulator)))
-                    }
-                }
                 if (chooseClock && prepared is EmulatorPackage.Ready) ClockRow(mhz, ::clock, narrow = true)
                 if (liveStatus.isNotEmpty()) MonoText(liveStatus, size = 11, dim = true)
                 MonoText(midiLine.ifEmpty { "USB KEYBOARD" }, size = 11, dim = midiLine.isEmpty(), maxLines = 3)
@@ -236,11 +227,6 @@ fun EmulatorScreen(
                 PixelButton("◂ BACK", compact = true, onClick = onBack)
                 if (canSave) {
                     PixelButton(if (saving) "SAVING" else "SAVE", compact = true, enabled = !saving, onClick = ::keep)
-                }
-                if (authorEmulator != null) {
-                    PixelButton("AUTHOR'S EMU", compact = true) {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(authorEmulator)))
-                    }
                 }
             }
             BasicText(entry.name.uppercase(), style = pixelText(16.sp, bold = true, color = theme.bright, glow = true))

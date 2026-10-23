@@ -10,6 +10,7 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.io.FileNotFoundException
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
@@ -178,6 +179,39 @@ object SafetyNotice {
     )
 }
 
+/** The server did not return the file. [code] is the HTTP status, usually 404. */
+class MissingPackage(val code: Int) : Exception(httpFailure(code))
+
+fun httpFailure(code: Int): String = when (code) {
+    404 -> "Couldn't find this file. The firmware list may be out of date."
+    else -> "The server returned HTTP $code."
+}
+
+/**
+ * Copy for REFRESH after a missing file. Null means the same firmware now points at a
+ * different file, and that file should be downloaded.
+ */
+fun missingFileAfterRefresh(
+    listUpdated: Boolean,
+    previous: CatalogueEntry,
+    fresh: CatalogueEntry?,
+): String? {
+    if (!listUpdated) return "Couldn't refresh the firmware list."
+    if (fresh == null) return "Couldn't find this file. It is no longer in the firmware list."
+    val sameFile = fresh.packageURL == previous.packageURL && fresh.sha256 == previous.sha256
+    if (!fresh.isDownloadable || sameFile) {
+        return "Couldn't find this file. The list is up to date, and this file is still missing."
+    }
+    return null
+}
+
+/** A catalogue refresh that never read the hub cannot say whether a file was replaced. */
+fun catalogueListUpdated(errorMessage: String?): Boolean {
+    if (errorMessage == null) return true
+    return !errorMessage.startsWith("Couldn't refresh") &&
+        !errorMessage.contains("firmware hub couldn't be read")
+}
+
 fun fetchBytes(url: String, maxBytes: Int? = null): ByteArray {
     val connection = (URL(url).openConnection() as HttpURLConnection).apply {
         connectTimeout = 20_000
@@ -194,9 +228,13 @@ fun fetchBytes(url: String, maxBytes: Int? = null): ByteArray {
         }
     }
     try {
+        val code = try {
+            connection.responseCode
+        } catch (_: FileNotFoundException) {
+            404
+        }
+        if (code !in 200..299) throw MissingPackage(code)
         connection.inputStream.use { input ->
-            val code = connection.responseCode
-            if (code !in 200..299) error("HTTP $code")
             if (maxBytes == null) return input.readBytes()
             val out = java.io.ByteArrayOutputStream(maxBytes.coerceAtMost(64 * 1024))
             val buf = ByteArray(8192)

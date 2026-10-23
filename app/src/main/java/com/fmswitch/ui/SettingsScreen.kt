@@ -211,6 +211,13 @@ fun SettingsScreen(model: AppViewModel) {
         }
         PixelPanel(title = "BUILD") {
             MonoText("FM-1 SWAP  ${BuildConfig.VERSION_NAME}", size = 14)
+            if (model.appUpdate != null) {
+                Spacer(Modifier.height(8.dp))
+                AppUpdateNotice(model, inSettings = true)
+            }
+            Spacer(Modifier.height(8.dp))
+            NoteText("When a newer release is out, UPDATE downloads it. Android asks you to confirm.")
+            Spacer(Modifier.height(6.dp))
             NoteText("If a new download says App not installed, uninstall this one once, then install the new file. After that, later downloads install over this one.")
         }
         PixelPanel(title = "CREDITS") {

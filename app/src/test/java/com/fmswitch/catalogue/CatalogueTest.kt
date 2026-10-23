@@ -507,3 +507,46 @@ private const val INSTALL_HTML = """
 </script>
 </head><body></body></html>
 """
+
+class MissingFileMessageTest {
+    @Test
+    fun namesAMissingFileWithoutPrintingTheAddress() {
+        assertEquals(
+            "Couldn't find this file. The firmware list may be out of date.",
+            httpFailure(404),
+        )
+        assertEquals("The server returned HTTP 500.", httpFailure(500))
+    }
+
+    @Test
+    fun refreshOffersTheReplacementAndKeepsAMissingFileMissing() {
+        val previous = CatalogueEntry(
+            id = "fart",
+            name = "Fart Machine One",
+            packageURL = "https://thefirmwarehub.com/fw/fart-1.0.0.fwsc",
+            sha256 = "old",
+        )
+        val moved = previous.copy(
+            packageURL = "https://thefirmwarehub.com/fw/fart-1.1.0.fwsc",
+            sha256 = "new",
+            version = "1.1.0",
+        )
+        assertNull(missingFileAfterRefresh(listUpdated = true, previous, moved))
+        assertEquals(
+            "Couldn't find this file. The list is up to date, and this file is still missing.",
+            missingFileAfterRefresh(listUpdated = true, previous, previous),
+        )
+        assertEquals(
+            "Couldn't find this file. It is no longer in the firmware list.",
+            missingFileAfterRefresh(listUpdated = true, previous, fresh = null),
+        )
+        assertEquals(
+            "Couldn't refresh the firmware list.",
+            missingFileAfterRefresh(listUpdated = false, previous, fresh = null),
+        )
+        assertTrue(catalogueListUpdated(null))
+        assertTrue(catalogueListUpdated("fm1-editor.com couldn't be read."))
+        assertFalse(catalogueListUpdated("Couldn't refresh the list. Showing the one that came with the app."))
+        assertFalse(catalogueListUpdated("The firmware hub couldn't be read."))
+    }
+}

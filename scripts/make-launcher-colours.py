@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-"""Recolor the shipped FM-1 launcher art into hardware body colours.
+"""Pack FM-1 launcher art for the seven official hardware colours.
 
 Reads the committed default launcher zips, keeps the black/dark icon
 byte-for-byte, and writes the other plastic colours plus adaptive
-foregrounds. Canvas stays black; keys and pads are chosen per body so a
-cream or white unit still has contrast.
+foregrounds. Canvas stays black.
 
-Cream, mint, white, and purple use the pixel drawings in
-scripts/launcher-pixel/ (fitted to the same 192px black canvas). Rust,
-orange, and slate stay as recolors of the shipped black icon. The product
-photo is not shipped.
+Purple, green, gray, and brown use the pixel drawings in
+scripts/launcher-pixel/ (fitted to the same 192px black canvas). Navy and
+orange are pixel drawings in that same style. The product photo is not
+shipped.
 """
 
 from __future__ import annotations
@@ -29,8 +28,17 @@ PIXEL_DIR = Path(__file__).resolve().parent / "launcher-pixel"
 PREVIEW_DIR = Path(tempfile.gettempdir()) / "fm1-launcher-preview"
 REPO_PREVIEW = ROOT / "icon-previews"
 
-PIXEL_ART = ("cream", "mint", "white", "purple")
-PRESERVE_COLOURS = ("rust", "orange", "slate")
+# SETUP order without black. Pixel PNGs live under scripts/launcher-pixel/.
+PIXEL_ART = ("purple", "green", "orange", "navy", "brown", "gray")
+
+# Already-shipped pixel mipmaps, renamed onto the official colour ids so
+# cream/mint/white/purple pixels stay byte-for-byte in the zip packs.
+KEPT_PACKED = {
+    "brown": "cream",
+    "green": "mint",
+    "gray": "white",
+    "purple": "purple",
+}
 
 DENSITIES = {
     "mipmap-mdpi": 48,
@@ -50,58 +58,50 @@ ADAPTIVE = {
     "mipmap-xxxhdpi": 432,
 }
 
-# Sampled from the M-VAVE colour-variant photo. Pads/keys are not a hue-shift
-# of the whole PNG: light bodies get dark controls, darker bodies keep light
-# key ticks like the current black icon.
+# Fallback recolors if a pixel drawing is missing. Pads/keys are not a
+# hue-shift of the whole PNG: light bodies get dark controls.
 COLOURS = {
-    "white": {
-        "body": (0xE6, 0xE4, 0xDE),
-        "pad": (0x2A, 0x2C, 0x2E),
-        "key": (0x24, 0x24, 0x26),
-        "outline": (0x3A, 0x3A, 0x3C),
-        "light": True,
-    },
-    "cream": {
-        "body": (0xD5, 0xC9, 0xB4),
-        "pad": (0x2C, 0x28, 0x24),
-        "key": (0x2A, 0x26, 0x22),
-        "outline": (0x5C, 0x50, 0x40),
-        "light": True,
-    },
-    "rust": {
-        "body": (0x7A, 0x43, 0x36),
-        "pad": (0x2E, 0x20, 0x1C),
-        "key": (0xEE, 0xE4, 0xDC),
-        "outline": (0x3A, 0x20, 0x1A),
-        "light": False,
-    },
-    "mint": {
-        "body": (0x6B, 0xC8, 0xB6),
-        "pad": (0x2A, 0x58, 0x52),
-        "key": (0x1A, 0x32, 0x30),
-        "outline": (0x2A, 0x58, 0x50),
-        "light": True,
-    },
-    "orange": {
-        "body": (0xC0, 0x56, 0x34),
-        "pad": (0x3A, 0x22, 0x18),
-        "key": (0xF2, 0xE6, 0xD8),
-        "outline": (0x6A, 0x28, 0x18),
-        "light": False,
-    },
     "purple": {
-        "body": (0xA5, 0x7A, 0xB8),
-        "pad": (0x58, 0x3E, 0x74),
-        "key": (0xF2, 0xEA, 0xF6),
+        "body": (0xBC, 0x94, 0xD8),
+        "pad": (0x98, 0x6D, 0xB7),
+        "key": (0xC9, 0xA5, 0xE6),
         "outline": (0x4A, 0x30, 0x5A),
         "light": False,
     },
-    "slate": {
-        "body": (0x56, 0x72, 0x8C),
-        "pad": (0x2A, 0x3A, 0x4C),
-        "key": (0xE8, 0xEC, 0xF0),
-        "outline": (0x2A, 0x3A, 0x4A),
+    "green": {
+        "body": (0x23, 0x22, 0x23),
+        "pad": (0x74, 0xF7, 0xAE),
+        "key": (0x74, 0xF7, 0xAE),
+        "outline": (0x12, 0x10, 0x12),
         "light": False,
+    },
+    "orange": {
+        "body": (0xD0, 0x68, 0x40),
+        "pad": (0x98, 0x50, 0x40),
+        "key": (0x98, 0x50, 0x40),
+        "outline": (0x6A, 0x28, 0x18),
+        "light": False,
+    },
+    "navy": {
+        "body": (0xF0, 0xE8, 0xE0),
+        "pad": (0x50, 0x70, 0x90),
+        "key": (0x50, 0x70, 0x90),
+        "outline": (0x3A, 0x3A, 0x3C),
+        "light": True,
+    },
+    "brown": {
+        "body": (0xF8, 0xF9, 0xF4),
+        "pad": (0x81, 0x3A, 0x21),
+        "key": (0x81, 0x3A, 0x21),
+        "outline": (0x5C, 0x50, 0x40),
+        "light": True,
+    },
+    "gray": {
+        "body": (0xFF, 0xFF, 0xFF),
+        "pad": (0x54, 0x51, 0x60),
+        "key": (0x37, 0x36, 0x46),
+        "outline": (0x3A, 0x3A, 0x3C),
+        "light": True,
     },
 }
 
@@ -110,6 +110,8 @@ PAD_BOX = (100, 55, 176, 108)
 KEY_BOX = (16, 112, 176, 146)
 SCREEN_BOX = (52, 56, 98, 92)
 OUTLINE_PX = 4
+
+OBSOLETE_COLOURS = ("white", "cream", "rust", "mint", "slate")
 
 
 def zip_bytes(name: str) -> bytes:
@@ -122,13 +124,13 @@ def load_b64_zip(name: str) -> dict[str, bytes]:
         return {entry: zf.read(entry) for entry in zf.namelist()}
 
 
-def colour_from_entry(entry: str) -> str | None:
+def colour_from_entry(entry: str, names=COLOURS) -> str | None:
     stem = Path(entry).name
     if not stem.startswith("ic_launcher_") or not stem.endswith(".png"):
         return None
     rest = stem[len("ic_launcher_") : -4]
     rest = rest.removesuffix("_round").removesuffix("_foreground")
-    if rest in COLOURS:
+    if rest in names:
         return rest
     return None
 
@@ -281,8 +283,6 @@ def recolor(im: Image.Image, canvas, labels, spec) -> Image.Image:
             elif lab == "outline":
                 dest[x, y] = colorize_pixel(p, src_mean_lum, outline)
             elif lab == "pad":
-                # Pads in the source are bright cyan. Keep only a little of that
-                # shading so they stay the pad colour, not washed-out white.
                 dest[x, y] = (*shade(pad, 0.72 + 0.28 * luminance(p)), 255)
             elif lab == "key":
                 if light:
@@ -333,7 +333,6 @@ def monochrome(device: Image.Image, canvas, canvas_size: int) -> Image.Image:
                 continue
             p = px[x, y]
             lum = luminance(p)
-            # Soft body plus strong details (keys, pads, outline, waveform).
             alpha = int(max(lum * 255, 70 if lum > 0.04 else 0))
             if saturation(p) > 0.25:
                 alpha = min(255, alpha + 80)
@@ -379,18 +378,31 @@ def contact_sheet(images: list[tuple[str, Image.Image]], cell=192) -> Image.Imag
     return sheet
 
 
-def keep_preserved(new_entries: dict[str, bytes], old_entries: dict[str, bytes]) -> dict[str, bytes]:
-    """Leave rust/orange/slate (and the default black layers) byte-for-byte."""
+def overlay_kept_packed(new_entries: dict[str, bytes], old_entries: dict[str, bytes]) -> dict[str, bytes]:
+    """Keep cream/mint/white/purple mipmaps, renamed onto brown/green/gray/purple."""
     merged = dict(new_entries)
+    for old_name, new_name in ((old, new) for new, old in KEPT_PACKED.items()):
+        needle = f"ic_launcher_{old_name}"
+        repl = f"ic_launcher_{new_name}"
+        for entry, data in old_entries.items():
+            stem = Path(entry).name
+            if stem.startswith(needle):
+                merged[entry.replace(needle, repl)] = data
     for entry, data in old_entries.items():
-        colour = colour_from_entry(entry)
         stem = Path(entry).name
-        if colour in PRESERVE_COLOURS or stem in (
-            "ic_launcher_foreground.png",
-            "ic_launcher_monochrome.png",
-        ):
+        if stem in ("ic_launcher_foreground.png", "ic_launcher_monochrome.png"):
             merged[entry] = data
     return merged
+
+
+def drop_obsolete(entries: dict[str, bytes]) -> dict[str, bytes]:
+    kept = {}
+    obsolete = set(OBSOLETE_COLOURS)
+    for entry, data in entries.items():
+        colour = colour_from_entry(entry, obsolete)
+        if colour is None:
+            kept[entry] = data
+    return kept
 
 
 def main():
@@ -416,16 +428,12 @@ def main():
         variants.append((name, im))
         write_png(PREVIEW_DIR / f"{name}.png", im)
         write_png(PREVIEW_DIR / f"{name}_fg.png", with_transparent_canvas(im, mask))
-        if name in PIXEL_ART and REPO_PREVIEW.exists():
-            write_png(REPO_PREVIEW / f"{name}.png", im)
     write_png(PREVIEW_DIR / "black.png", source)
     sheet = contact_sheet(variants)
     write_png(PREVIEW_DIR / "sheet.png", sheet)
     print("Preview", PREVIEW_DIR / "sheet.png")
+    write_repo_previews(variants)
 
-    # Adaptive / monochrome assets. Default black foreground is the original
-    # device with a punched canvas; colour variants use the recolored device
-    # or the pixel drawing's own silhouette.
     fg_entries: dict[str, bytes] = {}
     colour_low: dict[str, bytes] = {}
     colour_high: dict[str, bytes] = {}
@@ -437,7 +445,6 @@ def main():
             bucket[f"{folder}/ic_launcher_{name}.png"] = data
             bucket[f"{folder}/ic_launcher_{name}_round.png"] = data
 
-    # xxhdpi and xxxhdpi are enough; Android scales the adaptive layers down.
     for folder, size in ADAPTIVE.items():
         if size < 324:
             continue
@@ -451,17 +458,31 @@ def main():
             data = png_bytes(adaptive_foreground(fg, size))
             fg_entries[f"{folder}/ic_launcher_{name}_foreground.png"] = data
 
-    colour_low = keep_preserved(colour_low, load_b64_zip("launcher-icons-colours-a.zip.b64"))
-    colour_high = keep_preserved(colour_high, load_b64_zip("launcher-icons-colours-b.zip.b64"))
-    fg_entries = keep_preserved(fg_entries, load_b64_zip("launcher-icons-colours-c.zip.b64"))
+    colour_low = overlay_kept_packed(colour_low, load_b64_zip("launcher-icons-colours-a.zip.b64"))
+    colour_high = overlay_kept_packed(colour_high, load_b64_zip("launcher-icons-colours-b.zip.b64"))
+    fg_entries = overlay_kept_packed(fg_entries, load_b64_zip("launcher-icons-colours-c.zip.b64"))
+    colour_low = drop_obsolete(colour_low)
+    colour_high = drop_obsolete(colour_high)
+    fg_entries = drop_obsolete(fg_entries)
 
     write_b64_zip(APP / "launcher-icons-colours-a.zip.b64", colour_low)
     write_b64_zip(APP / "launcher-icons-colours-b.zip.b64", colour_high)
     write_b64_zip(APP / "launcher-icons-colours-c.zip.b64", fg_entries)
     write_adaptive_xml()
+    clear_obsolete_mipmaps()
     write_png(PREVIEW_DIR / "mono.png", monochrome(source, canvas, 192))
     print("Colours:", ", ".join(["black"] + list(COLOURS)))
     print("Pixel art:", ", ".join(n for n in PIXEL_ART if (PIXEL_DIR / f"{n}.png").exists()))
+
+
+def write_repo_previews(variants: list[tuple[str, Image.Image]]):
+    REPO_PREVIEW.mkdir(parents=True, exist_ok=True)
+    wanted = {f"{name}.png" for name, _ in variants}
+    for path in REPO_PREVIEW.glob("*.png"):
+        if path.name not in wanted:
+            path.unlink()
+    for name, im in variants:
+        write_png(REPO_PREVIEW / f"{name}.png", im)
 
 
 ADAPTIVE_XML = """<?xml version="1.0" encoding="utf-8"?>
@@ -483,12 +504,33 @@ def write_adaptive_xml():
     for name in COLOURS:
         files[f"ic_launcher_{name}"] = f"ic_launcher_{name}_foreground"
         files[f"ic_launcher_{name}_round"] = f"ic_launcher_{name}_foreground"
+    wanted = {f"{filename}.xml" for filename in files}
+    for path in dest.glob("ic_launcher*.xml"):
+        if path.name not in wanted:
+            path.unlink()
+            print(f"Removed {path.name}")
     for filename, foreground in files.items():
         path = dest / f"{filename}.xml"
         text = ADAPTIVE_XML.format(foreground=foreground)
         if not path.exists() or path.read_text(encoding="utf-8") != text:
             path.write_text(text, encoding="utf-8")
     print(f"Wrote {len(files)} adaptive icon XML files")
+
+
+def clear_obsolete_mipmaps():
+    res = APP / "src" / "main" / "res"
+    obsolete = set()
+    for name in OBSOLETE_COLOURS:
+        obsolete.add(f"ic_launcher_{name}.png")
+        obsolete.add(f"ic_launcher_{name}_round.png")
+        obsolete.add(f"ic_launcher_{name}_foreground.png")
+    for folder in res.glob("mipmap-*"):
+        if folder.name == "mipmap-anydpi-v26":
+            continue
+        for path in folder.glob("ic_launcher*.png"):
+            if path.name in obsolete:
+                path.unlink()
+                print(f"Removed {folder.name}/{path.name}")
 
 
 if __name__ == "__main__":

@@ -53,12 +53,12 @@
             </intent-filter>
         </activity-alias>
         <activity-alias
-            android:name=".icon.White"
+            android:name=".icon.Purple"
             android:enabled="false"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher_white"
+            android:icon="@mipmap/ic_launcher_purple"
             android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher_white_round"
+            android:roundIcon="@mipmap/ic_launcher_purple_round"
             android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -66,38 +66,12 @@
             </intent-filter>
         </activity-alias>
         <activity-alias
-            android:name=".icon.Cream"
+            android:name=".icon.Green"
             android:enabled="false"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher_cream"
+            android:icon="@mipmap/ic_launcher_green"
             android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher_cream_round"
-            android:targetActivity=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity-alias>
-        <activity-alias
-            android:name=".icon.Rust"
-            android:enabled="false"
-            android:exported="true"
-            android:icon="@mipmap/ic_launcher_rust"
-            android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher_rust_round"
-            android:targetActivity=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity-alias>
-        <activity-alias
-            android:name=".icon.Mint"
-            android:enabled="false"
-            android:exported="true"
-            android:icon="@mipmap/ic_launcher_mint"
-            android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher_mint_round"
+            android:roundIcon="@mipmap/ic_launcher_green_round"
             android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -118,12 +92,12 @@
             </intent-filter>
         </activity-alias>
         <activity-alias
-            android:name=".icon.Purple"
+            android:name=".icon.Navy"
             android:enabled="false"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher_purple"
+            android:icon="@mipmap/ic_launcher_navy"
             android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher_purple_round"
+            android:roundIcon="@mipmap/ic_launcher_navy_round"
             android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -131,12 +105,25 @@
             </intent-filter>
         </activity-alias>
         <activity-alias
-            android:name=".icon.Slate"
+            android:name=".icon.Brown"
             android:enabled="false"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher_slate"
+            android:icon="@mipmap/ic_launcher_brown"
             android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher_slate_round"
+            android:roundIcon="@mipmap/ic_launcher_brown_round"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".icon.Gray"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_gray"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_gray_round"
             android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

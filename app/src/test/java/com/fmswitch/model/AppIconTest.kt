@@ -11,8 +11,17 @@ class AppIconTest {
         assertEquals(AppIcon.BLACK, AppIcon.fromId(null))
         assertEquals(AppIcon.BLACK, AppIcon.fromId(""))
         assertEquals(AppIcon.BLACK, AppIcon.fromId("phosphor"))
-        assertEquals(AppIcon.MINT, AppIcon.fromId("mint"))
-        assertEquals(AppIcon.SLATE, AppIcon.fromId("Slate"))
+        assertEquals(AppIcon.GREEN, AppIcon.fromId("green"))
+        assertEquals(AppIcon.NAVY, AppIcon.fromId("Navy"))
+    }
+
+    @Test
+    fun oldSettingsIdsMoveOntoTheSevenHardwareColours() {
+        assertEquals(AppIcon.GRAY, AppIcon.fromId("white"))
+        assertEquals(AppIcon.BROWN, AppIcon.fromId("cream"))
+        assertEquals(AppIcon.BROWN, AppIcon.fromId("rust"))
+        assertEquals(AppIcon.GREEN, AppIcon.fromId("mint"))
+        assertEquals(AppIcon.NAVY, AppIcon.fromId("Slate"))
     }
 
     @Test
@@ -26,6 +35,18 @@ class AppIconTest {
         assertEquals("com.fmswitch.icon.Black", AppIcon.BLACK.component)
         assertTrue(AppIcon.BLACK.isDefault)
         assertEquals(1, AppIcon.entries.count { it.isDefault })
+        assertEquals(
+            listOf(
+                "com.fmswitch.icon.Black",
+                "com.fmswitch.icon.Purple",
+                "com.fmswitch.icon.Green",
+                "com.fmswitch.icon.Orange",
+                "com.fmswitch.icon.Navy",
+                "com.fmswitch.icon.Brown",
+                "com.fmswitch.icon.Gray",
+            ),
+            names,
+        )
     }
 
     @Test
@@ -37,22 +58,22 @@ class AppIconTest {
     @Test
     fun switchingDoesNothingWhenThatAliasIsAlreadyTheLauncher() {
         assertNull(AppIconSwitch.plan(AppIcon.BLACK, setOf(AppIcon.BLACK.component)))
-        assertNull(AppIconSwitch.plan(AppIcon.WHITE, setOf(AppIcon.WHITE.component)))
+        assertNull(AppIconSwitch.plan(AppIcon.GRAY, setOf(AppIcon.GRAY.component)))
     }
 
     @Test
     fun switchingEnablesOneAliasAndDisablesTheRest() {
-        val plan = AppIconSwitch.plan(AppIcon.MINT, setOf(AppIcon.BLACK.component))
+        val plan = AppIconSwitch.plan(AppIcon.GREEN, setOf(AppIcon.BLACK.component))
         checkNotNull(plan)
-        assertEquals(AppIcon.MINT.component, plan.first)
-        assertEquals(AppIcon.entries.filter { it != AppIcon.MINT }.map { it.component }, plan.second)
+        assertEquals(AppIcon.GREEN.component, plan.first)
+        assertEquals(AppIcon.entries.filter { it != AppIcon.GREEN }.map { it.component }, plan.second)
         assertTrue(AppIcon.BLACK.component in plan.second)
     }
 
     @Test
     fun hardwareColoursStayAShortList() {
         assertEquals(
-            listOf("black", "white", "cream", "rust", "mint", "orange", "purple", "slate"),
+            listOf("black", "purple", "green", "orange", "navy", "brown", "gray"),
             AppIcon.entries.map { it.id },
         )
     }

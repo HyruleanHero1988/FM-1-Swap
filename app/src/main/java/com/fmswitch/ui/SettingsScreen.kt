@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -251,42 +252,48 @@ fun SettingsScreen(model: AppViewModel) {
 @Composable
 private fun AppIconChip(icon: AppIcon, selected: Boolean, onClick: () -> Unit) {
     val theme = LocalPhosphor.current
-    Box(
-        Modifier
-            .size(36.dp)
-            .clickable(onClick = onClick)
-            .border(2.dp, if (selected) theme.bright else theme.dim, PixelBox(2.dp))
-            .padding(4.dp)
-            .background(icon.body, PixelBox(1.dp)),
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick),
     ) {
-        Canvas(Modifier.fillMaxSize()) {
-            val w = size.width
-            val h = size.height
-            val gap = (1.5.dp).toPx()
-            drawRect(
-                Color(0xFF111111),
-                topLeft = Offset(w * 0.10f, h * 0.14f),
-                size = Size(w * 0.30f, h * 0.28f),
-            )
-            val pad = (w * 0.10f).coerceAtLeast(2f)
-            for (row in 0..1) {
-                for (col in 0..3) {
+        Box(
+            Modifier
+                .size(36.dp)
+                .border(2.dp, if (selected) theme.bright else theme.dim, PixelBox(2.dp))
+                .padding(4.dp)
+                .background(icon.body, PixelBox(1.dp)),
+        ) {
+            Canvas(Modifier.fillMaxSize()) {
+                val w = size.width
+                val h = size.height
+                val gap = (1.5.dp).toPx()
+                drawRect(
+                    Color(0xFF111111),
+                    topLeft = Offset(w * 0.10f, h * 0.14f),
+                    size = Size(w * 0.30f, h * 0.28f),
+                )
+                val pad = (w * 0.10f).coerceAtLeast(2f)
+                for (row in 0..1) {
+                    for (col in 0..3) {
+                        drawRect(
+                            icon.pad,
+                            topLeft = Offset(w * 0.48f + col * (pad + gap), h * 0.14f + row * (pad + gap)),
+                            size = Size(pad, pad),
+                        )
+                    }
+                }
+                val keyW = w * 0.08f
+                val keyH = h * 0.22f
+                for (i in 0..6) {
                     drawRect(
-                        icon.pad,
-                        topLeft = Offset(w * 0.48f + col * (pad + gap), h * 0.14f + row * (pad + gap)),
-                        size = Size(pad, pad),
+                        icon.key,
+                        topLeft = Offset(w * 0.10f + i * (keyW + gap), h * 0.62f),
+                        size = Size(keyW, keyH),
                     )
                 }
             }
-            val keyW = w * 0.08f
-            val keyH = h * 0.22f
-            for (i in 0..6) {
-                drawRect(
-                    icon.key,
-                    topLeft = Offset(w * 0.10f + i * (keyW + gap), h * 0.62f),
-                    size = Size(keyW, keyH),
-                )
-            }
         }
+        Spacer(Modifier.height(4.dp))
+        MonoText(icon.alias.uppercase(), size = 9, dim = !selected)
     }
 }

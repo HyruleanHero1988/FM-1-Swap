@@ -15,20 +15,30 @@ enum class AppIcon(
     val isDefault: Boolean = false,
 ) {
     BLACK("black", "Black", Color(0xFF2A2C2B), Color(0xFF1A1C1C), Color(0xFFE8EFE9), isDefault = true),
-    WHITE("white", "White", Color(0xFFE6E4DE), Color(0xFF2A2C2E), Color(0xFF242426)),
-    CREAM("cream", "Cream", Color(0xFFD5C9B4), Color(0xFF2C2824), Color(0xFF2A2622)),
-    RUST("rust", "Rust", Color(0xFF7A4336), Color(0xFF2E201C), Color(0xFFEEE4DC)),
-    MINT("mint", "Mint", Color(0xFF6BC8B6), Color(0xFF2A5852), Color(0xFF1A3230)),
-    ORANGE("orange", "Orange", Color(0xFFC05634), Color(0xFF3A2218), Color(0xFFF2E6D8)),
-    PURPLE("purple", "Purple", Color(0xFFA57AB8), Color(0xFF583E74), Color(0xFFF2EAF6)),
-    SLATE("slate", "Slate", Color(0xFF56728C), Color(0xFF2A3A4C), Color(0xFFE8ECF0));
+    PURPLE("purple", "Purple", Color(0xFFBC94D8), Color(0xFF986DB7), Color(0xFFC9A5E6)),
+    GREEN("green", "Green", Color(0xFF232223), Color(0xFF74F7AE), Color(0xFF74F7AE)),
+    ORANGE("orange", "Orange", Color(0xFFD06840), Color(0xFF985040), Color(0xFF985040)),
+    NAVY("navy", "Navy", Color(0xFFF0E8E0), Color(0xFF507090), Color(0xFF507090)),
+    BROWN("brown", "Brown", Color(0xFFF8F9F4), Color(0xFF813A21), Color(0xFF813A21)),
+    GRAY("gray", "Gray", Color(0xFFFFFFFF), Color(0xFF545160), Color(0xFF373646));
 
-    /** Fully-qualified activity-alias in the manifest (`com.fmswitch.icon.White`). */
+    /** Fully-qualified activity-alias in the manifest (`com.fmswitch.icon.Gray`). */
     val component: String get() = "com.fmswitch.icon.$alias"
 
     companion object {
-        fun fromId(id: String?): AppIcon =
-            entries.firstOrNull { it.id.equals(id, ignoreCase = true) } ?: BLACK
+        private val migratedIds = mapOf(
+            "white" to GRAY.id,
+            "cream" to BROWN.id,
+            "rust" to BROWN.id,
+            "mint" to GREEN.id,
+            "slate" to NAVY.id,
+        )
+
+        fun fromId(id: String?): AppIcon {
+            if (id.isNullOrBlank()) return BLACK
+            val key = migratedIds[id.lowercase()] ?: id
+            return entries.firstOrNull { it.id.equals(key, ignoreCase = true) } ?: BLACK
+        }
     }
 }
 

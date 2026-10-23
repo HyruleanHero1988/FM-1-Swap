@@ -59,6 +59,7 @@ import androidx.lifecycle.compose.currentStateAsState
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.FirmwareEmulator
 import com.fmswitch.emu.EmulatorClock
+import com.fmswitch.midi.UsbMidiTap
 import com.fmswitch.emu.EmulatorFrame
 import com.fmswitch.emu.EmulatorRun
 import com.fmswitch.emu.Fm1Engine
@@ -86,6 +87,8 @@ fun EmulatorScreen(
     onRetry: () -> Unit,
     onBack: () -> Unit,
     onTry: (sha: String, started: Boolean) -> Unit,
+    midiSkipKey: String,
+    midiSkipIds: () -> Set<Int>,
 ) {
     val theme = LocalPhosphor.current
     val context = LocalContext.current
@@ -116,7 +119,9 @@ fun EmulatorScreen(
     // One session for both frames. Calling RunningEmulator from each layout would
     // dispose it on rotate, and that dispose closes the engine.
     var liveStatus by remember { mutableStateOf("") }
+    var midiLine by remember { mutableStateOf("") }
     val reportStatus = remember<(String) -> Unit> { { liveStatus = it } }
+    val reportMidi = remember<(String) -> Unit> { { midiLine = it } }
     val running = remember {
         movableContentOf<RunningSlot> { slot ->
             RunningEmulator(
@@ -128,6 +133,9 @@ fun EmulatorScreen(
                 runInBackground = slot.runInBackground,
                 onStatus = slot.onStatus,
                 onTry = slot.onTry,
+                onMidi = slot.onMidi,
+                midiSkipKey = slot.midiSkipKey,
+                midiSkipIds = slot.midiSkipIds,
             )
         }
     }
@@ -141,6 +149,9 @@ fun EmulatorScreen(
             runInBackground = runInBackground,
             onStatus = reportStatus,
             onTry = onTry,
+            onMidi = reportMidi,
+            midiSkipKey = midiSkipKey,
+            midiSkipIds = midiSkipIds,
         )
     }
 
@@ -162,7 +173,7 @@ fun EmulatorScreen(
             ) {
                 when (prepared) {
                     EmulatorPackage.Preparing -> MonoText(
-                        "GETTING THIS FIRMWARE…",
+                        "GETTING THIS FIRMWARE\u2026",
                         size = 13,
                         dim = true,
                         modifier = Modifier.padding(24.dp),
@@ -188,9 +199,9 @@ fun EmulatorScreen(
                     .padding(4.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                // ‹ is in the pixel font. The other arrow is not, and a fallback glyph
+                // \u2039 is in the pixel font. The other arrow is not, and a fallback glyph
                 // was wide enough to push BACK out of this strip.
-                PixelButton("‹ BACK", compact = true, wrap = true, modifier = Modifier.fillMaxWidth(), onClick = onBack)
+                PixelButton("\u2039 BACK", compact = true, wrap = true, modifier = Modifier.fillMaxWidth(), onClick = onBack)
                 if (canSave) {
                     PixelButton(
                         if (saving) "SAVING" else "SAVE",
@@ -210,6 +221,7 @@ fun EmulatorScreen(
                 }
                 if (chooseClock && prepared is EmulatorPackage.Ready) ClockRow(mhz, ::clock, narrow = true)
                 if (liveStatus.isNotEmpty()) MonoText(liveStatus, size = 11, dim = true)
+                MonoText(midiLine.ifEmpty { "USB KEYBOARD" }, size = 11, dim = midiLine.isEmpty(), maxLines = 3)
             }
         }
     } else {
@@ -221,7 +233,7 @@ fun EmulatorScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                PixelButton("◂ BACK", compact = true, onClick = onBack)
+                PixelButton("\u25c2 BACK", compact = true, onClick = onBack)
                 if (canSave) {
                     PixelButton(if (saving) "SAVING" else "SAVE", compact = true, enabled = !saving, onClick = ::keep)
                 }
@@ -234,7 +246,7 @@ fun EmulatorScreen(
             BasicText(entry.name.uppercase(), style = pixelText(16.sp, bold = true, color = theme.bright, glow = true))
             saveError?.let { MonoText(it, size = 13) }
             when (prepared) {
-                EmulatorPackage.Preparing -> MonoText("GETTING THIS FIRMWARE…", size = 13, dim = true)
+                EmulatorPackage.Preparing -> MonoText("GETTING THIS FIRMWARE\u2026", size = 13, dim = true)
                 is EmulatorPackage.Failed -> {
                     MonoText("Couldn't get this firmware: ${prepared.message}", size = 14)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -279,6 +291,9 @@ private data class RunningSlot(
     val runInBackground: Boolean,
     val onStatus: (String) -> Unit,
     val onTry: (String, Boolean) -> Unit,
+    val onMidi: (String) -> Unit,
+    val midiSkipKey: String,
+    val midiSkipIds: () -> Set<Int>,
 )
 
 @Composable
@@ -290,7 +305,7 @@ private fun ClockRow(mhz: Int, onClock: (Int) -> Unit, narrow: Boolean = false) 
     }
     if (narrow) {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            MonoText("CLOCK · MHZ", size = 11, dim = true)
+            MonoText("CLOCK \u00b7 MHZ", size = 11, dim = true)
             EmulatorClock.CHOICES.forEach { choice ->
                 PixelButton(
                     "$choice",
@@ -320,6 +335,9 @@ private fun RunningEmulator(
     runInBackground: Boolean,
     onStatus: (String) -> Unit = {},
     onTry: (String, Boolean) -> Unit = { _, _ -> },
+    onMidi: (String) -> Unit = {},
+    midiSkipKey: String = "",
+    midiSkipIds: () -> Set<Int> = { emptySet() },
 ) {
     val context = LocalContext.current
     val theme = LocalPhosphor.current
@@ -366,9 +384,21 @@ private fun RunningEmulator(
         }
     }
     val running = engine
+    val skipIdsState = rememberUpdatedState(midiSkipIds)
+    val onMidiState = rememberUpdatedState(onMidi)
     if (running == null) {
-        MonoText(if (playing) "BOOTING…" else "PAUSED", size = 13, dim = true)
+        MonoText(if (playing) "BOOTING\u2026" else "PAUSED", size = 13, dim = true)
         return
+    }
+    val tap = remember(running) {
+        UsbMidiTap(context, { running.midi(it) }, { skipIdsState.value() }) { onMidiState.value(it) }
+    }
+    LaunchedEffect(tap, midiSkipKey) { tap.refresh() }
+    DisposableEffect(tap) {
+        onDispose {
+            tap.close()
+            onMidiState.value("")
+        }
     }
     var status by remember(running) { mutableStateOf(running.status) }
     val currentOnStatus by rememberUpdatedState(onStatus)
@@ -412,10 +442,14 @@ private fun RunningEmulator(
                 size = 13,
             )
             MonoText(
+                "A USB MIDI keyboard plugged into this phone plays here too. V15 listens on channel 2. Felucca listens on channels 1 to 4.",
+                size = 12,
+            )
+            MonoText(
                 if (chooseClock) {
                     "If the sound gaps or crackles, raise CLOCK. If the phone struggles to keep up, lower it."
                 } else {
-                    "This runs at the same speed as a real FM-1. If the sound gaps, or the phone struggles, SETUP ▸ CHOOSE EMULATOR CLOCK turns on 100, 160 and 240."
+                    "This runs at the same speed as a real FM-1. If the sound gaps, or the phone struggles, SETUP \u25b8 CHOOSE EMULATOR CLOCK turns on 100, 160 and 240."
                 },
                 size = 12,
             )
@@ -430,7 +464,7 @@ private fun RunningEmulator(
 
 /** Booting and a stopped engine still say why. A running engine does not print its load. */
 private fun statusLine(status: Fm1Engine.Status): String = when (status) {
-    Fm1Engine.Status.Booting -> "BOOTING…"
+    Fm1Engine.Status.Booting -> "BOOTING\u2026"
     is Fm1Engine.Status.Running -> ""
     is Fm1Engine.Status.Stopped -> status.message
 }

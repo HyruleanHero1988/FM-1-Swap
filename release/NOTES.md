@@ -4,11 +4,9 @@ Install that file from this release and nowhere else. If Android refuses the ins
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
-## New in 0.3.0
+## New in 0.4.0
 
-The PATCHES screen sends a hosted DX7 patch, or a bank of 32, to a connected FM-1. Official V15, FM-1+VA, and Official Open take a single patch. A bank replaces 32 patches, and you choose that bank on the FM-1. The same banks are on the [patches page](https://hyruleanhero1988.github.io/FM-1-Swap/patches.html).
-
-TRY takes notes from a USB MIDI keyboard plugged into the phone. SAVE sits beside TRY on a firmware page; SAVE and FLASH no longer open TRY. Firmwares you mark as FAVORITE stay on your list; the app no longer starts with rows already marked kept. The phone can offer to open FM-1 Swap when an FM-1 is plugged in. Sliding a finger onto a TRY key plays it. Clock and notification icons hide while TRY is sideways.
+The first screen can be scrolled. That is the notice that appears the first time the app opens. On a short phone the text was taller than the display, so **OK** sat off the bottom and you could not reach it. The notice now scrolls, and **OK** stays on the screen.
 
 How it works is on the [guide](https://hyruleanhero1988.github.io/FM-1-Swap/).
 
@@ -30,8 +28,8 @@ If the FM-1 will not start at all, not even in USB recovery, FM-1 Swap cannot re
 
 These shots are from a write that started on Clipper. The status line on the firmware list is the FM-1 reporting `FM-1_900` before Rainbow Mode was written.
 
-![Firmware list, with the FM-1 reporting FM-1_900](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.3.0/firmware-list.jpg)
+![Firmware list, with the FM-1 reporting FM-1_900](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.4.0/firmware-list.jpg)
 
-![The flash finished and the FM-1 reported FM-1_911](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.3.0/flashed.jpg)
+![The flash finished and the FM-1 reported FM-1_911](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.4.0/flashed.jpg)
 
-![The safety notice on SETUP, the same text shown the first time the app opens](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.3.0/before-you-start.jpg)
+![The safety notice on SETUP, the same text shown the first time the app opens](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.4.0/before-you-start.jpg)

@@ -4,9 +4,11 @@ Install that file from this release and nowhere else. If Android refuses the ins
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
-## New in 0.4.0
+## New in 0.5.0
 
 The first screen can be scrolled. That is the notice that appears the first time the app opens. On a short phone the text was taller than the display, so **OK** sat off the bottom and you could not reach it. The notice now scrolls, and **OK** stays on the screen.
+
+FIRMWARE now has the same groups as the firmware hub. You can show All, Synths, Grooveboxes, Drums, Chords, Trackers, For devs, Other, Vintage, In browser, or From source.
 
 How it works is on the [guide](https://hyruleanhero1988.github.io/FM-1-Swap/).
 
@@ -28,8 +30,8 @@ If the FM-1 will not start at all, not even in USB recovery, FM-1 Swap cannot re
 
 These shots are from a write that started on Clipper. The status line on the firmware list is the FM-1 reporting `FM-1_900` before Rainbow Mode was written.
 
-![Firmware list, with the FM-1 reporting FM-1_900](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.4.0/firmware-list.jpg)
+![Firmware list, with the FM-1 reporting FM-1_900](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.5.0/firmware-list.jpg)
 
-![The flash finished and the FM-1 reported FM-1_911](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.4.0/flashed.jpg)
+![The flash finished and the FM-1 reported FM-1_911](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.5.0/flashed.jpg)
 
-![The safety notice on SETUP, the same text shown the first time the app opens](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.4.0/before-you-start.jpg)
+![The safety notice on SETUP, the same text shown the first time the app opens](https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.5.0/before-you-start.jpg)

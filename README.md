@@ -18,7 +18,7 @@ How it works, what can go wrong, and the install link are on the site:
 The same site hosts [DX7 patches](https://hyruleanhero1988.github.io/FM-1-Swap/patches.html)
 that the app's PATCHES screen, and a desktop browser, can send to a connected FM-1.
 
-Download [FM-1 Swap 0.4.0](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.4.0)
+Download [FM-1 Swap 0.5.0](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.5.0)
 (`FM-1-Swap.apk`) from this GitHub release and install it on the phone. It
 replaces an earlier release of FM-1 Swap already there. Sideload it on a phone.
 USB MIDI to the FM-1 does not work on an emulator.
@@ -30,7 +30,7 @@ that first, then install this file.
 ## What it does
 
 - Opens on a firmware list baked into the app (no network required to see it). Official V15 is first; the rest are ranked by GitHub stars (and hub installs), so SLOOP, Felucca, X0X, JIANT and Melodee sit at the top instead of drowning alphabetically. Each row shows a shot from the project's GitHub page when the README has one (the first image under Screenshots, otherwise the first picture that isn't a logo), and otherwise from fm1-editor.com or the publisher. The snapshot includes Baud Girl's FM-1+VA, isod89's Clipper 1.0, M-VAVE's Official Open (the eight-track groovebox they ship as [FM1 Open](https://github.com/m-vave/fm1_open) — currently V14, whose `.fwsc` is inside the Workbench HTML), and RedtailWorks' LOF-1, ECO-1 and GRAV-1 (HYP-1 is already on the hub). **REFRESH** re-pulls the hub, fm1-editor.com, and the RedtailWorks pack. Clipper and the experimental RedtailWorks machines are marked beta (shown unless **SETUP** hides them). OPEN-1 is a different synth, not an FM-1 firmware, so it is not listed.
-- **FAVORITE** marks a firmware. **SORT** orders the catalogue by **FAVORITES** (marked ones first, in the order you set with EARLIER and LATER), **POPULAR**, **NAME**, **AUTHOR**, or **NEWEST**. **FAVORITES** hides everything you have not marked. With none marked, the list opens on Baud Girl, SLOOP, Clipper, HYP-1, Felucca, and Rainbow Mode. The marks are stored on the phone.
+- **FAVORITE** marks a firmware. **SORT** orders the catalogue by **FAVORITES** (marked ones first, in the order you set with EARLIER and LATER), **POPULAR**, **NAME**, **AUTHOR**, or **NEWEST**. **FAVORITES** hides everything you have not marked. Chips under that row filter the same groups as the firmware hub: synths, grooveboxes, drums, chords, trackers, for devs, other, vintage, in browser, and from source. With none marked, the list opens on Baud Girl, SLOOP, Clipper, HYP-1, Felucca, and Rainbow Mode. The marks are stored on the phone.
 - Downloads `.fwsc` packages, checks SHA-256, and keeps them offline
 - Talks to a real FM-1 over class-compliant USB MIDI (Android MIDI API)
 - On **DEVICE**, **PLAY TEST NOTES** sends a C–E–G–C arpeggio on channels 1 and 2, then handshakes again so you can hear whether notes arrive and whether the USB-MIDI port stayed up. Hold C–B to send live notes. Stock firmware listens on channel 2; Felucca on 1–4. Grooveboxes such as SLOOP may stay quiet on a plain note-on — the handshake after is the cable test.
@@ -91,8 +91,8 @@ sdk.dir=/path/to/Android/sdk
 
 `.github/workflows/ci.yml` runs on every push and pull request: it builds the native emulator,
 runs its tests and the protocol tests, then `assembleDebug` and `assembleRelease`. On `main` it publishes `FM-1-Swap-debug.apk` to the
-[android-debug](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/android-debug) tag and `FM-1-Swap.apk` (versionName 0.4.0) to
-[v0.4.0](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.4.0). It also uploads the
+[android-debug](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/android-debug) tag and `FM-1-Swap.apk` (versionName 0.5.0) to
+[v0.5.0](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.5.0). It also uploads the
 `app-debug` Actions artifact. You can retrigger it from the Actions tab with **Run workflow**.
 
 CI vendors the Gradle wrapper, bundled V15, and fonts (fetched from

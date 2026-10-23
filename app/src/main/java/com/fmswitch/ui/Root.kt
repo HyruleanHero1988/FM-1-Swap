@@ -21,7 +21,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -218,19 +220,26 @@ fun SafetyNoticeScreen(model: AppViewModel) {
             .fillMaxSize()
             .padding(20.dp),
     ) {
-        BasicText(
-            "FM-1 SWAP",
-            style = pixelText(28.sp, bold = true, color = theme.bright, glow = true),
-            modifier = Modifier.padding(top = 40.dp, bottom = 22.dp),
-        )
-        PixelPanel(title = "BEFORE YOU START") {
-            MonoText(SafetyNotice.TEXT, size = 16)
+        Column(
+            Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
+        ) {
+            BasicText(
+                "FM-1 SWAP",
+                style = pixelText(28.sp, bold = true, color = theme.bright, glow = true),
+                modifier = Modifier.padding(top = 40.dp, bottom = 22.dp),
+            )
+            PixelPanel(title = "BEFORE YOU START") {
+                MonoText(SafetyNotice.TEXT, size = 16)
+                Spacer(Modifier.height(12.dp))
+                MonoText(SafetyNotice.RECOVERY, size = 16)
+            }
             Spacer(Modifier.height(12.dp))
-            MonoText(SafetyNotice.RECOVERY, size = 16)
+            MonoText("This notice is also on the SETUP screen.", size = 13, dim = true)
+            Spacer(Modifier.height(12.dp))
         }
-        Spacer(Modifier.height(12.dp))
-        MonoText("This notice is also on the SETUP screen.", size = 13, dim = true)
-        Spacer(Modifier.weight(1f))
         PixelButton(
             if (seconds.intValue > 0) "OK (${seconds.intValue})" else "OK",
             prominent = true,

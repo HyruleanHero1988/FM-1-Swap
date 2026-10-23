@@ -32,27 +32,42 @@ jobs:
           python3 - << 'PY'
           import base64, pathlib, shutil
 
+          UNUSED = {"try-clipper", "try-official-open"}
+
           def piece_key(p):
-              return tuple(int(part) for part in p.stem.split("-"))
+              parts = p.stem.split("-")
+              try:
+                  return (0,) + tuple(int(part) for part in parts)
+              except ValueError:
+                  return (1, p.name)
 
           out = pathlib.Path("docs/images")
           root = pathlib.Path("docs/images/pieces")
           if root.is_dir():
-              for folder in sorted(p for p in root.iterdir() if p.is_dir()):
+              folders = [p for p in root.iterdir() if p.is_dir()]
+              if not folders:
+                  print("no screenshot pieces to assemble")
+              for folder in sorted(folders, key=lambda p: p.name):
+                  if folder.name in UNUSED:
+                      print(f"skip {folder.name} (not used on the guide)")
+                      continue
                   dest = out / f"{folder.name}.jpg"
                   if dest.exists():
                       print(f"skip {dest.name} (already present)")
                       continue
-                  text = "".join(
-                      p.read_text()
-                      for p in sorted(folder.glob("*.txt"), key=piece_key)
-                  )
+                  parts = list(folder.glob("*.txt"))
+                  if not parts:
+                      print(f"skip {folder.name} (no pieces)")
+                      continue
+                  text = "".join(p.read_text() for p in sorted(parts, key=piece_key))
                   jpg = base64.b64decode(text)
                   if not jpg.startswith(b"\xff\xd8"):
                       raise SystemExit(f"{folder.name} is not a jpeg")
                   dest.write_bytes(jpg)
                   print(f"{dest.name} {len(jpg)}")
               shutil.rmtree(root)
+          else:
+              print("no docs/images/pieces directory")
           logo_root = pathlib.Path("docs/images/logo-pieces")
           if logo_root.is_dir():
               text = "".join(

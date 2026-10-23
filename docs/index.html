@@ -209,6 +209,9 @@
       border: 1px solid var(--line);
       padding: 10px;
     }
+    .shots figure:only-child {
+      max-width: 360px;
+    }
     figure img {
       display: block;
       width: 100%;
@@ -355,21 +358,21 @@
         <p>Some publishers also offer their own player. When they do, the TRY screen has <span class="mono">AUTHOR'S EMU</span>, which opens that in the browser. Official Open is one of these: it often does not get going on the virtual FM-1, and M-VAVE's own player can run it.</p>
         <p>With <span class="mono">SAVE WHAT YOU TRY</span> on, TRY keeps the firmware under SAVED. Off, it does not. A firmware already on the phone is not downloaded again. <span class="mono">SAVE</span> on the firmware page, or on the TRY screen, keeps a copy either way.</p>
         <div class="shots">
-          <figure class="wide">
-            <img src="images/try-sloop.jpg" alt="SLOOP running sideways on the virtual FM-1, sequencer screen showing four tracks.">
-            <figcaption>SLOOP in TRY, phone sideways.</figcaption>
-          </figure>
-          <figure class="wide">
-            <img src="images/try-baud-girl.jpg" alt="Baud Girl running with the phosphor panel, an electric piano patch on the screen.">
-            <figcaption>Baud Girl with the phosphor panel.</figcaption>
-          </figure>
-          <figure class="wide">
-            <img src="images/try-clipper.jpg" alt="Clipper running with the phosphor panel, a hybrid pad on the screen.">
-            <figcaption>Clipper with the phosphor panel.</figcaption>
+          <figure>
+            <img src="images/try-sloop-portrait.jpg" alt="SLOOP on the virtual FM-1 in portrait, phosphor panel, four sequencer tracks on the screen, and the TRY instructions underneath.">
+            <figcaption>SLOOP in TRY, phosphor panel.</figcaption>
           </figure>
           <figure>
-            <img src="images/try-official-open.jpg" alt="Official Open on the realistic panel, with an Author's emu button.">
-            <figcaption>Official Open on the realistic panel. AUTHOR'S EMU opens the publisher's player.</figcaption>
+            <img src="images/try-baud-girl-portrait.jpg" alt="Baud Girl on the virtual FM-1 in portrait, realistic panel, electric piano patch 001 EMU E.PNO.">
+            <figcaption>Baud Girl in TRY, realistic panel.</figcaption>
+          </figure>
+          <figure class="wide">
+            <img src="images/try-sloop.jpg" alt="SLOOP running sideways on the virtual FM-1, sequencer screen showing four tracks.">
+            <figcaption>SLOOP with the phone sideways.</figcaption>
+          </figure>
+          <figure class="wide">
+            <img src="images/try-baud-girl.jpg" alt="Baud Girl running sideways with the realistic panel, an electric piano patch on the screen.">
+            <figcaption>Baud Girl with the phone sideways.</figcaption>
           </figure>
         </div>
       </section>
@@ -381,10 +384,12 @@
         <p>Stay on that screen until it finishes. If the cable comes out after the FM-1 has restarted into its update loader, plug it back in and press <span class="mono">RESUME</span>. If it never got that far, the FM-1 should still start as it did before.</p>
         <p>Some firmwares have to be installed by way of the official firmware first. The sheet says so when the official firmware is not saved yet. <span class="mono">ALWAYS VIA OFFICIAL FIRMWARE</span> under SETUP makes every install take that path.</p>
         <p>Switching to a different firmware can erase projects and samples. When this app can take a backup, it does that before the write and will not start the write if the backup fails. When it cannot, you have to confirm that you already backed up in that firmware's own editor.</p>
-        <figure>
-          <img src="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.4.0/flashed.jpg" alt="The flash finished screen for Rainbow Mode, saying the FM-1 now reports FM-1_911.">
-          <figcaption>A finished flash. The FM-1 came back reporting FM-1_911, and a backup of what it had been running was kept under SAVED.</figcaption>
-        </figure>
+        <div class="shots">
+          <figure>
+            <img src="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.4.0/flashed.jpg" alt="The flash finished screen for Rainbow Mode, saying the FM-1 now reports FM-1_911.">
+            <figcaption>A finished flash. The FM-1 came back reporting FM-1_911, and a backup of what it had been running was kept under SAVED.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section id="backups">

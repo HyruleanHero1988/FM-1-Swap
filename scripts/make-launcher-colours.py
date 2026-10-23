@@ -4,8 +4,12 @@
 Reads the committed default launcher zips, keeps the black/dark icon
 byte-for-byte, and writes the other plastic colours plus adaptive
 foregrounds. Canvas stays black; keys and pads are chosen per body so a
-cream or white unit still has contrast. The product photo is not shipped —
-colours below were sampled from it.
+cream or white unit still has contrast.
+
+Cream, mint, white, and purple use the pixel drawings in
+scripts/launcher-pixel/ (fitted to the same 192px black canvas). Rust,
+orange, and slate stay as recolors of the shipped black icon. The product
+photo is not shipped.
 """
 
 from __future__ import annotations
@@ -21,7 +25,12 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 APP = ROOT / "app"
+PIXEL_DIR = Path(__file__).resolve().parent / "launcher-pixel"
 PREVIEW_DIR = Path(tempfile.gettempdir()) / "fm1-launcher-preview"
+REPO_PREVIEW = ROOT / "icon-previews"
+
+PIXEL_ART = ("cream", "mint", "white", "purple")
+PRESERVE_COLOURS = ("rust", "orange", "slate")
 
 DENSITIES = {
     "mipmap-mdpi": 48,
@@ -106,6 +115,32 @@ OUTLINE_PX = 4
 def zip_bytes(name: str) -> bytes:
     encoded = (APP / name).read_text(encoding="ascii")
     return base64.b64decode(encoded)
+
+
+def load_b64_zip(name: str) -> dict[str, bytes]:
+    with zipfile.ZipFile(io.BytesIO(zip_bytes(name))) as zf:
+        return {entry: zf.read(entry) for entry in zf.namelist()}
+
+
+def colour_from_entry(entry: str) -> str | None:
+    stem = Path(entry).name
+    if not stem.startswith("ic_launcher_") or not stem.endswith(".png"):
+        return None
+    rest = stem[len("ic_launcher_") : -4]
+    rest = rest.removesuffix("_round").removesuffix("_foreground")
+    if rest in COLOURS:
+        return rest
+    return None
+
+
+def load_pixel_variant(name: str, size: tuple[int, int]) -> Image.Image | None:
+    path = PIXEL_DIR / f"{name}.png"
+    if not path.exists():
+        return None
+    im = Image.open(path).convert("RGBA")
+    if im.size != size:
+        im = im.resize(size, Image.Resampling.LANCZOS)
+    return im
 
 
 def png_from_default_zips(entry: str) -> Image.Image:
@@ -344,6 +379,20 @@ def contact_sheet(images: list[tuple[str, Image.Image]], cell=192) -> Image.Imag
     return sheet
 
 
+def keep_preserved(new_entries: dict[str, bytes], old_entries: dict[str, bytes]) -> dict[str, bytes]:
+    """Leave rust/orange/slate (and the default black layers) byte-for-byte."""
+    merged = dict(new_entries)
+    for entry, data in old_entries.items():
+        colour = colour_from_entry(entry)
+        stem = Path(entry).name
+        if colour in PRESERVE_COLOURS or stem in (
+            "ic_launcher_foreground.png",
+            "ic_launcher_monochrome.png",
+        ):
+            merged[entry] = data
+    return merged
+
+
 def main():
     source = load_source()
     canvas = flood_canvas(source)
@@ -353,19 +402,30 @@ def main():
     PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
     variants = [("black", source)]
     recolored = {}
+    fg_masks = {}
     for name, spec in COLOURS.items():
-        im = recolor(source, canvas, labels, spec)
+        pixel = load_pixel_variant(name, source.size)
+        if pixel is not None:
+            im = pixel
+            mask = flood_canvas(im)
+        else:
+            im = recolor(source, canvas, labels, spec)
+            mask = canvas
         recolored[name] = im
+        fg_masks[name] = mask
         variants.append((name, im))
         write_png(PREVIEW_DIR / f"{name}.png", im)
-        write_png(PREVIEW_DIR / f"{name}_fg.png", with_transparent_canvas(im, canvas))
+        write_png(PREVIEW_DIR / f"{name}_fg.png", with_transparent_canvas(im, mask))
+        if name in PIXEL_ART and REPO_PREVIEW.exists():
+            write_png(REPO_PREVIEW / f"{name}.png", im)
     write_png(PREVIEW_DIR / "black.png", source)
     sheet = contact_sheet(variants)
     write_png(PREVIEW_DIR / "sheet.png", sheet)
     print("Preview", PREVIEW_DIR / "sheet.png")
 
     # Adaptive / monochrome assets. Default black foreground is the original
-    # device with a punched canvas; colour variants use the recolored device.
+    # device with a punched canvas; colour variants use the recolored device
+    # or the pixel drawing's own silhouette.
     fg_entries: dict[str, bytes] = {}
     colour_low: dict[str, bytes] = {}
     colour_high: dict[str, bytes] = {}
@@ -387,9 +447,13 @@ def main():
             monochrome(source, canvas, size)
         )
         for name, im in recolored.items():
-            fg = with_transparent_canvas(im, canvas)
+            fg = with_transparent_canvas(im, fg_masks[name])
             data = png_bytes(adaptive_foreground(fg, size))
             fg_entries[f"{folder}/ic_launcher_{name}_foreground.png"] = data
+
+    colour_low = keep_preserved(colour_low, load_b64_zip("launcher-icons-colours-a.zip.b64"))
+    colour_high = keep_preserved(colour_high, load_b64_zip("launcher-icons-colours-b.zip.b64"))
+    fg_entries = keep_preserved(fg_entries, load_b64_zip("launcher-icons-colours-c.zip.b64"))
 
     write_b64_zip(APP / "launcher-icons-colours-a.zip.b64", colour_low)
     write_b64_zip(APP / "launcher-icons-colours-b.zip.b64", colour_high)
@@ -397,6 +461,7 @@ def main():
     write_adaptive_xml()
     write_png(PREVIEW_DIR / "mono.png", monochrome(source, canvas, 192))
     print("Colours:", ", ".join(["black"] + list(COLOURS)))
+    print("Pixel art:", ", ".join(n for n in PIXEL_ART if (PIXEL_DIR / f"{n}.png").exists()))
 
 
 ADAPTIVE_XML = """<?xml version="1.0" encoding="utf-8"?>

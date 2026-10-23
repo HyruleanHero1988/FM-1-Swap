@@ -11,7 +11,7 @@
   "fomni": "FoMni: a chord harp firmware for the M-VAVE FM-1, inspired by the Omnichord. Strum the white keys, pick chords on the black ones.",
   "sloopdx": "A live groovebox firmware for the M-VAVE FM-1",
   "zp12": "attempt to Sp12 on Fm-1 m-vave",
-  "fart": "Turns your M-VAVE FM-1 into a questionable musical instrument. Eleven artisanal farts, reverb, delay, and a sixteen-step sequencer.",
+  "fart": "Turns your M-VAVE FM-1 into a questionable musical instrument. Ten artisanal farts, reverb, delay, and a sixteen-step sequencer.",
   "maku": "Custom firmware for M-VAVE FM-1",
   "jangada": "Alternative firmware for the M-VAVE FM-1 pocket synth: superwave analog, modulation matrix, latched drones, ratchets, 4 tracks. A Felucca fork. 🛶",
   "dinghy": "The smallest firmware for the M-VAVE FM-1 to build your own on: the plumbing done and documented (updates, USB rescue, USB-MIDI, USB audio, panel, screen, settings), a sine on top.",

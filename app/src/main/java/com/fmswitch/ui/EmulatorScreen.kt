@@ -84,6 +84,8 @@ fun EmulatorScreen(
     onRetry: () -> Unit,
     onBack: () -> Unit,
     onTry: (sha: String, started: Boolean) -> Unit,
+    onRefresh: () -> Unit,
+    refreshing: Boolean,
     midiSkipKey: String,
     midiSkipIds: () -> Set<Int>,
 ) {
@@ -174,13 +176,12 @@ fun EmulatorScreen(
                         dim = true,
                         modifier = Modifier.padding(24.dp),
                     )
-                    is EmulatorPackage.Failed -> Column(
-                        Modifier.padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        MonoText("Couldn't get this firmware: ${prepared.message}", size = 14)
-                        PixelButton("RETRY", compact = true, onClick = onRetry)
-                    }
+                    is EmulatorPackage.Failed -> FirmwareFetchFailed(
+                        prepared,
+                        refreshing = refreshing,
+                        onRetry = onRetry,
+                        onRefresh = onRefresh,
+                    )
                     is EmulatorPackage.Ready -> slot?.let { running(it) }
                 }
             }
@@ -233,17 +234,44 @@ fun EmulatorScreen(
             saveError?.let { MonoText(it, size = 13) }
             when (prepared) {
                 EmulatorPackage.Preparing -> MonoText("GETTING THIS FIRMWARE…", size = 13, dim = true)
-                is EmulatorPackage.Failed -> {
-                    MonoText("Couldn't get this firmware: ${prepared.message}", size = 14)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        PixelButton("RETRY", compact = true, onClick = onRetry)
-                    }
-                }
+                is EmulatorPackage.Failed -> FirmwareFetchFailed(
+                    prepared,
+                    refreshing = refreshing,
+                    onRetry = onRetry,
+                    onRefresh = onRefresh,
+                )
                 is EmulatorPackage.Ready -> {
                     if (chooseClock) ClockRow(mhz, ::clock)
                     slot?.let { running(it) }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun FirmwareFetchFailed(
+    failed: EmulatorPackage.Failed,
+    refreshing: Boolean,
+    onRetry: () -> Unit,
+    onRefresh: () -> Unit,
+) {
+    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        MonoText(
+            if (failed.missing) failed.message else "Couldn't get this firmware: ${failed.message}",
+            size = 14,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (failed.missing) {
+                PixelButton(
+                    if (refreshing) "REFRESHING" else "REFRESH",
+                    compact = true,
+                    prominent = true,
+                    enabled = !refreshing,
+                    onClick = onRefresh,
+                )
+            }
+            PixelButton("RETRY", compact = true, enabled = !refreshing, onClick = onRetry)
         }
     }
 }

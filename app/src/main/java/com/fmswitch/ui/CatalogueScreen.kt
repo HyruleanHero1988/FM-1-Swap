@@ -35,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fmswitch.catalogue.CatalogueBlurb
+import com.fmswitch.catalogue.httpFailure
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.CatalogueOrder
 import com.fmswitch.catalogue.CatalogueSearch
@@ -227,6 +228,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var error by remember { mutableStateOf<String?>(null) }
+    var errorUrl by remember { mutableStateOf<String?>(null) }
     var confirming by remember { mutableStateOf<StoredFirmware?>(null) }
     var preparingFlash by remember { mutableStateOf(false) }
     val stored = model.library.stored(entry)
@@ -273,7 +275,10 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
                 ) {
                     scope.launch {
                         error = null
-                        model.save(entry).onFailure { error = it.message }
+                        model.save(entry).onFailure {
+                            error = it.message
+                            errorUrl = entry.packageURL
+                        }
                     }
                 }
             }
@@ -294,7 +299,10 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
                             error = null
                             model.save(entry)
                                 .onSuccess { confirming = it }
-                                .onFailure { error = it.message }
+                                .onFailure {
+                                    error = it.message
+                                    errorUrl = entry.packageURL
+                                }
                             preparingFlash = false
                         }
                     }
@@ -322,7 +330,17 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
             PixelButton("FAVORITE", compact = true, prominent = true) { model.toggleCurated(entry.id) }
             NoteText("FAVORITE marks this firmware. Marked ones stay at the top, and FAVORITES shows only those.")
         }
-        error?.let { MonoText(it, size = 14) }
+        if (error != null && errorUrl == entry.packageURL) {
+            MonoText(error!!, size = 14)
+            if (error == httpFailure(404)) {
+                PixelButton(
+                    if (model.isRefreshingCatalogue) "REFRESHING" else "REFRESH",
+                    compact = true,
+                    prominent = true,
+                    enabled = !model.isRefreshingCatalogue,
+                ) { model.refreshCatalogue() }
+            }
+        }
         PixelPanel(title = "DETAILS") {
             MonoText("Reports  ${entry.product ?: "unknown"}", size = 14)
             MonoText("Size  ${entry.size?.let { formattedBytes(it) } ?: "unknown"}", size = 14)

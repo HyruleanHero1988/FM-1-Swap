@@ -57,6 +57,7 @@ import androidx.lifecycle.compose.currentStateAsState
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.emu.EmulatorClock
 import com.fmswitch.midi.UsbMidiTap
+import com.fmswitch.midi.fm1ListenChannel
 import com.fmswitch.emu.EmulatorFrame
 import com.fmswitch.emu.EmulatorRun
 import com.fmswitch.emu.Fm1Engine
@@ -319,7 +320,7 @@ private fun ClockRow(mhz: Int, onClock: (Int) -> Unit, narrow: Boolean = false) 
     }
     if (narrow) {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            MonoText("CLOCK · MHZ", size = 11, dim = true)
+            MonoText("CLOCK \u00b7 MHZ", size = 11, dim = true)
             EmulatorClock.CHOICES.forEach { choice ->
                 PixelButton(
                     "$choice",
@@ -405,7 +406,7 @@ private fun RunningEmulator(
         return
     }
     val tap = remember(running) {
-        UsbMidiTap(context, { running.midi(it) }, { skipIdsState.value() }) { onMidiState.value(it) }
+        UsbMidiTap(context, { running.midi(fm1ListenChannel(it)) }, { skipIdsState.value() }) { onMidiState.value(it) }
     }
     LaunchedEffect(tap, midiSkipKey) { tap.refresh() }
     DisposableEffect(tap) {
@@ -456,14 +457,14 @@ private fun RunningEmulator(
                 size = 13,
             )
             MonoText(
-                "A USB MIDI keyboard plugged into this phone plays here too. V15 listens on channel 2. Felucca listens on channels 1 to 4.",
+                "A USB MIDI keyboard plugged into this phone plays here too. Notes are played on channel 2, whichever channel the keyboard sends. Official V15 and Felucca both hear that.",
                 size = 12,
             )
             MonoText(
                 if (chooseClock) {
                     "If the sound gaps or crackles, raise CLOCK. If the phone struggles to keep up, lower it."
                 } else {
-                    "This runs at the same speed as a real FM-1. If the sound gaps, or the phone struggles, SETUP ▸ CHOOSE EMULATOR CLOCK turns on 100, 160 and 240."
+                    "This runs at the same speed as a real FM-1. If the sound gaps, or the phone struggles, SETUP \u25b8 CHOOSE EMULATOR CLOCK turns on 100, 160 and 240."
                 },
                 size = 12,
             )

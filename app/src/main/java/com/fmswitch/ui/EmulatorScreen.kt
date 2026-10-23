@@ -173,7 +173,7 @@ fun EmulatorScreen(
             ) {
                 when (prepared) {
                     EmulatorPackage.Preparing -> MonoText(
-                        "GETTING THIS FIRMWARE\u2026",
+                        "GETTING THIS FIRMWARE…",
                         size = 13,
                         dim = true,
                         modifier = Modifier.padding(24.dp),
@@ -199,9 +199,9 @@ fun EmulatorScreen(
                     .padding(4.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                // \u2039 is in the pixel font. The other arrow is not, and a fallback glyph
+                // ‹ is in the pixel font. The other arrow is not, and a fallback glyph
                 // was wide enough to push BACK out of this strip.
-                PixelButton("\u2039 BACK", compact = true, wrap = true, modifier = Modifier.fillMaxWidth(), onClick = onBack)
+                PixelButton("‹ BACK", compact = true, wrap = true, modifier = Modifier.fillMaxWidth(), onClick = onBack)
                 if (canSave) {
                     PixelButton(
                         if (saving) "SAVING" else "SAVE",
@@ -233,7 +233,7 @@ fun EmulatorScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                PixelButton("\u25c2 BACK", compact = true, onClick = onBack)
+                PixelButton("◂ BACK", compact = true, onClick = onBack)
                 if (canSave) {
                     PixelButton(if (saving) "SAVING" else "SAVE", compact = true, enabled = !saving, onClick = ::keep)
                 }
@@ -246,7 +246,7 @@ fun EmulatorScreen(
             BasicText(entry.name.uppercase(), style = pixelText(16.sp, bold = true, color = theme.bright, glow = true))
             saveError?.let { MonoText(it, size = 13) }
             when (prepared) {
-                EmulatorPackage.Preparing -> MonoText("GETTING THIS FIRMWARE\u2026", size = 13, dim = true)
+                EmulatorPackage.Preparing -> MonoText("GETTING THIS FIRMWARE…", size = 13, dim = true)
                 is EmulatorPackage.Failed -> {
                     MonoText("Couldn't get this firmware: ${prepared.message}", size = 14)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -305,7 +305,7 @@ private fun ClockRow(mhz: Int, onClock: (Int) -> Unit, narrow: Boolean = false) 
     }
     if (narrow) {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            MonoText("CLOCK \u00b7 MHZ", size = 11, dim = true)
+            MonoText("CLOCK · MHZ", size = 11, dim = true)
             EmulatorClock.CHOICES.forEach { choice ->
                 PixelButton(
                     "$choice",
@@ -387,7 +387,7 @@ private fun RunningEmulator(
     val skipIdsState = rememberUpdatedState(midiSkipIds)
     val onMidiState = rememberUpdatedState(onMidi)
     if (running == null) {
-        MonoText(if (playing) "BOOTING\u2026" else "PAUSED", size = 13, dim = true)
+        MonoText(if (playing) "BOOTING…" else "PAUSED", size = 13, dim = true)
         return
     }
     val tap = remember(running) {
@@ -449,7 +449,7 @@ private fun RunningEmulator(
                 if (chooseClock) {
                     "If the sound gaps or crackles, raise CLOCK. If the phone struggles to keep up, lower it."
                 } else {
-                    "This runs at the same speed as a real FM-1. If the sound gaps, or the phone struggles, SETUP \u25b8 CHOOSE EMULATOR CLOCK turns on 100, 160 and 240."
+                    "This runs at the same speed as a real FM-1. If the sound gaps, or the phone struggles, SETUP ▸ CHOOSE EMULATOR CLOCK turns on 100, 160 and 240."
                 },
                 size = 12,
             )
@@ -464,7 +464,7 @@ private fun RunningEmulator(
 
 /** Booting and a stopped engine still say why. A running engine does not print its load. */
 private fun statusLine(status: Fm1Engine.Status): String = when (status) {
-    Fm1Engine.Status.Booting -> "BOOTING\u2026"
+    Fm1Engine.Status.Booting -> "BOOTING…"
     is Fm1Engine.Status.Running -> ""
     is Fm1Engine.Status.Stopped -> status.message
 }

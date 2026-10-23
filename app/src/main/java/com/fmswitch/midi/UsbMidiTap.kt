@@ -226,7 +226,7 @@ internal fun midiProductName(name: String?, product: String?, manufacturer: Stri
         ?: "MIDI $id"
 
 internal fun usbMidiLine(names: List<String>, failed: List<String>): String = when {
-    names.isNotEmpty() -> "USB MIDI \u00b7 " + names.joinToString(", ")
+    names.isNotEmpty() -> "USB MIDI · " + names.joinToString(", ")
     failed.isNotEmpty() -> "Couldn't open " + failed.joinToString(", ") + "."
     else -> ""
 }

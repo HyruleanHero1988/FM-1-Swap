@@ -1,6 +1,6 @@
-Install **FM-1-Swap.apk** from this release. It is the release build, package `com.fmswitch`, and it is not debuggable. It installs over the copy already on the phone. Do not install the debug APK on the `android-debug` tag, and do not install an APK from anywhere else. The signing key lives in this repository so that a later file from this same release can install over this one. Anyone else with that key could sign an update Android would accept.
+Download **FM-1-Swap.apk** from this GitHub release and install it on the phone. It replaces an earlier release of FM-1 Swap already there.
 
-If you already installed a debug build, uninstall it first. Its package is `com.fmswitch.debug`, and it will not update into this one.
+Install that file from this release and nowhere else. If Android refuses the install because a different copy of the app is already on the phone, uninstall that first, then install this file.
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 

@@ -18,17 +18,14 @@ How it works, what can go wrong, and the install link are on the site:
 The same site hosts [DX7 patches](https://hyruleanhero1988.github.io/FM-1-Swap/patches.html)
 that the app's PATCHES screen, and a desktop browser, can send to a connected FM-1.
 
-Install [FM-1 Swap 0.3.0](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.3.0)
-(`FM-1-Swap.apk`). That is the release build: package `com.fmswitch`, not debuggable.
-It installs over the copy already on the phone, including 0.2.0. Sideload it on a phone. USB MIDI to the FM-1 does not work on an emulator.
+Download [FM-1 Swap 0.3.0](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.3.0)
+(`FM-1-Swap.apk`) from this GitHub release and install it on the phone. It
+replaces an earlier release of FM-1 Swap already there. Sideload it on a phone.
+USB MIDI to the FM-1 does not work on an emulator.
 
-If a debug build is already installed, uninstall it first. The debug package is
-`com.fmswitch.debug` and will not update into this one. After that, a newer APK
-from the same release installs over 0.3.0. Install that file from this GitHub
-release and nowhere else: the signing key is the one committed for CI.
-
-The moving [android-debug](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/android-debug)
-tag is the debuggable CI build. It is not the one to hand to someone else.
+Install that file from this release and nowhere else. If Android refuses the
+install because a different copy of the app is already on the phone, uninstall
+that first, then install this file.
 
 ## What it does
 

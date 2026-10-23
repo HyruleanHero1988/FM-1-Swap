@@ -66,6 +66,7 @@ fun RootScreen(model: AppViewModel) {
                     .windowInsetsPadding(WindowInsets.statusBars),
             ) {
                 StatusLine(model)
+                if (model.tab != AppTab.SETTINGS) AppUpdateNotice(model)
                 Box(Modifier.weight(1f).fillMaxWidth()) {
                     when (model.tab) {
                         AppTab.DEVICE -> DeviceScreen(model)

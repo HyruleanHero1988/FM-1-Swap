@@ -133,7 +133,7 @@
         <span class="mark">FM-1 Swap</span>
       </a>
       <h1>Patches you can send.</h1>
-      <p>These are DX7 patches for an M-VAVE FM-1. SEND plays one. SEND BANK sends all 32, and you choose which bank on the FM-1 they replace. The phone app does the same thing from its PATCHES screen, over the USB cable. This page sends from a desktop browser that can see the FM-1.</p>
+      <p>These are DX7 patches for an M-VAVE FM-1. SEND plays one. SEND BANK sends all 32, and you choose which bank on the FM-1 they replace. The phone app does the same thing from its PATCHES screen, over the USB cable. TRY ON V15 on that screen loads a bank into Official V15's first 32 slots and starts it. This page sends from a desktop browser that can see the FM-1.</p>
     </div>
   </header>
   <nav class="sections" aria-label="Pages">
@@ -413,7 +413,7 @@
             if (replace) transmit(bank.file, null, sendBank);
           });
           const save = document.createElement("button");
-          save.type = "button";
+          save.type = "button");
           save.className = "quiet";
           save.textContent = "Download";
           save.addEventListener("click", () => downloadBank(bank.file, bank.name, save));

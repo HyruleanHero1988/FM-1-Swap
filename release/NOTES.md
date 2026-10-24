@@ -6,6 +6,8 @@ Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
 ## New in 0.5.0
 
+A firmware you have flashed says when, on its row: last installed, then the day-month-year. Forks that report the same device name are kept apart.
+
 SETUP, next to the version, has a link to tip on Ko-fi.
 
 A USB MIDI keyboard plays in TRY. Notes are played on channel 2, so a controller left on channel 1 is heard, and every port the keyboard sends on is listened to. A keyboard such as an MPK mini is no longer opened to ask whether it is an FM-1.

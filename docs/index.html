@@ -1,1 +1,475 @@
-<LOAD_FROM_FILE:/workspace/docs/index.html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FM-1 Swap — preview and install FM-1 firmware on Android</title>
+  <meta name="description" content="Preview FM-1 firmware on an Android phone before you install it, and swap saved firmwares with no internet. Not affiliated with M-VAVE.">
+  <link rel="icon" href="images/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c0e0d;
+      --surface: #151917;
+      --line: #2a3830;
+      --green: #7be39a;
+      --green-dim: #3d8f5c;
+      --ink: #ece8df;
+      --muted: #a7aea6;
+      --risk: #ff6b61;
+      --risk-bg: #2a1210;
+      --risk-line: #8a302c;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      font-size: 18px;
+      line-height: 1.55;
+    }
+    a { color: var(--green); text-underline-offset: 3px; }
+    a:hover { color: #c8ffd8; }
+    .wrap { width: min(1040px, calc(100% - 32px)); margin: 0 auto; }
+    header.top {
+      border-bottom: 1px solid var(--line);
+      padding: 28px 0 22px;
+    }
+    .mark {
+      font-family: VT323, monospace;
+      letter-spacing: 0.04em;
+      color: var(--green);
+      font-size: 22px;
+      margin: 0 0 18px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: fit-content;
+      margin: 0 0 20px;
+      text-decoration: none;
+      color: var(--green);
+    }
+    .brand img { width: 104px; height: auto; flex: none; }
+    .brand .mark { margin: 0; font-size: clamp(40px, 7vw, 60px); }
+    h1 {
+      font-family: VT323, monospace;
+      font-size: clamp(28px, 4.4vw, 36px);
+      font-weight: 400;
+      line-height: 1.05;
+      margin: 0 0 18px;
+      color: var(--green);
+      text-shadow: 0 0 18px rgba(123, 227, 154, 0.25);
+    }
+    h1 span { display: block; }
+    @media (min-width: 1000px) {
+      h1 { font-size: 36px; }
+      h1 span { white-space: nowrap; }
+    }
+    .points {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      list-style: none;
+      padding: 0;
+      margin: 0 0 22px;
+    }
+    .points li {
+      margin: 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 12px 14px 14px;
+      font-size: 16px;
+    }
+    .points strong {
+      display: block;
+      font-family: VT323, monospace;
+      font-size: 28px;
+      font-weight: 400;
+      color: var(--green);
+      margin-bottom: 4px;
+    }
+    .lede { max-width: 42rem; margin: 0 0 22px; color: var(--ink); }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .video {
+      position: relative;
+      width: min(100%, 720px);
+      aspect-ratio: 16 / 9;
+      margin: 22px 0 0;
+      background: #000;
+      border: 1px solid var(--line);
+    }
+    .video iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    .download {
+      display: inline-block;
+      background: var(--green);
+      color: #06210f;
+      text-decoration: none;
+      font-family: VT323, monospace;
+      font-size: 28px;
+      letter-spacing: 0.03em;
+      padding: 10px 18px 8px;
+      border: 2px solid var(--green);
+    }
+    .download:hover { background: #c8ffd8; color: #06210f; }
+    .ghost {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    nav.sections {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(12, 14, 13, 0.92);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(8px);
+    }
+    nav.sections ul {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      list-style: none;
+      margin: 0;
+      padding: 12px 0;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 13px;
+    }
+    nav.sections a { color: var(--muted); text-decoration: none; white-space: nowrap; }
+    nav.sections a:hover, nav.sections a[aria-current="page"] { color: var(--green); }
+    main { padding: 36px 0 72px; }
+    section { margin: 0 0 56px; }
+    h2 {
+      font-family: VT323, monospace;
+      font-size: 42px;
+      font-weight: 400;
+      color: var(--green);
+      margin: 0 0 12px;
+      line-height: 1;
+    }
+    h3 {
+      font-family: "IBM Plex Sans", sans-serif;
+      font-size: 20px;
+      margin: 28px 0 8px;
+    }
+    p { margin: 0 0 14px; }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 18px 18px 6px;
+      margin: 16px 0 20px;
+    }
+    .risk {
+      background: var(--risk-bg);
+      border: 1px solid var(--risk-line);
+      padding: 18px 18px 6px;
+      margin: 16px 0 20px;
+    }
+    .risk h2, .risk strong { color: var(--risk); }
+    ul, ol { margin: 0 0 16px; padding-left: 1.2em; }
+    li { margin: 0 0 8px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 16px;
+      margin: 8px 0 18px;
+    }
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px 10px 0;
+    }
+    th {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--green);
+    }
+    .shots {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin: 18px 0;
+    }
+    figure {
+      margin: 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 10px;
+    }
+    .shots figure:only-child {
+      max-width: 360px;
+    }
+    figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #000;
+    }
+    figcaption {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    .wide { grid-column: 1 / -1; }
+    .wide img { max-height: 520px; width: auto; max-width: 100%; margin: 0 auto; }
+    code, .mono { font-family: "IBM Plex Mono", monospace; font-size: 0.92em; }
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 28px 0 48px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+    @media (max-width: 720px) {
+      .points { grid-template-columns: 1fr; }
+      .brand img { width: 76px; }
+    }
+    @media (max-width: 640px) {
+      body { font-size: 17px; }
+      .download { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="./">
+        <img src="images/logo.png" alt="" width="192" height="192">
+        <span class="mark">FM-1 Swap</span>
+      </a>
+      <h1>
+        <span>Preview and install firmware on an FM-1 from your Android phone.</span>
+        <span>Swap firmware on the go, no computer or internet required!</span>
+      </h1>
+      <ul class="points">
+        <li><strong>Preview</strong> Hear a firmware on the phone before you write it.</li>
+        <li><strong>Backups</strong> A copy is saved on the phone before the write, when the firmware can give one.</li>
+        <li><strong>Offline</strong> Swap firmwares saved on the phone, with no connection.</li>
+      </ul>
+      <p class="lede">It plugs into an M-VAVE FM-1 with a USB cable. It is not affiliated with M-VAVE. Flashing custom firmware can leave the instrument unable to start.</p>
+      <div class="actions">
+        <a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest/download/FM-1-Swap.apk">Download 0.5.0</a>
+        <a class="ghost" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest">0.5.0 release</a>
+      </div>
+      <div class="video">
+        <iframe
+          src="https://www.youtube-nocookie.com/embed/1i5OEX4_87g"
+          title="FM-1 Swap demo"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen></iframe>
+      </div>
+    </div>
+  </header>
+  <nav class="sections" aria-label="Pages">
+    <div class="wrap">
+      <ul>
+        <li><a href="#install">Install</a></li>
+        <li><a href="#risks">Risks</a></li>
+        <li><a href="#screens">Screens</a></li>
+        <li><a href="#try">Hear it first</a></li>
+        <li><a href="#flash">Flashing</a></li>
+        <li><a href="#backups">Backups</a></li>
+        <li><a href="#recovery">Recovery</a></li>
+        <li><a href="#setup">Setup</a></li>
+        <li><a href="patches.html">Patches</a></li>
+        <li><a href="#record">What was tried</a></li>
+        <li><a href="#credits">Credits</a></li>
+      </ul>
+    </div>
+  </nav>
+  <main>
+    <div class="wrap">
+      <section id="install">
+        <h2>Install</h2>
+        <p>The current release is 0.5.0. Download <span class="mono">FM-1-Swap.apk</span> from this GitHub release and install it on the phone. It replaces an earlier release of FM-1 Swap already there. The phone needs Android 8 or newer. A computer emulator will not see a USB FM-1.</p>
+        <ol>
+          <li>Download the APK on the phone, or copy it across.</li>
+          <li>Open it and allow install from the browser or the files app when Android asks.</li>
+          <li>If Android refuses the install because a different copy of the app is already on the phone, uninstall that first, then install this file.</li>
+        </ol>
+        <p>Install that file from this release and nowhere else.</p>
+        <p>The first time the app opens, it shows a short notice and waits a few seconds before <span class="mono">OK</span> can be pressed. On a short phone you can scroll that notice so <span class="mono">OK</span> stays on the screen. The same notice stays on the SETUP screen.</p>
+      </section>
+
+      <section id="risks">
+        <div class="risk">
+          <h2>Risks</h2>
+          <p>Writing firmware replaces what is running on the FM-1. Projects, samples, and presets on the device can be gone afterwards. Some firmwares can be started again from the panel if a write fails. Some cannot.</p>
+          <ul>
+            <li>Stay in the app, and leave the cable in, until it says it finished. An install takes about a minute. The screen stays awake.</li>
+            <li>If the write is interrupted after the FM-1 has restarted into its update loader, leave it plugged in and press <span class="mono">RESUME</span> with the same firmware. It waits in that loader until a write finishes.</li>
+            <li>If a firmware does not start on the virtual FM-1, the flash sheet shows a red warning. <span class="mono">CONTINUE</span> stays off until you check <span class="mono">I UNDERSTAND</span>. <span class="mono">SKIP CHECK</span> writes without waiting for that start check.</li>
+            <li>Official V15 and Felucca 1.6.1 have no USB recovery gesture. Holding OCT− while switching those on starts them normally.</li>
+            <li>If the FM-1 will not start at all, this app cannot repair it. Recovery then needs a computer. See <a href="#recovery">Recovery</a>.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="screens">
+        <h2>The four screens</h2>
+        <p>The bar along the bottom is DEVICE, FIRMWARE, SAVED, and SETUP. The top line shows whether a real FM-1 is connected, and the name it reports, such as <span class="mono">FM-1_900</span>.</p>
+        <div class="shots">
+          <figure>
+            <img src="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.5.0/before-you-start.jpg" alt="The first-run notice, titled Before you start, with the risk text and an OK button.">
+            <figcaption>The notice shown the first time you open the app.</figcaption>
+          </figure>
+          <figure>
+            <img src="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.5.0/firmware-list.jpg" alt="The firmware list on a phone whose FM-1 is reporting FM-1_900.">
+            <figcaption>The firmware list while an FM-1 was reporting FM-1_900.</figcaption>
+          </figure>
+        </div>
+        <p>A few lines of helper text in the older photos have been shortened since those pictures were taken. The controls are the same.</p>
+
+        <h3>DEVICE</h3>
+        <p>Plug the FM-1 into the phone with a USB cable. No extra driver. Straight into the phone is best; hubs often hide it. Close other MIDI apps first. With the app closed, the phone can ask whether to open it. If it also asks to allow USB, allow it. <span class="mono">SCAN</span> looks again.</p>
+        <p>When the FM-1 answers, the big line is the name it reports. <span class="mono">PLAY TEST NOTES</span> sends a short C–E–G–C. If you hear it, notes are getting through. Some firmwares, such as SLOOP, stay quiet on a plain note. The FM-1 answering again afterwards means the cable is fine. The keys under that send notes while you hold them.</p>
+        <p>If several firmwares report the same name, the screen says so, because the device itself cannot tell them apart. If the FM-1 is sitting in its update loader after an interrupted write, the screen says that and sends you to SAVED to finish.</p>
+        <p>When the device is running official V15, DEVICE can restore V15's 128 factory voices over all four banks. That replaces every voice in them, including ones you made. V15 cannot read the old voices back first.</p>
+
+        <h3>FIRMWARE</h3>
+        <p>This is the list of firmwares. It comes with the app, so you can read it with no connection. <span class="mono">REFRESH</span> gets a newer list. Search is above the rows. <span class="mono">SORT</span> orders them by your list, popularity, name, author, or newest. Chips under that row show the same groups as the firmware hub: All, Synths, Grooveboxes, Drums, Chords, Trackers, For devs, Other, Vintage, In browser, and From source.</p>
+        <p>The list is assembled from <a href="https://thefirmwarehub.com">the FM-1 Firmware Hub</a> by zvenson, <a href="https://fm1-editor.com/firmware/">Benny Sparra's fm1-editor.com</a>, and <a href="https://rustypawz.github.io/fm1-HYP1/">RedtailWorks</a>. Each firmware is its author's. A row names them and links their page. Pictures come from that project's own page, from the hub, or from fm1-editor.com.</p>
+        <p><span class="mono">FAVORITE</span> marks a firmware. <span class="mono">FAVORITES</span> shows only the ones you have marked. On a firmware's page, <span class="mono">EARLIER</span> and <span class="mono">LATER</span> change its place among those marks, and pressing <span class="mono">FAVORITED</span> removes it. The list opens with Baud Girl, SLOOP, Clipper, Rustypawz HYP-1, Felucca, and Felucca Rainbow at the top. Favorite any of those, or any other firmware.</p>
+        <p>Open a row for a description, a screenshot when the publisher has one, and <span class="mono">TRY</span>, <span class="mono">SAVE</span>, and <span class="mono">FLASH</span>. SAVE keeps a copy on the phone. FLASH writes a connected FM-1, and saves the file first if it is not already there. Neither opens TRY. After a flash finishes, that row says when it was last installed, as day-month-year. If the file is missing, the page says the firmware list may be out of date and offers <span class="mono">REFRESH</span>. Official firmware is marked, and beta firmware is marked. Beta rows can be hidden under SETUP. Listings with no file to install are hidden unless you turn that on.</p>
+        <p>The detail page also says what the device will report, how big the file is, and whether that firmware has a USB recovery gesture. Publisher pages, including a browser player when they have one, are listed there too.</p>
+
+        <h3>SAVED</h3>
+        <p>Firmwares you save stay on the phone, including for later use with no network. <span class="mono">TRY</span> plays one. <span class="mono">FLASH</span> writes it to a connected FM-1. <span class="mono">IMPORT</span> brings in a firmware file from the phone. <span class="mono">REMOVE</span> deletes one you saved. Official V15 ships with the app and is kept even if you clear the rest.</p>
+        <p>Backups taken before a flash are listed here, with <span class="mono">RESTORE</span> and <span class="mono">REMOVE</span>.</p>
+      </section>
+
+      <section id="try">
+        <h2>Hear it before you write it</h2>
+        <p><span class="mono">TRY</span> plays the firmware on a virtual FM-1. Sound comes from the phone. Tap keys and buttons, including several at once. Drag a knob up or down to turn it. MASTER is the volume. Turn the phone sideways for a larger panel. The clock and notification icons move off the screen. What you save on that virtual instrument is kept for that firmware. A USB MIDI keyboard plugged into the phone plays too. Notes are played on channel 2, whichever channel the keyboard sends, and every port it offers is listened to. Official V15 and Felucca both hear channel 2. The FM-1 already connected for flashing is left alone.</p>
+        <p>By default the panel is drawn as glowing lines in the colour you pick under SETUP. Turning that off shows a realistic panel. The firmware's own screen is the same either way.</p>
+        <p>TRY runs at the same speed as a real FM-1. If the sound gaps, or the phone struggles, SETUP can offer 100, 160, and 240. The choice is remembered per firmware. Lower it when the phone cannot keep up.</p>
+        <p>Leaving TRY always stops it. If <span class="mono">RUN EMULATOR IN BACKGROUND</span> is on, it keeps sounding when you switch away or the screen turns off, until you leave TRY. Turning the phone does not stop it.</p>
+        <p>Some publishers also offer their own player. When they do, that URL is listed on the firmware's page as Project site, Try it in the browser, or a similar link. Official Open is one of these: it often does not get going on the virtual FM-1, and M-VAVE's own player can run it.</p>
+        <p>With <span class="mono">SAVE WHAT YOU TRY</span> on, TRY keeps the firmware under SAVED. Off, it does not. A firmware already on the phone is not downloaded again. <span class="mono">SAVE</span> on the firmware page, or on the TRY screen, keeps a copy either way.</p>
+        <p>If the file is not there, TRY says it could not find it and that the firmware list may be out of date. <span class="mono">REFRESH</span> on that screen reads the list again. When the same firmware now points at a different file, TRY downloads that one.</p>
+        <div class="shots">
+          <figure>
+            <img src="images/try-sloop-portrait.jpg" alt="SLOOP on the virtual FM-1 in portrait, phosphor panel, four sequencer tracks on the screen, and the TRY instructions underneath.">
+            <figcaption>SLOOP in TRY, phosphor panel.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/try-baud-girl-portrait.jpg" alt="Baud Girl on the virtual FM-1 in portrait, realistic panel, electric piano patch 001 EMU E.PNO.">
+            <figcaption>Baud Girl in TRY, realistic panel.</figcaption>
+          </figure>
+          <figure class="wide">
+            <img src="images/try-sloop.jpg" alt="SLOOP running sideways on the virtual FM-1, sequencer screen showing four tracks.">
+            <figcaption>SLOOP with the phone sideways.</figcaption>
+          </figure>
+          <figure class="wide">
+            <img src="images/try-baud-girl.jpg" alt="Baud Girl running sideways with the realistic panel, an electric piano patch on the screen.">
+            <figcaption>Baud Girl with the phone sideways.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section id="flash">
+        <h2>Flashing</h2>
+        <p>FLASH asks before it writes. On a firmware page it is next to TRY and SAVE, and it saves the file first when the phone does not have it yet. The sheet names each step, usually just the firmware you chose. The line under the name during the write is what was running, then what is being written, such as SLOOP going to Rainbow Mode.</p>
+        <p>The sheet can check whether the firmware starts on the virtual FM-1. <span class="mono">SKIP CHECK</span> writes without waiting for that. A firmware that already failed the check still shows the red warning.</p>
+        <p>Stay on that screen until it finishes. If the cable comes out after the FM-1 has restarted into its update loader, plug it back in and press <span class="mono">RESUME</span>. If it never got that far, the FM-1 should still start as it did before.</p>
+        <p>Some firmwares have to be installed by way of the official firmware first. The sheet says so when the official firmware is not saved yet. <span class="mono">ALWAYS VIA OFFICIAL FIRMWARE</span> under SETUP makes every install take that path.</p>
+        <p>Switching to a different firmware can erase projects and samples. When this app can take a backup, it does that before the write and will not start the write if the backup fails. When it cannot, you have to confirm that you already backed up in that firmware's own editor.</p>
+        <div class="shots">
+          <figure>
+            <img src="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.5.0/flashed.jpg" alt="The flash finished screen for Rainbow Mode, saying the FM-1 now reports FM-1_911.">
+            <figcaption>A finished flash. The FM-1 came back reporting FM-1_911, and a backup of what it had been running was kept under SAVED.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section id="backups">
+        <h2>Backups</h2>
+        <p>Before a write, when the running firmware allows it, FM-1 Swap saves a copy on the phone.</p>
+        <ul>
+          <li>FM-1+VA, the Baud Girl range, gives its 128 presets and 16 patterns, plus a copy of the firmware if that file is already on the phone.</li>
+          <li>Felucca gives the music now playing, the projects, your presets, settings, and samples. The FM6 voice bank is included only when that firmware lists it. If you already keep Felucca's own backup, hold onto that too.</li>
+          <li>SLOOP gives the projects, presets, FM6 bank, samples, and settings.</li>
+        </ul>
+        <p>RESTORE writes that backup back. Keep the cable connected, and stop playback on the FM-1. A restore replaces what the instrument is holding. Official V15, the update loader, and firmwares that never answer a backup request do not get an automatic copy. Those ask you to confirm you have backed up yourself.</p>
+      </section>
+
+      <section id="recovery">
+        <h2>If it will not start</h2>
+        <p>Some firmwares can be started in USB recovery, then given a firmware from SAVED.</p>
+        <table>
+          <thead>
+            <tr><th>Firmware</th><th>How to reach USB recovery</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>SLOOP, Clipper, Dinghy, Etch, Floyd, Ghoulbox, Jangada, WinampFM, ZP12, and the SLOOP banks and DX builds</td><td>Hold OCT− while switching on.</td></tr>
+            <tr><td>Melodee, from 1.3.5</td><td>Hold OCT− while switching on.</td></tr>
+            <tr><td>ChoralRoot, from 0.16</td><td>Hold OCT− while switching on.</td></tr>
+            <tr><td>HYP-1, FuMi-1, FiMba-1, LOF-1, ECO-1, GRAV-1</td><td>Hold OCT− and OCT+ for 5 seconds while it is already running.</td></tr>
+            <tr><td>Official V15</td><td>No USB recovery. Holding OCT− while switching on starts it as usual.</td></tr>
+            <tr><td>Felucca 1.6.1</td><td>No USB recovery. Holding OCT− while switching on starts it as usual.</td></tr>
+          </tbody>
+        </table>
+        <p>If the FM-1 will not start at all, not even in USB recovery, FM-1 Swap cannot help. A computer that sees a USB device with UBOOT in the name, such as <span class="mono">WL80UBOOT</span>, is seeing the chip's own download mode. Tools built on <a href="https://github.com/kagaimiq/jl-uboot-tool">jl-uboot-tool</a> can put the official firmware back. Melodee, FuMi-1, and Hortator are among the firmwares that publish one, with instructions. If the chip never gets that far, recovery needs an <a href="https://github.com/kurogedelic/FM-1-transporter">FM-1 Transporter</a>. This app has not tried either.</p>
+      </section>
+
+      <section id="setup">
+        <h2>Setup</h2>
+        <ul>
+          <li><span class="mono">COLOUR</span> is green, amber, ice, rose, or paper. Glow, scanlines, and flicker are the screen look. Reset look puts them back.</li>
+          <li><span class="mono">PHOSPHOR EMULATOR PANEL</span> draws the virtual FM-1 as glowing lines. Off is the realistic panel.</li>
+          <li><span class="mono">CHOOSE EMULATOR CLOCK</span> shows 100, 160, and 240 on the TRY screen.</li>
+          <li><span class="mono">RUN EMULATOR IN BACKGROUND</span> keeps TRY sounding when you leave the app, until you leave the TRY screen.</li>
+          <li><span class="mono">USB MIDI</span> is a real FM-1. <span class="mono">SIMULATED FM-1</span> is not a synth. It stands in for an FM-1 so you can practice a flash with no instrument connected. The extra switches under it, such as interrupting a pretend flash, apply only to that stand-in.</li>
+          <li><span class="mono">ALWAYS VIA OFFICIAL FIRMWARE</span> installs the official firmware on the way to the one you chose, when you are not already installing official firmware.</li>
+          <li><span class="mono">SHOW BETA RELEASES</span> includes firmwares marked beta. Ones you have kept stay visible either way.</li>
+          <li><span class="mono">SHOW LISTINGS WITHOUT A PACKAGE</span> includes rows that link out but have no file to save or flash.</li>
+          <li><span class="mono">SAVE WHAT YOU TRY</span> keeps a firmware under SAVED when you press TRY.</li>
+          <li>When a newer release of FM-1 Swap is published, a line under the top bar says so. <span class="mono">UPDATE</span> downloads it, and Android asks you to confirm the install. <span class="mono">LATER</span> hides that line. SETUP still shows <span class="mono">UPDATE</span>.</li>
+          <li>Next to the version, <span class="mono">TIP ON KO-FI</span> opens <a href="https://ko-fi.com/hyruleanhero1988">Ko-fi</a>.</li>
+        </ul>
+      </section>
+
+      <section id="patches">
+        <h2>Patches</h2>
+        <p>The app has a PATCHES screen, and the same banks are on the <a href="patches.html">patches page</a>. SEND plays one patch on a connected FM-1. SEND BANK sends all 32, and you choose which bank on the FM-1 they replace. Official V15 holds a single patch until you press SAVE. FM-1+VA edits the preset you have selected. Official Open takes one patch onto its DX7 track.</p>
+        <p>Banks 1–4 are the FM-1's own presets, captured by <a href="https://github.com/KingParamount/fm1-factory-presets">KingParamount</a> and shared as DX7 banks under CC0. The voices come from Yamaha ROM and VRC cartridges and from BlackWinny's Dexed_cart 1.0 collection, as M-VAVE selected and renamed them. <a href="https://github.com/aquanodemusic/aquanode-soundscapes">Aquanode's</a> banks are CC0, from aquanode-soundscapes. Yamaha's cartridge banks are on <a href="https://fm1-editor.com/">fm1-editor.com</a>.</p>
+      </section>
+
+      <section id="record">
+        <h2>What has been tried on a real FM-1</h2>
+        <p>FM-1 Swap has been used to swap firmwares on a real FM-1, including SLOOP, Felucca Rainbow, and Clipper. Those swaps completed. One of them started on SLOOP 2.7.1, which reported <span class="mono">FM-1_900</span>. FM-1 Swap wrote Rainbow Mode 1.1.5-rb, and the FM-1 came back reporting <span class="mono">FM-1_911</span>.</p>
+        <p><a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest/download/FM-1-Swap.apk">Download 0.5.0</a></p>
+      </section>
+
+      <section id="credits">
+        <h2>Credits</h2>
+        <p>FM-1 Swap is for the M-VAVE FM-1. Not affiliated with M-VAVE.</p>
+        <p>The firmware list is assembled from <a href="https://thefirmwarehub.com">the FM-1 Firmware Hub</a> by zvenson, <a href="https://fm1-editor.com/firmware/">Benny Sparra's fm1-editor.com</a>, and <a href="https://rustypawz.github.io/fm1-HYP1/">RedtailWorks</a> (HYP-1, LOF-1, ECO-1, and GRAV-1). Each firmware is its author's. A row names them and links their page. Pictures come from that project's own page, from the hub, or from fm1-editor.com. Official V15 is M-VAVE's, Apache-2.0, unmodified from <a href="https://github.com/m-vave/fm1_open">fm1_open</a>.</p>
+        <p>Patch banks 1–4 are the FM-1's own presets, captured by <a href="https://github.com/KingParamount/fm1-factory-presets">KingParamount</a> and shared as DX7 banks under CC0. The voices come from Yamaha ROM and VRC cartridges and from BlackWinny's Dexed_cart 1.0 collection, as M-VAVE selected and renamed them. <a href="https://github.com/aquanodemusic/aquanode-soundscapes">Aquanode's</a> banks are CC0, from aquanode-soundscapes.</p>
+        <p>The idea of swapping FM-1 firmware from a phone started with <a href="https://github.com/ocean/FM-SWITCH">ocean</a>. The protocol follows ocean's <a href="https://github.com/ocean/FM1Kit">FM1Kit</a> (MIT) and the <a href="https://github.com/AL-255/FM-1-RE">FM-1-RE</a> notes (WTFPL). TRY runs <a href="https://github.com/joakimeriksson/fm1-emu">Joakim Eriksson's fm1-emu</a> (MIT).</p>
+        <p>The app is set in Silkscreen (the <a href="https://github.com/googlefonts/silkscreen">Silkscreen Project</a>), <a href="https://helenazhang.com">Departure Mono by Helena Zhang</a>, and <a href="https://fonts.google.com/specimen/VT323">VT323 by Peter Hull</a>. All three are under the SIL Open Font License. This page also uses <a href="https://github.com/IBM/plex">IBM Plex Sans and IBM Plex Mono</a>, IBM, under the same licence.</p>
+      </section>
+    </div>
+  </main>
+  <footer>
+    <div class="wrap">
+      <p>Sources and licences are in <a href="#credits">Credits</a>. Not affiliated with M-VAVE.</p>
+      <p>If you found this useful, consider <a href="https://ko-fi.com/hyruleanhero1988">tipping me on Ko-fi</a>.</p>
+      <p>Source and issues: <a href="https://github.com/HyruleanHero1988/FM-1-Swap">github.com/HyruleanHero1988/FM-1-Swap</a></p>
+    </div>
+  </footer>
+</body>
+</html>

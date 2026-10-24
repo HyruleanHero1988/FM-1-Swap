@@ -241,6 +241,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         private set
     var listTick by mutableIntStateOf(0)
     var libraryTick by mutableIntStateOf(0)
+    var historyTick by mutableIntStateOf(0)
+        private set
     var themeTick by mutableIntStateOf(0)
     var glow by mutableFloatStateOf(settings.glow)
     var downloadingIds by mutableStateOf(setOf<String>())
@@ -599,6 +601,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 identity = installed
                 history.record(item)
+                historyTick++
             } catch (error: Exception) {
                 appendLog("✕ ${error.userMessage()}")
                 job = job?.copy(phase = FlashPhase.Failed(error.userMessage(), isResumable(error)))

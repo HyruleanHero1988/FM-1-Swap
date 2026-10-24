@@ -24,6 +24,8 @@ data class SimulatedOptions(
     val installedBuildID: FM1BuildID = FM1BuildID(ByteArray(FM1BuildID.BYTE_COUNT)),
     val capabilityState: Int = 0,
     val armReply: Int = 0,
+    /** False for a community firmware whose product number only looks like Official Open. */
+    val answersOpenProtocol: Boolean = true,
     val initialVoices: ByteArray? = null,
     val voiceReply: Int = 0,
     val stopsAnsweringVoicesAfter: Int? = null,
@@ -106,7 +108,10 @@ class SimulatedFM1(
                 currentIdentity?.let { from.toHost.deliver(it.handshakeReply()) }
             }
             sysex.contentEquals(FM1Message.UPGRADE_COMMAND) -> {
-                if (currentIdentity?.isOpenFirmware == true && synchronized(lock) { armedBuildID } == null) {
+                if (options.answersOpenProtocol &&
+                    currentIdentity?.isOpenFirmware == true &&
+                    synchronized(lock) { armedBuildID } == null
+                ) {
                     log("Open firmware ignores the upgrade command until it's armed.")
                     return
                 }
@@ -228,7 +233,7 @@ class SimulatedFM1(
     }
 
     private fun handleOpenFirmwareCommand(command: Int, payload: ByteArray, from: SimulatedConnection) {
-        if (currentIdentity?.isOpenFirmware != true) return
+        if (!options.answersOpenProtocol || currentIdentity?.isOpenFirmware != true) return
         if (command == FM1Message.CAPABILITY_COMMAND) {
             val capability = FM1Capability(state = options.capabilityState, buildID = currentBuildID)
             from.toHost.deliver(FM1Message.command(command, capability.payload()))

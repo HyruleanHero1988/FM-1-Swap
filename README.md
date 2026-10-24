@@ -18,7 +18,7 @@ How it works, what can go wrong, and the install link are on the site:
 The same site hosts [DX7 patches](https://hyruleanhero1988.github.io/FM-1-Swap/patches.html)
 that the app's PATCHES screen, and a desktop browser, can send to a connected FM-1.
 
-Download [FM-1 Swap 0.5.0](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.5.0)
+Download [FM-1 Swap 0.6.0](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.6.0)
 (`FM-1-Swap.apk`) from this GitHub release and install it on the phone. It
 replaces an earlier release of FM-1 Swap already there. Sideload it on a phone.
 USB MIDI to the FM-1 does not work on an emulator.
@@ -94,8 +94,8 @@ sdk.dir=/path/to/Android/sdk
 
 `.github/workflows/ci.yml` runs on every push and pull request: it builds the native emulator,
 runs its tests and the protocol tests, then `assembleDebug` and `assembleRelease`. On `main` it publishes `FM-1-Swap-debug.apk` to the
-[android-debug](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/android-debug) tag and `FM-1-Swap.apk` (versionName 0.5.0) to
-[v0.5.0](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.5.0). It also uploads the
+[android-debug](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/android-debug) tag and `FM-1-Swap.apk` (versionName 0.6.0) to
+[v0.6.0](https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.6.0). It also uploads the
 `app-debug` Actions artifact. You can retrigger it from the Actions tab with **Run workflow**.
 
 CI vendors the Gradle wrapper, bundled V15, and fonts (fetched from

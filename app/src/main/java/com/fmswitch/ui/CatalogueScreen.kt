@@ -45,6 +45,7 @@ import com.fmswitch.catalogue.RescueMode
 import com.fmswitch.model.AppViewModel
 import com.fmswitch.model.CurationSeed
 import com.fmswitch.model.StoredFirmware
+import com.fmswitch.model.lastInstalledMarker
 import com.fmswitch.theme.LocalPhosphor
 import com.fmswitch.theme.MonoText
 import com.fmswitch.theme.NoteText
@@ -67,6 +68,8 @@ fun CatalogueScreen(model: AppViewModel) {
     model.catalogueTick
     @Suppress("UNUSED_EXPRESSION")
     model.listTick
+    @Suppress("UNUSED_EXPRESSION")
+    model.historyTick
     val curation = model.settings.curation
     val curatedIds = curation.toSet()
     val matching = model.catalogue.entries.filter { entry ->
@@ -188,6 +191,9 @@ fun CatalogueScreen(model: AppViewModel) {
                         BasicText(entry.name.uppercase(), style = pixelText(13.sp, bold = true, color = theme.bright))
                         CatalogueBlurb.line(entry)?.let { MonoText(it, size = 12, dim = true, maxLines = 2) }
                         MonoText("${entry.author ?: "unknown"}  ·  ${entry.version ?: ""}", size = 13, dim = true)
+                        model.history.lastFor(entry)?.let { installed ->
+                            MonoText(lastInstalledMarker(installed, entry.version), size = 13)
+                        }
                         val rankBits = buildList {
                             entry.stars?.takeIf { it > 0 }?.let { add("★ $it") }
                         }
@@ -255,6 +261,9 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         }
         BasicText(entry.name.uppercase(), style = pixelText(24.sp, bold = true, color = theme.bright, glow = true))
         MonoText("${entry.author ?: ""}  ·  ${entry.version ?: ""}  ·  ${entry.product ?: ""}", size = 14, dim = true)
+        model.history.lastFor(entry)?.let { installed ->
+            MonoText(lastInstalledMarker(installed, entry.version), size = 14)
+        }
         FirmwarePhoto(
             url = entry.photoURL,
             alt = entry.photoAlt ?: entry.name,

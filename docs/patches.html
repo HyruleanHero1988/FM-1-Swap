@@ -212,7 +212,7 @@
         portSelect.append(option);
       }
       const preferred = ports.find((port) => /fm-?1/i.test(port.name));
-        if (preferred) portSelect.value = preferred.id;
+      if (preferred) portSelect.value = preferred.id;
       portSelect.hidden = false;
       output = access.outputs.get(portSelect.value);
       say(output ? "Connected to " + output.name + "." : "Pick the FM-1's MIDI port.");

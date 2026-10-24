@@ -74,7 +74,8 @@ class EditorBackupCodecTest {
         assertFalse(FM1Identity.parse("FM-1_102")!!.mightHaveEditorBackup)
         assertFalse(FM1Identity.parse("FM-1_015")!!.mightHaveEditorBackup)
         assertFalse(FM1Identity.parse("ota-FM-1_009")!!.mightHaveEditorBackup)
-        assertFalse(FM1Identity.parse("FM-1_8000400")!!.mightHaveEditorBackup)
+        assertTrue(FM1Identity.parse("FM-1_8000400")!!.mightHaveEditorBackup)
+        assertFalse(FM1Identity.parse("FM-1_8000014")!!.mightHaveEditorBackup)
     }
 }
 

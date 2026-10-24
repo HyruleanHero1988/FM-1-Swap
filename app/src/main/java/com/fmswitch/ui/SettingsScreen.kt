@@ -232,39 +232,49 @@ fun SettingsScreen(model: AppViewModel) {
             NoteText("If a new download says App not installed, uninstall this one once, then install the new file. After that, later downloads install over this one.")
         }
         PixelPanel(title = "CREDITS") {
-            MonoText(
-                "FM-1 Swap for the M-VAVE FM-1. The idea of swapping FM-1 firmware from a phone started with ocean. Protocol from FM1Kit (MIT) and the FM-1-RE notes (WTFPL). Bundled V15 is M-VAVE's, Apache-2.0, unmodified from fm1_open. The hosted patches are the FM-1's own four banks, captured by KingParamount, and Aquanode's CC0 banks. TRY runs Joakim Eriksson's fm1-emu (MIT), compiled into the app. Pixel fonts: Silkscreen, Departure Mono and VT323 (SIL OFL). Not affiliated with M-VAVE.",
-                size = 14,
-            )
-            BasicText(
-                "▸ OCEAN",
-                style = pixelText(11.sp, bold = true, color = theme.bright),
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .clickable {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/ocean/FM-SWITCH")))
-                    },
-            )
-            BasicText(
-                "▸ FM1KIT",
-                style = pixelText(11.sp, bold = true, color = theme.bright),
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .clickable {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/ocean/FM1Kit")))
-                    },
-            )
-            BasicText(
-                "▸ FM1-EMU (TRY)",
-                style = pixelText(11.sp, bold = true, color = theme.bright),
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .clickable {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/joakimeriksson/fm1-emu")))
-                    },
-            )
+            MonoText("FM-1 Swap for the M-VAVE FM-1. Not affiliated with M-VAVE.", size = 14)
+            Spacer(Modifier.height(10.dp))
+            MonoText("THE LIST", size = 13, dim = true)
+            NoteText("The firmware list is assembled from the FM-1 Firmware Hub by zvenson, Benny Sparra's fm1-editor.com, and RedtailWorks. Each firmware is its author's. A row names them and links their page. Pictures come from that project's own page, from the hub, or from fm1-editor.com. Official V15 is M-VAVE's, Apache-2.0, unmodified from fm1_open.")
+            CreditLink("FIRMWARE HUB", "https://thefirmwarehub.com")
+            CreditLink("FM1-EDITOR.COM", "https://fm1-editor.com/firmware/")
+            CreditLink("REDTAILWORKS", "https://rustypawz.github.io/fm1-HYP1/")
+            CreditLink("FM1_OPEN", "https://github.com/m-vave/fm1_open")
+            Spacer(Modifier.height(10.dp))
+            MonoText("PATCHES", size = 13, dim = true)
+            NoteText("Banks 1–4 are the FM-1's own presets, captured by KingParamount and shared as DX7 banks under CC0. The voices come from Yamaha ROM and VRC cartridges and from BlackWinny's Dexed_cart 1.0 collection, as M-VAVE selected and renamed them. Aquanode's banks are CC0, from aquanode-soundscapes.")
+            CreditLink("KINGPARAMOUNT", "https://github.com/KingParamount/fm1-factory-presets")
+            CreditLink("AQUANODE", "https://github.com/aquanodemusic/aquanode-soundscapes")
+            Spacer(Modifier.height(10.dp))
+            MonoText("THE APP", size = 13, dim = true)
+            NoteText("The idea of swapping FM-1 firmware from a phone started with ocean. The protocol follows FM1Kit (MIT) and the FM-1-RE notes (WTFPL). TRY runs Joakim Eriksson's fm1-emu (MIT), compiled into the app.")
+            CreditLink("OCEAN", "https://github.com/ocean/FM-SWITCH")
+            CreditLink("FM1KIT", "https://github.com/ocean/FM1Kit")
+            CreditLink("FM-1-RE", "https://github.com/AL-255/FM-1-RE")
+            CreditLink("FM1-EMU", "https://github.com/joakimeriksson/fm1-emu")
+            Spacer(Modifier.height(10.dp))
+            MonoText("TYPE", size = 13, dim = true)
+            NoteText("Silkscreen is from the Silkscreen Project. Departure Mono is by Helena Zhang. VT323 is by Peter Hull. All three are under the SIL Open Font License.")
+            CreditLink("SILKSCREEN", "https://github.com/googlefonts/silkscreen")
+            CreditLink("DEPARTURE MONO", "https://helenazhang.com")
+            CreditLink("VT323", "https://fonts.google.com/specimen/VT323")
         }
     }
+}
+
+@Composable
+private fun CreditLink(label: String, url: String) {
+    val context = LocalContext.current
+    val theme = LocalPhosphor.current
+    BasicText(
+        "▸ $label",
+        style = pixelText(11.sp, bold = true, color = theme.bright),
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .clickable {
+                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+            },
+    )
 }
 
 @Composable

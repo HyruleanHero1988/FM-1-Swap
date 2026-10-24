@@ -1,5 +1,7 @@
 package com.fmswitch.ui
 
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -70,7 +72,10 @@ fun PatchesScreen(model: AppViewModel) {
                         open = item
                     }
                 }
-                NoteText("FM-1 banks 1–4 are the instrument's own presets, captured by KingParamount and shared as DX7 banks. Aquanode's banks are CC0. Yamaha's cartridge banks are on fm1-editor.com.")
+                NoteText("Banks 1–4 are the FM-1's own presets, captured by KingParamount and shared as DX7 banks under CC0. The voices come from Yamaha ROM and VRC cartridges and from BlackWinny's Dexed_cart 1.0 collection, as M-VAVE selected and renamed them. Aquanode's banks are CC0, from aquanode-soundscapes. Yamaha's cartridge banks are on fm1-editor.com.")
+                CreditLink("KINGPARAMOUNT", "https://github.com/KingParamount/fm1-factory-presets")
+                CreditLink("AQUANODE", "https://github.com/aquanodemusic/aquanode-soundscapes")
+                CreditLink("FM1-EDITOR.COM", "https://fm1-editor.com/")
             }
         } else {
             ScreenHeader(current.info.name) {
@@ -107,6 +112,21 @@ fun PatchesScreen(model: AppViewModel) {
             }
         }
     }
+}
+
+@Composable
+private fun CreditLink(label: String, url: String) {
+    val context = LocalContext.current
+    val theme = LocalPhosphor.current
+    BasicText(
+        "▸ $label",
+        style = pixelText(11.sp, bold = true, color = theme.bright),
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .clickable {
+                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+            },
+    )
 }
 
 @Composable

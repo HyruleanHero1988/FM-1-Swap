@@ -12,8 +12,14 @@ data class FM1Identity(
     val isLoader: Boolean
         get() = model.lowercase().startsWith(LOADER_PREFIX)
 
+    /**
+     * M-VAVE Official Open, which has to be armed before an update.
+     * Its product is `FM-1_80000` plus the version, so V14 is `FM-1_8000014`.
+     * Community firmwares reuse the wider `FM-1_8xxxxxx` space for their own version
+     * (FoMni 0.4 is `FM-1_8000400`) and update with the ordinary command.
+     */
     val isOpenFirmware: Boolean
-        get() = (model == "FM-1" && version in OPEN_VERSIONS) || model == "FM1_COMMUNITY"
+        get() = (model == "FM-1" && version in OFFICIAL_OPEN_VERSIONS) || model == "FM1_COMMUNITY"
 
     val hardwareModel: String
         get() = when {
@@ -40,7 +46,7 @@ data class FM1Identity(
         val OFFICIAL_V15: FM1Identity = parse("FM-1_015")!!
         const val ARMED_LOADER_MODEL = "ota-FM1C"
         const val ARMED_BUILD_PREFIX_LENGTH = 16
-        val OPEN_VERSIONS = 8_000_000..8_999_999
+        val OFFICIAL_OPEN_VERSIONS = 8_000_000..8_000_099
         const val REPLY_LENGTH = 34
 
         fun parse(text: String): FM1Identity? {
@@ -88,6 +94,6 @@ internal fun ByteArray.startsWithPrefix(prefix: ByteArray): Boolean {
 fun OpenFirmware.isOpen(identity: String): Boolean =
     identity == "FM1_OFFICIAL_OPEN" ||
         identity.matches(Regex("FM1_COMMUNITY_\\d+")) ||
-        identity.matches(Regex("FM-1_8\\d{6}"))
+        FM1Identity.parse(identity)?.isOpenFirmware == true
 
 object OpenFirmware

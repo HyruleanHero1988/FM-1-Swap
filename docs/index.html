@@ -260,8 +260,8 @@
       </ul>
       <p class="lede">It plugs into an M-VAVE FM-1 with a USB cable. It is not affiliated with M-VAVE. Flashing custom firmware can leave the instrument unable to start.</p>
       <div class="actions">
-        <a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.6.1/FM-1-Swap.apk">Download 0.6.1</a>
-        <a class="ghost" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.6.1">0.6.1 release</a>
+        <a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.6.2/FM-1-Swap.apk">Download 0.6.2</a>
+        <a class="ghost" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.6.2">0.6.2 release</a>
       </div>
       <div class="video">
         <iframe
@@ -294,7 +294,7 @@
     <div class="wrap">
       <section id="install">
         <h2>Install</h2>
-        <p>The current release is 0.6.1. Download <span class="mono">FM-1-Swap.apk</span> from this GitHub release and install it on the phone. It replaces an earlier release of FM-1 Swap already there. The phone needs Android 8 or newer. A computer emulator will not see a USB FM-1.</p>
+        <p>The current release is 0.6.2. Download <span class="mono">FM-1-Swap.apk</span> from this GitHub release and install it on the phone. It replaces an earlier release of FM-1 Swap already there. The phone needs Android 8 or newer. A computer emulator will not see a USB FM-1.</p>
         <ol>
           <li>Download the APK on the phone, or copy it across.</li>
           <li>Open it and allow install from the browser or the files app when Android asks.</li>
@@ -358,6 +358,7 @@
         <p>TRY runs at the same speed as a real FM-1. If the sound gaps, or the phone struggles, SETUP can offer 100, 160, and 240. The choice is remembered per firmware. Lower it when the phone cannot keep up.</p>
         <p>386DX was stopping while its screen said it was building voices. CTL and MC-1 stopped on the same instruction, and Kawa on a bit-test branch. 0.6.1 runs both, and those firmwares keep going.</p>
         <p>Leaving TRY always stops it. If <span class="mono">RUN EMULATOR IN BACKGROUND</span> is on, it keeps sounding when you switch away or the screen turns off, until you leave TRY. Turning the phone does not stop it.</p>
+        <p><span class="mono">TRY ON V15</span>, on the PATCHES screen, loads a bank into Official V15's first 32 slots and starts it. Patches already saved in those slots on the virtual FM-1 are replaced.</p>
         <p>Some publishers also offer their own player. When they do, that URL is listed on the firmware's page as Project site, Try it in the browser, or a similar link. Official Open is one of these: it often does not get going on the virtual FM-1, and M-VAVE's own player can run it.</p>
         <p>With <span class="mono">SAVE WHAT YOU TRY</span> on, TRY keeps the firmware under SAVED. Off, it does not. A firmware already on the phone is not downloaded again. <span class="mono">SAVE</span> on the firmware page, or on the TRY screen, keeps a copy either way.</p>
         <p>If the file is not there, TRY says it could not find it and that the firmware list may be out of date. <span class="mono">REFRESH</span> on that screen reads the list again. When the same firmware now points at a different file, TRY downloads that one.</p>
@@ -446,14 +447,14 @@
 
       <section id="patches">
         <h2>Patches</h2>
-        <p>The app has a PATCHES screen, and the same banks are on the <a href="patches.html">patches page</a>. SEND plays one patch on a connected FM-1. SEND BANK sends all 32, and you choose which bank on the FM-1 they replace. Official V15 holds a single patch until you press SAVE. FM-1+VA edits the preset you have selected. Official Open takes one patch onto its DX7 track.</p>
+        <p>The app has a PATCHES screen, and the same banks are on the <a href="patches.html">patches page</a>. SEND plays one patch on a connected FM-1. SEND BANK sends all 32, and you choose which bank on the FM-1 they replace. Official V15 holds a single patch until you press SAVE. FM-1+VA edits the preset you have selected. Official Open takes one patch onto its DX7 track. <span class="mono">TRY ON V15</span> loads that bank into Official V15's first 32 slots and starts it. Patches already saved in those slots on the virtual FM-1 are replaced.</p>
         <p>Banks 1–4 are the FM-1's own presets, captured by <a href="https://github.com/KingParamount/fm1-factory-presets">KingParamount</a> and shared as DX7 banks under CC0. The voices come from Yamaha ROM and VRC cartridges and from BlackWinny's Dexed_cart 1.0 collection, as M-VAVE selected and renamed them. <a href="https://github.com/aquanodemusic/aquanode-soundscapes">Aquanode's</a> banks are CC0, from aquanode-soundscapes. Yamaha's cartridge banks are on <a href="https://fm1-editor.com/">fm1-editor.com</a>.</p>
       </section>
 
       <section id="record">
         <h2>What has been tried on a real FM-1</h2>
         <p>FM-1 Swap has been used to swap firmwares on a real FM-1, including SLOOP, Felucca Rainbow, and Clipper. Those swaps completed. One of them started on SLOOP 2.7.1, which reported <span class="mono">FM-1_900</span>. FM-1 Swap wrote Rainbow Mode 1.1.5-rb, and the FM-1 came back reporting <span class="mono">FM-1_911</span>.</p>
-        <p><a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.6.1/FM-1-Swap.apk">Download 0.6.1</a></p>
+        <p><a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.6.2/FM-1-Swap.apk">Download 0.6.2</a></p>
       </section>
 
       <section id="credits">

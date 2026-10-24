@@ -322,8 +322,9 @@ class FM1Updater(
 
     private suspend fun capabilityOf(device: FoundDevice): FM1Capability? {
         if (!device.identity.isOpenFirmware) return null
-        val payload = query(device.connection, FM1Message.CAPABILITY_COMMAND)
-            ?: throw FM1UpdateError.CapabilityUnavailable
+        // A community firmware can report an Official Open number, as MORPHEUS does with
+        // FM-1_8000013. No capability reply means it updates with the ordinary command.
+        val payload = query(device.connection, FM1Message.CAPABILITY_COMMAND) ?: return null
         return FM1Capability.parse(payload) ?: throw FM1UpdateError.CapabilityUnavailable
     }
 

@@ -6,6 +6,8 @@ Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
 ## New in 0.5.0
 
+FoMni, the Omnichord firmware, reports `FM-1_8000400`. That number sits near Official Open's, and the app was waiting for Official Open to say it was ready to update. FoMni never says that, so nothing was written, whichever firmware you chose. It now switches with the ordinary update. The same goes for FiMba, Niagara Drift, and Dub Techno, and for a firmware that reports an Official Open number but doesn't answer like Official Open.
+
 A firmware you have flashed says when, on its row: last installed, then the day-month-year. Forks that report the same device name are kept apart.
 
 SETUP names every source the firmware list and the patch banks come from, with a link to each. The same credits are on the guide.

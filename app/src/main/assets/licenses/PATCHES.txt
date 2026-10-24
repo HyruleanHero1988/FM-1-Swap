@@ -1,0 +1,16 @@
+FM-1 Swap patch banks
+
+Banks 1–4
+The FM-1's own presets, captured by KingParamount and shared as standard DX7
+bank dumps. The SysEx capture is CC0 1.0 Universal.
+https://github.com/KingParamount/fm1-factory-presets
+https://creativecommons.org/publicdomain/zero/1.0/
+
+KingParamount claims no rights in the voice parameters. Those come from
+Yamaha ROM and VRC cartridges and from BlackWinny's Dexed_cart 1.0
+collection, as selected and renamed by M-VAVE. The per-voice trace is in
+that repository, docs/protocol-and-provenance.md.
+
+Aquanode
+DX7 banks by Aquanode, CC0 1.0 Universal, from aquanode-soundscapes.
+https://github.com/aquanodemusic/aquanode-soundscapes

@@ -89,6 +89,7 @@ fun EmulatorScreen(
     refreshing: Boolean,
     midiSkipKey: String,
     midiSkipIds: () -> Set<Int>,
+    bank: ByteArray? = null,
 ) {
     val theme = LocalPhosphor.current
     val context = LocalContext.current
@@ -135,6 +136,7 @@ fun EmulatorScreen(
                 onMidi = slot.onMidi,
                 midiSkipKey = slot.midiSkipKey,
                 midiSkipIds = slot.midiSkipIds,
+                bank = slot.bank,
             )
         }
     }
@@ -151,6 +153,7 @@ fun EmulatorScreen(
             onMidi = reportMidi,
             midiSkipKey = midiSkipKey,
             midiSkipIds = midiSkipIds,
+            bank = bank,
         )
     }
 
@@ -309,6 +312,7 @@ private data class RunningSlot(
     val onMidi: (String) -> Unit,
     val midiSkipKey: String,
     val midiSkipIds: () -> Set<Int>,
+    val bank: ByteArray?,
 )
 
 @Composable
@@ -353,6 +357,7 @@ private fun RunningEmulator(
     onMidi: (String) -> Unit = {},
     midiSkipKey: String = "",
     midiSkipIds: () -> Set<Int> = { emptySet() },
+    bank: ByteArray? = null,
 ) {
     val context = LocalContext.current
     val theme = LocalPhosphor.current
@@ -365,14 +370,21 @@ private fun RunningEmulator(
     // One engine at a time: the next boot reads the flash the previous one saved as it closed.
     val current = remember { arrayOfNulls<Fm1Engine>(1) }
     DisposableEffect(Unit) { onDispose { current[0]?.close(); current[0] = null } }
-    val engine by produceState<Fm1Engine?>(null, prepared.file, prepared.sha256, mhz, playing, runInBackground) {
+    val bankKey = bank?.let { it.size to it.contentHashCode() }
+    val engine by produceState<Fm1Engine?>(null, prepared.file, prepared.sha256, mhz, playing, runInBackground, bankKey) {
         value = null
         current[0]?.close()
         current[0] = null
         if (!playing) return@produceState
         val bytes = withContext(Dispatchers.IO) { runCatching { prepared.file.readBytes() }.getOrNull() }
         val next = bytes?.let {
-            Fm1Engine(it, Fm1Engine.saveFileFor(context.filesDir, prepared.sha256), mhz, runInBackground)
+            Fm1Engine(
+                it,
+                Fm1Engine.saveFileFor(context.filesDir, prepared.sha256),
+                mhz,
+                runInBackground,
+                bank = bank,
+            )
         }
         current[0] = next
         value = next

@@ -174,6 +174,9 @@ data class FlashRecord(
     val version: String,
     val product: String,
     val date: Long,
+    /** Catalogue row this flash came from, so two forks that report the same device name stay apart. */
+    val catalogueID: String? = null,
+    val sha256: String? = null,
 )
 
 class FirmwareLibrary internal constructor(
@@ -527,11 +530,68 @@ class FlashHistory(private val prefs: SharedPreferences) {
 
     fun lastInstall(matching: String): FlashRecord? = records.firstOrNull()?.takeIf { it.product == matching }
 
+    fun lastFor(entry: CatalogueEntry): FlashRecord? =
+        lastInstalledRecord(records, entry.id, entry.sha256, entry.name, entry.version)
+
+    fun lastFor(item: StoredFirmware): FlashRecord? =
+        lastInstalledRecord(records, item.catalogueID, item.sha256, item.name, item.version)
+
     fun record(item: StoredFirmware) {
         records = (listOf(
-            FlashRecord(name = item.name, version = item.version, product = item.product, date = System.currentTimeMillis()),
+            FlashRecord(
+                name = item.name,
+                version = item.version,
+                product = item.product,
+                date = System.currentTimeMillis(),
+                catalogueID = item.catalogueID,
+                sha256 = item.sha256,
+            ),
         ) + records).take(30)
         prefs.edit().putString("flashHistory", json.encodeToString(records)).apply()
+    }
+}
+
+/**
+ * The newest flash of this firmware. A catalogue id wins, then the file hash, then an older
+ * record that only has the same name and version. A shared device name such as FM-1_911 is not
+ * enough: several forks report it.
+ */
+fun lastInstalledRecord(
+    records: List<FlashRecord>,
+    catalogueID: String?,
+    sha256: String?,
+    name: String,
+    version: String?,
+): FlashRecord? {
+    val id = catalogueID?.takeIf { it.isNotBlank() }
+    if (id != null) records.firstOrNull { it.catalogueID == id }?.let { return it }
+    val sha = sha256?.takeIf { it.isNotBlank() }
+    if (sha != null) records.firstOrNull { it.sha256.equals(sha, ignoreCase = true) }?.let { return it }
+    val wantedName = name.trim()
+    val wantedVersion = version?.trim().orEmpty()
+    if (wantedName.isEmpty()) return null
+    return records.firstOrNull { record ->
+        record.catalogueID.isNullOrBlank() &&
+            record.sha256.isNullOrBlank() &&
+            record.name.equals(wantedName, ignoreCase = true) &&
+            (wantedVersion.isEmpty() || record.version.equals(wantedVersion, ignoreCase = true))
+    }
+}
+
+/** "Last installed 24-10-26", day-month-year. A different version than the listing is named too. */
+fun lastInstalledMarker(
+    record: FlashRecord,
+    listedVersion: String?,
+    zone: java.time.ZoneId = java.time.ZoneId.systemDefault(),
+): String {
+    val day = java.time.Instant.ofEpochMilli(record.date).atZone(zone).toLocalDate()
+    val formatted = "%02d-%02d-%02d".format(day.dayOfMonth, day.monthValue, day.year % 100)
+    val installed = record.version.trim()
+    val listed = listedVersion?.trim().orEmpty()
+    return if (installed.isNotEmpty() && listed.isNotEmpty() && !installed.equals(listed, ignoreCase = true)) {
+        "Last installed $installed · $formatted"
+    } else {
+        "Last installed $formatted"
     }
 }
 

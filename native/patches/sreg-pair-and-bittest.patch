@@ -1,0 +1,107 @@
+diff --git a/crates/fm1-core/src/lib.rs b/crates/fm1-core/src/lib.rs
+index fc70453..11bae78 100644
+--- a/crates/fm1-core/src/lib.rs
++++ b/crates/fm1-core/src/lib.rs
+@@ -2892,6 +2892,12 @@ fn decode_any(win: u64, pc: u32) -> Result<fm1_isa::Instruction, fm1_isa::Decode
+         // `64 e0 00 XY` / `64 e0 80 XY`: rX = special register Y / Y = rX; the classes fit
+         // only the pairs the corpora used (ChoralRoot 0.21's `r2 = reti`)
+         Err(_) if sreg_move_raw(win).is_some() => raw(sreg_move_raw(win).unwrap()),
++        // `60 ff` / `61 ff` bit-test branches the table's class does not take (see BIT_TEST_EQ_CRAW)
++        Err(_) if win & 0xfe == 0x60 && (win >> 8) & 0xff == 0xff => Ok(fm1_isa::Instruction {
++            addr: pc,
++            raw: win & 0xffff_ffff_ffff,
++            entry: if win & 1 == 0 { &BIT_TEST_EQ_CRAW } else { &BIT_TEST_NE_CRAW },
++        }),
+         // predicated blocks `if (rA op x) {` (route 14 decodes the fields): the classes fit
+         // only the block sizes the corpora used (Quest 0.21's `if ((r13 & r6) != 0) {` with an
+         // else part). In family ea, byte0 9x..bx are calls.
+@@ -2970,12 +2976,16 @@ static IDX_INC_CRAW: fm1_isa::IsaEntry = fm1_isa::IsaEntry {
+ /// 3 rets, 5 psr, 6 cnum, b icfg, c usp, d ssp, e sp (the corpora's 40 register / sreg pairs
+ /// all fit; Y = 2, 4, 7..a and f never appear, and cnum is never written).
+ fn sreg_move_raw(win: u64) -> Option<&'static fm1_isa::IsaEntry> {
+-    if win & 0xffff != 0xe064 {
+-        return None;
+-    }
++    // (`64 f0`: a dual-issue pair's head, objdump's `r2 = rets  #`: CTL 1.0, 386DX, MC-1)
++    let pair = match win & 0xffff { 0xe064 => false, 0xf064 => true, _ => return None };
+     let write = match (win >> 16) & 0xff { 0x00 => false, 0x80 => true, _ => return None };
+     let i = match (win >> 24) & 0xf { 0 => 0, 1 => 1, 3 => 2, 5 => 3, 6 if !write => 4, 0xb => 5, 0xc => 6, 0xd => 7, 0xe => 8, _ => return None };
+-    Some(if write { &SREG_WRITE_CRAW[i] } else { &SREG_READ_CRAW[i] })
++    Some(match (write, pair) {
++        (false, false) => &SREG_READ_CRAW[i],
++        (true, false) => &SREG_WRITE_CRAW[i],
++        (false, true) => &SREG_READ_PAIR_CRAW[i],
++        (true, true) => &SREG_WRITE_PAIR_CRAW[i],
++    })
+ }
+ const SREG_SLOTS: &[fm1_isa::SlotSpec] =
+     &[fm1_isa::SlotSpec { kind: fm1_isa::SlotKind::Imm, pieces: &[(28, 31)], mult: 0, adj: 0, hi: 0, lo: 0 }];
+@@ -2991,6 +3001,22 @@ static SREG_READ_CRAW: [fm1_isa::IsaEntry; 9] = sreg_entries!(
+     "R = reti", "R = rete", "R = rets", "R = psr", "R = cnum", "R = icfg", "R = usp", "R = ssp", "R = sp");
+ static SREG_WRITE_CRAW: [fm1_isa::IsaEntry; 9] = sreg_entries!(
+     "reti = R", "rete = R", "rets = R", "psr = R", "cnum = R", "icfg = R", "usp = R", "ssp = R", "sp = R");
++static SREG_READ_PAIR_CRAW: [fm1_isa::IsaEntry; 9] = sreg_entries!(
++    "R = reti  #", "R = rete  #", "R = rets  #", "R = psr  #", "R = cnum  #", "R = icfg  #", "R = usp  #", "R = ssp  #",
++    "R = sp  #");
++static SREG_WRITE_PAIR_CRAW: [fm1_isa::IsaEntry; 9] = sreg_entries!(
++    "reti = R  #", "rete = R  #", "rets = R  #", "psr = R  #", "cnum = R  #", "icfg = R  #", "usp = R  #", "ssp = R  #",
++    "sp = R  #");
++/// `60 ff` / `61 ff`: `if ((rN & #h) ==/!= 0) goto #i` (decode_bittest, route 0). The table's
++/// class knew only `61 ff` with a forward offset: Kawa's `60 ff 01 00 ea 33` halted.
++static BIT_TEST_EQ_CRAW: fm1_isa::IsaEntry = fm1_isa::IsaEntry {
++    name: "if_bit_test_craw", syntax: "if ((R & #h) == 0) goto #i", len: 6, count: 0, mask: 0, match_: 0,
++    group: "misc", alt: &[], samples: &[], slots: &[],
++};
++static BIT_TEST_NE_CRAW: fm1_isa::IsaEntry = fm1_isa::IsaEntry {
++    name: "if_bit_test_craw", syntax: "if ((R & #h) != 0) goto #i", len: 6, count: 0, mask: 0, match_: 0,
++    group: "misc", alt: &[], samples: &[], slots: &[],
++};
+ static IF_BLOCK_CRAW: fm1_isa::IsaEntry = fm1_isa::IsaEntry {
+     name: "if_block_craw", syntax: "if (R op x) { (raw)", len: 4, count: 0, mask: 0, match_: 0,
+     group: "misc", alt: &[], samples: &[], slots: &[],
+@@ -3800,6 +3826,45 @@ mod tests {
+         assert_eq!(cpu.rets, 0x0200_0abc, "rets = r1");
+     }
+ 
++    #[test]
++    fn pair_head_special_register_moves() {
++        // `64 f0 00 23` r2 = rets #, `64 f0 80 a3` rets = r10 #, `64 f0 00 ae` r10 = sp #, each
++        // closed by a nop (objdump of the vendor toolchain; CTL 1.0, 386DX, MC-1 halted on them)
++        let run = |bytes: [u8; 4], set: &dyn Fn(&mut Cpu)| {
++            let mut mem = vec![0u8; 0x100];
++            mem[..4].copy_from_slice(&bytes);
++            let mut ram = FlatRam::new(mem);
++            let mut cpu = Cpu::new(0);
++            set(&mut cpu);
++            cpu.step(&mut ram).unwrap();
++            cpu.step(&mut ram).unwrap();
++            cpu
++        };
++        assert_eq!(run([0x64, 0xf0, 0x00, 0x23], &|c| c.rets = 0x0201_2345).regs[2], 0x0201_2345);
++        assert_eq!(run([0x64, 0xf0, 0x80, 0xa3], &|c| c.regs[10] = 0x0200_1000).rets, 0x0200_1000);
++        assert_eq!(run([0x64, 0xf0, 0x00, 0xae], &|c| c.sp = 0x1f80).regs[10], 0x1f80);
++    }
++
++    #[test]
++    fn bit_test_branches_both_ways() {
++        // `60 ff 01 00 fe ff` if ((r0 & 0x1) == 0) goto -4 (from the next instruction: pc 2);
++        // `61 ff 03 50 00 80` if ((r5 & 0x3) != 0) goto -65536 (Kawa's `60 ff` halted; the
++        // table's `61 ff` class took forward offsets only)
++        let run = |bytes: [u8; 6], r: usize, v: u32| {
++            let mut mem = vec![0u8; 0x100];
++            mem[0x80..0x86].copy_from_slice(&bytes);
++            let mut ram = FlatRam::new(mem);
++            let mut cpu = Cpu::new(0x80);
++            cpu.regs[r] = v;
++            cpu.step(&mut ram).unwrap();
++            cpu.pc
++        };
++        assert_eq!(run([0x60, 0xff, 0x01, 0x00, 0xfe, 0xff], 0, 2), 0x82);
++        assert_eq!(run([0x60, 0xff, 0x01, 0x00, 0xfe, 0xff], 0, 1), 0x86);
++        assert_eq!(run([0x61, 0xff, 0x03, 0x50, 0x00, 0x80], 5, 2), 0x86u32.wrapping_sub(0x10000));
++        assert_eq!(run([0x61, 0xff, 0x03, 0x50, 0x00, 0x80], 5, 4), 0x86);
++    }
+ 
+     #[test]
+     fn if_block_with_else() {
+         // `1d ea 80 a6` if ((r13 & r6) != 0) { 3 units } else { 2 units } (Quest 0.21), then

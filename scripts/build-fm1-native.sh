@@ -13,19 +13,32 @@ COMMIT="${FM1_EMU_COMMIT:-7856393bc82f2821a2ac70c0c9a93dd743465dcb}"
 SRC="native/fm1-emu-src"
 ABIS="${ABIS:-arm64-v8a x86_64}"
 API=26
+# Decoder fixes on top of that commit. 386DX, CTL, MC-1 and Kawa stop without them.
+shopt -s nullglob
+PATCHES=(native/patches/*.patch)
+shopt -u nullglob
+if [[ ${#PATCHES[@]} -eq 0 ]]; then
+  PATCH_ID=none
+else
+  PATCH_ID="$(cat "${PATCHES[@]}" | sha256sum | awk '{print $1}')"
+fi
 
-if [[ ! -f "$SRC/.commit" || "$(cat "$SRC/.commit")" != "$COMMIT" ]]; then
+if [[ ! -f "$SRC/.commit" || "$(cat "$SRC/.commit")" != "$COMMIT" || ! -f "$SRC/.patches" || "$(cat "$SRC/.patches")" != "$PATCH_ID" ]]; then
   rm -rf "$SRC"
   git init -q "$SRC"
   git -C "$SRC" remote add origin "$REPO"
   git -C "$SRC" fetch -q --depth 1 origin "$COMMIT"
   git -C "$SRC" checkout -q FETCH_HEAD
+  for p in "${PATCHES[@]}"; do
+    patch -d "$SRC" -p1 --forward --batch < "$p"
+  done
   # fm1-core's AArch64 JIT is written for Linux; Android is Linux underneath (and if the
   # system refuses an executable mapping it falls back to the interpreter by itself).
   find "$SRC/crates/fm1-core/src" -name '*.rs' -print0 | xargs -0 sed -i \
     -e 's/any(target_os = "macos", target_os = "linux")/any(target_os = "macos", target_os = "linux", target_os = "android")/g' \
     -e 's/#\[cfg(target_os = "linux")\]/#[cfg(any(target_os = "linux", target_os = "android"))]/g'
   echo "$COMMIT" > "$SRC/.commit"
+  echo "$PATCH_ID" > "$SRC/.patches"
 fi
 
 NDK="${ANDROID_NDK_HOME:-${ANDROID_NDK_LATEST_HOME:-}}"

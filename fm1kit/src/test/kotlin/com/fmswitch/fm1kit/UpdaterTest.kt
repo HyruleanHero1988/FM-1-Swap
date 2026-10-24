@@ -2,6 +2,7 @@ package com.fmswitch.fm1kit
 
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -74,6 +75,53 @@ class UpdaterTest {
             throw AssertionError("expected already installed")
         } catch (_: FM1UpdateError.AlreadyInstalled) {
         }
+        fm1.shutdown()
+    }
+
+    @Test
+    fun fomniSwitchesWithTheOrdinaryUpdate() = runBlocking {
+        assertFalse(FM1Identity.parse("FM-1_8000400")!!.isOpenFirmware)
+        val fm1 = device(SimulatedOptions(installedIdentity = FM1Identity.parse("FM-1_8000400")!!))
+        val package_ = v15()
+        fm1.prepare(package_)
+        val updater = FM1Updater(fm1, UpdaterTiming.Fast)
+        val check = updater.check(package_)
+        assertEquals(InstallKind.SWITCHING_FIRMWARE, check.kind)
+        assertEquals(null, check.capability)
+        val identity = updater.install(package_, InstallOptions(confirmsSwitchingFirmware = true))
+        assertEquals(FM1Identity.OFFICIAL_V15, identity)
+        fm1.shutdown()
+    }
+
+    @Test
+    fun officialOpenArmsBeforeTheUpdate() = runBlocking {
+        val fm1 = device(SimulatedOptions(installedIdentity = FM1Identity.parse("FM-1_8000014")!!))
+        val package_ = v15()
+        fm1.prepare(package_)
+        val updater = FM1Updater(fm1, UpdaterTiming.Fast)
+        val check = updater.check(package_)
+        assertEquals(InstallKind.SWITCHING_FIRMWARE, check.kind)
+        assertTrue(check.capability != null)
+        val identity = updater.install(package_, InstallOptions(confirmsSwitchingFirmware = true))
+        assertEquals(FM1Identity.OFFICIAL_V15, identity)
+        fm1.shutdown()
+    }
+
+    @Test
+    fun aLookalikeNumberWithoutTheOpenReplyStillSwitches() = runBlocking {
+        val fm1 = device(
+            SimulatedOptions(
+                installedIdentity = FM1Identity.parse("FM-1_8000013")!!,
+                answersOpenProtocol = false,
+            ),
+        )
+        val package_ = v15()
+        fm1.prepare(package_)
+        val updater = FM1Updater(fm1, UpdaterTiming.Fast)
+        val check = updater.check(package_)
+        assertEquals(null, check.capability)
+        val identity = updater.install(package_, InstallOptions(confirmsSwitchingFirmware = true))
+        assertEquals(FM1Identity.OFFICIAL_V15, identity)
         fm1.shutdown()
     }
 

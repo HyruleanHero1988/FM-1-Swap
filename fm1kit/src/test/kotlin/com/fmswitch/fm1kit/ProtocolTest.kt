@@ -75,6 +75,13 @@ class MessageTest {
         assertEquals(91035, FM1Identity.parse("FM-1_91035")?.version)
         assertNull(FM1Identity.parse("nonsense"))
         assertTrue(FM1Identity.parse("FM-1_8000012")!!.isOpenFirmware)
+        assertTrue(FM1Identity.parse("FM-1_8000014")!!.isOpenFirmware)
+        assertFalse(FM1Identity.parse("FM-1_8000400")!!.isOpenFirmware)
+        assertFalse(FM1Identity.parse("FM-1_8000601")!!.isOpenFirmware)
+        assertFalse(FM1Identity.parse("FM-1_8000100")!!.isOpenFirmware)
+        assertFalse(FM1Identity.parse("FM-1_8010200")!!.isOpenFirmware)
+        assertFalse(OpenFirmware.isOpen("FM-1_8000400"))
+        assertTrue(OpenFirmware.isOpen("FM-1_8000014"))
         assertTrue(OpenFirmware.isOpen("FM1_OFFICIAL_OPEN"))
     }
 }

@@ -101,7 +101,7 @@ index fc70453..11bae78 100644
 +        assert_eq!(run([0x61, 0xff, 0x03, 0x50, 0x00, 0x80], 5, 2), 0x86u32.wrapping_sub(0x10000));
 +        assert_eq!(run([0x61, 0xff, 0x03, 0x50, 0x00, 0x80], 5, 4), 0x86);
 +    }
- 
++
      #[test]
      fn if_block_with_else() {
          // `1d ea 80 a6` if ((r13 & r6) != 0) { 3 units } else { 2 units } (Quest 0.21), then

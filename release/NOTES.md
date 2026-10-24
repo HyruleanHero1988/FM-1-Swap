@@ -4,6 +4,12 @@ Install that file from this release and nowhere else. If Android refuses the ins
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
+## New in 0.6.1
+
+TRY was stopping 386DX while its own screen said it was building voices. CTL and MC-1 stopped on the same instruction, and Kawa on a bit-test branch. The virtual FM-1 now runs both, so those firmwares keep going.
+
+A phone already on 0.6.0 shows this release under the top bar. **UPDATE** downloads it.
+
 ## New in 0.6.0
 
 FoMni, the Omnichord firmware, reports `FM-1_8000400`. That number sits near Official Open's, and the app was waiting for Official Open to say it was ready to update. FoMni never says that, so nothing was written, whichever firmware you chose. It now switches with the ordinary update. The same goes for FiMba, Niagara Drift, and Dub Techno, and for a firmware that reports an Official Open number but doesn't answer like Official Open.

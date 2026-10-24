@@ -37,6 +37,7 @@ import com.fmswitch.model.AppViewModel
 import com.fmswitch.model.BackupRestore
 import com.fmswitch.model.FlashProbe
 import com.fmswitch.model.StoredFirmware
+import com.fmswitch.model.lastInstalledMarker
 import com.fmswitch.model.flashCanProceed
 import com.fmswitch.model.riskWarning
 import com.fmswitch.theme.LocalPhosphor
@@ -64,6 +65,8 @@ fun LibraryScreen(model: AppViewModel) {
     model.libraryTick
     @Suppress("UNUSED_EXPRESSION")
     model.backupTick
+    @Suppress("UNUSED_EXPRESSION")
+    model.historyTick
     BackHandler(enabled = confirmingClear) { confirmingClear = false }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
@@ -110,6 +113,9 @@ fun LibraryScreen(model: AppViewModel) {
                     }
                 }
                 MonoText("${item.version}  ·  ${item.product}  ·  ${formattedBytes(item.size)}", size = 13, dim = true)
+                model.history.lastFor(item)?.let { installed ->
+                    MonoText(lastInstalledMarker(installed, item.version), size = 13)
+                }
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     PixelButton("TRY", compact = true, prominent = true) { model.trySaved(item) }

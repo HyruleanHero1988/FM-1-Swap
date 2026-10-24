@@ -13,7 +13,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 
-/** A published release APK. [version] is the release tag, such as v0.6.1. */
+/** A published release APK. [version] is the release tag, such as v0.6.2. */
 data class AppRelease(
     val version: String,
     val apkUrl: String,
@@ -140,7 +140,7 @@ fun fetchUpdateBytes(url: String, maxBytes: Int): ByteArray {
             readTimeout = 60_000
             instanceFollowRedirects = false
             requestMethod = "GET"
-            setRequestProperty("User-Agent", "FM-1-Swap/0.6.1")
+            setRequestProperty("User-Agent", "FM-1-Swap/0.6.2")
             if (current.contains("api.github.com")) {
                 setRequestProperty("Accept", "application/vnd.github+json")
             }

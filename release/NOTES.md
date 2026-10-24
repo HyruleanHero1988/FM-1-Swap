@@ -4,6 +4,12 @@ Install that file from this release and nowhere else. If Android refuses the ins
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
+## New in 0.6.2
+
+PATCHES has **TRY ON V15**. It loads that bank's 32 patches into Official V15 and starts it. They fill the first 32 slots. Patches you already saved in those slots on the virtual FM-1 are replaced, and the bank stays for the next time you TRY that same virtual FM-1.
+
+A phone already on 0.6.1 shows this release under the top bar. **UPDATE** downloads it.
+
 ## New in 0.6.1
 
 TRY was stopping 386DX while its own screen said it was building voices. CTL and MC-1 stopped on the same instruction, and Kawa on a bit-test branch. The virtual FM-1 now runs both, so those firmwares keep going.

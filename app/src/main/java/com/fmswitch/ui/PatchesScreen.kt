@@ -56,6 +56,7 @@ fun PatchesScreen(model: AppViewModel) {
         if (current == null) {
             ScreenHeader("PATCHES")
             NoteText("SEND plays one patch on a connected FM-1. SEND BANK sends all 32, and you choose which bank on the FM-1 they replace. Official V15, FM-1+VA, and Official Open take them.")
+            NoteText("TRY ON V15 loads these 32 patches into Official V15 and starts it. They fill the first 32 slots. Patches you already saved in those slots on the virtual FM-1 are replaced.")
             model.patchStatus?.let { MonoText(it, size = 14) }
             val banks = loaded.getOrNull()
             if (banks == null) {
@@ -67,10 +68,15 @@ fun PatchesScreen(model: AppViewModel) {
                         category = item.info.category
                         MonoText(category.uppercase(), size = 13, dim = true)
                     }
-                    BankRow(item.info.name, item.info.about) {
-                        confirming = false
-                        open = item
-                    }
+                    BankRow(
+                        item.info.name,
+                        item.info.about,
+                        onOpen = {
+                            confirming = false
+                            open = item
+                        },
+                        onTry = { model.tryOfficialWithBank(item.bank) },
+                    )
                 }
                 NoteText("Banks 1–4 are the FM-1's own presets, captured by KingParamount and shared as DX7 banks under CC0. The voices come from Yamaha ROM and VRC cartridges and from BlackWinny's Dexed_cart 1.0 collection, as M-VAVE selected and renamed them. Aquanode's banks are CC0, from aquanode-soundscapes. Yamaha's cartridge banks are on fm1-editor.com.")
                 CreditLink("KINGPARAMOUNT", "https://github.com/KingParamount/fm1-factory-presets")
@@ -85,6 +91,7 @@ fun PatchesScreen(model: AppViewModel) {
                 }
             }
             NoteText(current.info.about)
+            NoteText("TRY ON V15 loads these 32 patches into Official V15 and starts it. They fill the first 32 slots. Patches you already saved in those slots on the virtual FM-1 are replaced.")
             if (confirming) {
                 MonoText("This sends all 32 patches in ${current.info.name}. On the FM-1, pick the bank they should replace. The patches in that bank are replaced.", size = 14)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -93,9 +100,13 @@ fun PatchesScreen(model: AppViewModel) {
                         model.sendBank(current.bank)
                     }
                     PixelButton("CANCEL", compact = true) { confirming = false }
+                    PixelButton("TRY ON V15", compact = true) { model.tryOfficialWithBank(current.bank) }
                 }
             } else {
-                PixelButton("SEND BANK", enabled = !model.patchSending) { confirming = true }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    PixelButton("SEND BANK", compact = true, enabled = !model.patchSending) { confirming = true }
+                    PixelButton("TRY ON V15", compact = true) { model.tryOfficialWithBank(current.bank) }
+                }
             }
             model.patchStatus?.let { MonoText(it, size = 14) }
             current.bank.voices.indices.forEach { index ->
@@ -130,17 +141,20 @@ private fun CreditLink(label: String, url: String) {
 }
 
 @Composable
-private fun BankRow(name: String, about: String, onClick: () -> Unit) {
+private fun BankRow(name: String, about: String, onOpen: () -> Unit, onTry: () -> Unit) {
     val theme = LocalPhosphor.current
     Column(
         Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
             .background(theme.surface)
             .padding(horizontal = 12.dp, vertical = 10.dp),
     ) {
-        BasicText(name, style = pixelText(16.sp, bold = true, color = theme.bright))
-        Spacer(Modifier.height(4.dp))
-        MonoText(about, size = 13, dim = true)
+        Column(Modifier.fillMaxWidth().clickable(onClick = onOpen)) {
+            BasicText(name, style = pixelText(16.sp, bold = true, color = theme.bright))
+            Spacer(Modifier.height(4.dp))
+            MonoText(about, size = 13, dim = true)
+        }
+        Spacer(Modifier.height(8.dp))
+        PixelButton("TRY ON V15", compact = true, onClick = onTry)
     }
 }

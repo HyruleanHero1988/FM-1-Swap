@@ -32,7 +32,20 @@ pub unsafe extern "system" fn Java_com_fmswitch_emu_Fm1Native_boot(
     env: *mut JNIEnv, _: jclass, pkg: jbyteArray, saved: jbyteArray, mhz: jint, jit: jboolean,
 ) -> jlong {
     let (pkg, saved) = (bytes(env, pkg), bytes(env, saved));
-    match std::panic::catch_unwind(|| Machine::boot(&pkg, &saved, mhz.max(1) as u32, jit != 0)) {
+    match std::panic::catch_unwind(|| Machine::boot(&pkg, &saved, &[], mhz.max(1) as u32, jit != 0)) {
+        Ok(Ok(m)) => Box::into_raw(Box::new(m)) as jlong,
+        _ => 0,
+    }
+}
+
+/// Boot `pkg` with `saved` flash, then write `bank` (a DX7 32-voice dump) into slots 1–32.
+/// 0 when the package, the save, or the bank cannot be used.
+#[no_mangle]
+pub unsafe extern "system" fn Java_com_fmswitch_emu_Fm1Native_bootWithBank(
+    env: *mut JNIEnv, _: jclass, pkg: jbyteArray, saved: jbyteArray, bank: jbyteArray, mhz: jint, jit: jboolean,
+) -> jlong {
+    let (pkg, saved, bank) = (bytes(env, pkg), bytes(env, saved), bytes(env, bank));
+    match std::panic::catch_unwind(|| Machine::boot(&pkg, &saved, &bank, mhz.max(1) as u32, jit != 0)) {
         Ok(Ok(m)) => Box::into_raw(Box::new(m)) as jlong,
         _ => 0,
     }

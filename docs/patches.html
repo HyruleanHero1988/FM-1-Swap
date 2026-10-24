@@ -1,1 +1,440 @@
-<LOAD_FROM_FILE:/workspace/docs/patches.html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FM-1 Swap — patches</title>
+  <meta name="description" content="DX7 patches you can send to an M-VAVE FM-1. Official V15, FM-1+VA, and Official Open.">
+  <link rel="icon" href="images/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c0e0d;
+      --surface: #151917;
+      --line: #2a3830;
+      --green: #7be39a;
+      --ink: #ece8df;
+      --muted: #a7aea6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      font-size: 18px;
+      line-height: 1.55;
+    }
+    a { color: var(--green); text-underline-offset: 3px; }
+    .wrap { width: min(1040px, calc(100% - 32px)); margin: 0 auto; }
+    header.top { border-bottom: 1px solid var(--line); padding: 28px 0 22px; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: fit-content;
+      margin: 0 0 18px;
+      text-decoration: none;
+      color: var(--green);
+    }
+    .brand img { width: 84px; height: auto; flex: none; }
+    .brand .mark { margin: 0; font-family: VT323, monospace; font-size: clamp(36px, 7vw, 52px); }
+    nav.sections {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(12, 14, 13, 0.92);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(8px);
+    }
+    nav.sections ul {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      list-style: none;
+      margin: 0;
+      padding: 12px 0;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 13px;
+    }
+    nav.sections a { color: var(--muted); text-decoration: none; white-space: nowrap; }
+    nav.sections a:hover, nav.sections a[aria-current="page"] { color: var(--green); }
+    h1 {
+      font-family: VT323, monospace;
+      font-size: clamp(48px, 8vw, 72px);
+      font-weight: 400;
+      line-height: 0.9;
+      margin: 0 0 14px;
+      color: var(--green);
+    }
+    h2 {
+      font-family: VT323, monospace;
+      font-size: 36px;
+      font-weight: 400;
+      color: var(--green);
+      margin: 28px 0 8px;
+    }
+    p { margin: 0 0 14px; }
+    button, select {
+      font: inherit;
+      color: inherit;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 0;
+    }
+    button {
+      font-family: VT323, monospace;
+      font-size: 26px;
+      color: #06210f;
+      background: var(--green);
+      border: 2px solid var(--green);
+      padding: 4px 12px 2px;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.45; cursor: default; }
+    button.quiet {
+      color: var(--green);
+      background: transparent;
+    }
+    select { font-family: "IBM Plex Mono", monospace; font-size: 14px; padding: 8px; color: var(--ink); }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 14px; }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 14px 14px 8px;
+      margin: 0 0 16px;
+    }
+    .bank { border-top: 1px solid var(--line); padding: 14px 0; }
+    .patch {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .patch span { font-family: "IBM Plex Mono", monospace; font-size: 15px; }
+    .muted { color: var(--muted); }
+    #status { font-family: "IBM Plex Mono", monospace; font-size: 15px; min-height: 1.4em; }
+    footer { border-top: 1px solid var(--line); padding: 28px 0 48px; color: var(--muted); font-size: 15px; }
+    @media (max-width: 640px) {
+      button { font-size: 22px; }
+      .brand img { width: 68px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="./">
+        <img src="images/logo.png" alt="" width="192" height="192">
+        <span class="mark">FM-1 Swap</span>
+      </a>
+      <h1>Patches you can send.</h1>
+      <p>These are DX7 patches for an M-VAVE FM-1. SEND plays one. SEND BANK sends all 32, and you choose which bank on the FM-1 they replace. The phone app does the same thing from its PATCHES screen, over the USB cable. This page sends from a desktop browser that can see the FM-1.</p>
+    </div>
+  </header>
+  <nav class="sections" aria-label="Pages">
+    <div class="wrap">
+      <ul>
+        <li><a href="./#install">Install</a></li>
+        <li><a href="./#risks">Risks</a></li>
+        <li><a href="./#screens">Screens</a></li>
+        <li><a href="./#try">Hear it first</a></li>
+        <li><a href="./#flash">Flashing</a></li>
+        <li><a href="./#backups">Backups</a></li>
+        <li><a href="./#recovery">Recovery</a></li>
+        <li><a href="./#setup">Setup</a></li>
+        <li><a href="patches.html" aria-current="page">Patches</a></li>
+        <li><a href="./#record">What was tried</a></li>
+      </ul>
+    </div>
+  </nav>
+  <main>
+    <div class="wrap">
+      <div class="panel">
+        <p>Choose where the patch is going. Official V15 holds one patch until you press SAVE. FM-1+VA edits the preset you have selected, and you save it on the FM-1 to keep it. Official Open takes one patch onto its DX7 track.</p>
+        <div class="row">
+          <label>Going to
+            <select id="target">
+              <option value="v15">Official V15</option>
+              <option value="va">FM-1+VA</option>
+              <option value="open">Official Open</option>
+            </select>
+          </label>
+          <button type="button" id="connect">Connect the FM-1</button>
+          <select id="port" hidden></select>
+        </div>
+        <p id="status" class="muted">Plug the FM-1 into this computer, then connect it.</p>
+      </div>
+      <div id="banks"></div>
+    </div>
+  </main>
+  <footer>
+    <div class="wrap">
+      <p>Banks 1–4 are the FM-1's own presets, captured by <a href="https://github.com/KingParamount/fm1-factory-presets">KingParamount</a> and shared as DX7 banks under CC0. The voices come from Yamaha ROM and VRC cartridges and from BlackWinny's Dexed_cart 1.0 collection, as M-VAVE selected and renamed them. <a href="https://github.com/aquanodemusic/aquanode-soundscapes">Aquanode's</a> banks are CC0, from aquanode-soundscapes. Yamaha's cartridge banks are on <a href="https://fm1-editor.com/">fm1-editor.com</a>. Not affiliated with M-VAVE.</p>
+      <p>If you found this useful, consider <a href="https://ko-fi.com/hyruleanhero1988">tipping me on Ko-fi</a>.</p>
+    </div>
+  </footer>
+  <script>
+    const status = document.querySelector("#status");
+    const target = document.querySelector("#target");
+    const portSelect = document.querySelector("#port");
+    let output = null;
+    let access = null;
+
+    function say(text) { status.textContent = text; }
+
+    document.querySelector("#connect").addEventListener("click", async () => {
+      if (!navigator.requestMIDIAccess) {
+        say("This browser can't send MIDI. Send the patch from the FM-1 Swap app, with the FM-1 plugged into the phone.");
+        return;
+      }
+      try {
+        access = await navigator.requestMIDIAccess({ sysex: true });
+      } catch (error) {
+        say("MIDI didn't open. Allow SysEx for this page, and use Chrome or Edge.");
+        return;
+      }
+      const ports = [...access.outputs.values()];
+      portSelect.replaceChildren();
+      if (ports.length === 0) {
+        portSelect.hidden = true;
+        say("No MIDI output is connected. Plug in the FM-1 and try again.");
+        return;
+      }
+      for (const port of ports) {
+        const option = document.createElement("option");
+        option.value = port.id;
+        option.textContent = port.name;
+        portSelect.append(option);
+      }
+      const preferred = ports.find((port) => /fm-?1/i.test(port.name));
+        if (preferred) portSelect.value = preferred.id;
+      portSelect.hidden = false;
+      output = access.outputs.get(portSelect.value);
+      say(output ? "Connected to " + output.name + "." : "Pick the FM-1's MIDI port.");
+    });
+
+    portSelect.addEventListener("change", () => {
+      output = access ? access.outputs.get(portSelect.value) : null;
+      if (output) say("Connected to " + output.name + ".");
+    });
+
+    function checksum(data) {
+      let sum = 0;
+      for (let i = 0; i < data.length; i++) sum += data[i];
+      return (128 - (sum & 0x7f)) & 0x7f;
+    }
+
+    function unpack(packed) {
+      const edit = new Uint8Array(155);
+      for (let op = 0; op < 6; op++) {
+        const src = op * 17;
+        const dst = op * 21;
+        edit.set(packed.subarray(src, src + 11), dst);
+        const curves = packed[src + 11];
+        edit[dst + 11] = curves & 3;
+        edit[dst + 12] = (curves >> 2) & 3;
+        const rateDetune = packed[src + 12];
+        edit[dst + 13] = rateDetune & 7;
+        edit[dst + 20] = (rateDetune >> 3) & 0x0f;
+        const ampVel = packed[src + 13];
+        edit[dst + 14] = ampVel & 3;
+        edit[dst + 15] = (ampVel >> 2) & 7;
+        edit[dst + 16] = packed[src + 14];
+        const modeCoarse = packed[src + 15];
+        edit[dst + 17] = modeCoarse & 1;
+        edit[dst + 18] = (modeCoarse >> 1) & 0x1f;
+        edit[dst + 19] = packed[src + 16];
+      }
+      edit.set(packed.subarray(102, 110), 126);
+      edit[134] = packed[110];
+      const feedbackSync = packed[111];
+      edit[135] = feedbackSync & 7;
+      edit[136] = (feedbackSync >> 3) & 1;
+      edit.set(packed.subarray(112, 116), 137);
+      const lfo = packed[116];
+      edit[141] = lfo & 1;
+      edit[142] = (lfo >> 1) & 7;
+      edit[143] = (lfo >> 4) & 7;
+      edit[144] = packed[117];
+      edit.set(packed.subarray(118, 128), 145);
+      return edit;
+    }
+
+    function frame(format, data) {
+      const message = new Uint8Array(6 + data.length + 2);
+      message[0] = 0xf0;
+      message[1] = 0x43;
+      message[2] = 0x00;
+      message.set(format, 3);
+      message.set(data, 6);
+      message[message.length - 2] = checksum(data);
+      message[message.length - 1] = 0xf7;
+      return message;
+    }
+
+    function voiceMessage(packed) {
+      return frame(Uint8Array.of(0x00, 0x01, 0x1b), unpack(packed));
+    }
+
+    function bankMessage(voices) {
+      const data = new Uint8Array(4096);
+      voices.forEach((voice, index) => data.set(voice, index * 128));
+      return frame(Uint8Array.of(0x09, 0x20, 0x00), data);
+    }
+
+    function parameterMessages(packed) {
+      const data = unpack(packed);
+      return [...data].map((value, parameter) => Uint8Array.of(
+        0xf0, 0x43, 0x10, Math.floor(parameter / 128), parameter % 128, value, 0xf7,
+      ));
+    }
+
+    async function decodeBank(file) {
+      const text = await (await fetch("patches/" + file)).text();
+      const binary = atob(text.replace(/\s/g, ""));
+      const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+      if (bytes.length !== 4104 || bytes[0] !== 0xf0 || bytes[3] !== 0x09 || bytes[bytes.length - 1] !== 0xf7) {
+        throw new Error("This bank file is damaged.");
+      }
+      const data = bytes.subarray(6, 6 + 4096);
+      if (checksum(data) !== bytes[bytes.length - 2]) throw new Error("This bank file is damaged.");
+      return Array.from({ length: 32 }, (_, index) => data.slice(index * 128, (index + 1) * 128));
+    }
+
+    function messagesFor(voices, index) {
+      const where = target.value;
+      if (index == null) {
+        if (where === "open") {
+          return { error: "Official Open takes one patch at a time, on its DX7 track." };
+        }
+        return {
+          messages: [bankMessage(voices)],
+          done: "Sent. On the FM-1, choose the bank these 32 patches should replace.",
+        };
+      }
+      if (where === "va") {
+        return {
+          messages: parameterMessages(voices[index]),
+          done: "Sent to the preset that's selected. Save it on the FM-1 to keep it.",
+        };
+      }
+      if (where === "open") {
+        return {
+          messages: [voiceMessage(voices[index])],
+          done: "Sent to the DX7 track on channel 1.",
+        };
+      }
+      return {
+        messages: [voiceMessage(voices[index])],
+        done: "Sent. Hold SAVE on the FM-1 to store it.",
+      };
+    }
+
+    async function transmit(file, index, button) {
+      button.disabled = true;
+      try {
+        if (!output) {
+          say("Connect the FM-1 first. On a phone, use the app's PATCHES screen.");
+          return;
+        }
+        say("Sending…");
+        const voices = await decodeBank(file);
+        const plan = messagesFor(voices, index);
+        if (plan.error) {
+          say(plan.error);
+          return;
+        }
+        for (let i = 0; i < plan.messages.length; i++) {
+          output.send(plan.messages[i]);
+          if (plan.messages.length > 1 && i < plan.messages.length - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 5));
+          }
+        }
+        say(plan.done);
+      } catch (error) {
+        say(error && error.message ? error.message : "The patch didn't send.");
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    function downloadBank(file, name, button) {
+      button.disabled = true;
+      decodeBank(file).then((voices) => {
+        const bytes = bankMessage(voices);
+        const blob = new Blob([bytes], { type: "application/octet-stream" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = name.replace(/\s+/g, "-").toLowerCase() + ".syx";
+        link.click();
+        say("Downloaded " + link.download + ".");
+      }).catch(() => {
+        say("This bank couldn't be downloaded.");
+      }).finally(() => {
+        button.disabled = false;
+      });
+    }
+
+    fetch("patches/catalog.json")
+      .then((response) => {
+        if (!response.ok) throw new Error("missing");
+        return response.json();
+      })
+      .then((catalog) => {
+        const root = document.querySelector("#banks");
+        let category = "";
+        for (const bank of catalog.banks) {
+          if (bank.category !== category) {
+            category = bank.category;
+            const heading = document.createElement("h2");
+            heading.textContent = category;
+            root.append(heading);
+          }
+          const block = document.createElement("section");
+          block.className = "bank";
+          const title = document.createElement("h3");
+          title.textContent = bank.name;
+          title.style.margin = "0 0 6px";
+          const about = document.createElement("p");
+          about.className = "muted";
+          about.textContent = bank.about;
+          const actions = document.createElement("div");
+          actions.className = "row";
+          const sendBank = document.createElement("button");
+          sendBank.type = "button";
+          sendBank.textContent = "Send bank";
+          sendBank.addEventListener("click", () => {
+            const replace = window.confirm("This sends all 32 patches in " + bank.name + ". On the FM-1, pick the bank they should replace. The patches in that bank are replaced.");
+            if (replace) transmit(bank.file, null, sendBank);
+          });
+          const save = document.createElement("button");
+          save.type = "button";
+          save.className = "quiet";
+          save.textContent = "Download";
+          save.addEventListener("click", () => downloadBank(bank.file, bank.name, save));
+          actions.append(sendBank, save);
+          block.append(title, about, actions);
+          bank.patches.forEach((name, index) => {
+            const row = document.createElement("div");
+            row.className = "patch";
+            const label = document.createElement("span");
+            label.textContent = (index + 1) + ".  " + name;
+            const send = document.createElement("button");
+            send.type = "button";
+            send.textContent = "Send";
+            send.addEventListener("click", () => transmit(bank.file, index, send));
+            row.append(label, send);
+            block.append(row);
+          });
+          root.append(block);
+        }
+      })
+      .catch(() => say("The patch list couldn't be loaded."));
+  </script>
+</body>
+</html>

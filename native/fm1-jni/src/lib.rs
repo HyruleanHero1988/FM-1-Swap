@@ -32,7 +32,9 @@ pub struct Machine {
 
 impl Machine {
     /// Boot a whole update package (.fwsc) with flash sectors saved from an earlier run.
-    pub fn boot(pkg: &[u8], saved: &[u8], mhz: u32, jit: bool) -> Result<Machine, String> {
+    /// A non-empty `syx` is a DX7 32-voice bank written into slots 1–32 after that restore,
+    /// so the bank is what the firmware starts with and what a later save keeps.
+    pub fn boot(pkg: &[u8], saved: &[u8], syx: &[u8], mhz: u32, jit: bool) -> Result<Machine, String> {
         let st = std::panic::catch_unwind(|| fm1_soc::stock_from_package(pkg, None))
             .map_err(|_| "malformed firmware package".to_owned())??;
         let mut soc = Soc::new(RAM_SIZE, st.xip);
@@ -50,7 +52,29 @@ impl Machine {
         if !saved.is_empty() && !m.restore(saved) {
             return Err("saved flash does not fit this firmware".to_owned());
         }
+        if !syx.is_empty() {
+            m.load_bank(st.usr, syx)?;
+        }
         Ok(m)
+    }
+
+    /// Slots 1–32 of the FM-1 user bank. `flash0` stays the image from before this write.
+    fn load_bank(&mut self, usr: Option<usize>, syx: &[u8]) -> Result<(), String> {
+        let usr = usr.ok_or_else(|| "this firmware has no user patch bank".to_owned())?;
+        let mut image = self.soc.flash.mem.clone();
+        fm1_soc::fwsc::usr_load_syx(&mut image, usr, syx, 0)?;
+        const VOICES: usize = 0x4000;
+        const SETTINGS: usize = 0x10000;
+        const VOICE_BYTES: usize = 32 * 128;
+        const SETTINGS_BYTES: usize = 32 * 59;
+        let voices = usr + VOICES;
+        let settings = usr + SETTINGS;
+        if voices + VOICE_BYTES > image.len() || settings + SETTINGS_BYTES > image.len() {
+            return Err("USR area past the flash".to_owned());
+        }
+        self.replace_flash(voices, &image[voices..voices + VOICE_BYTES]);
+        self.replace_flash(settings, &image[settings..settings + SETTINGS_BYTES]);
+        Ok(())
     }
 
     fn replace_flash(&mut self, at: usize, data: &[u8]) {
@@ -191,7 +215,7 @@ mod tests {
     fn a_real_package_boots_to_sound_and_a_screen() {
         let path = std::env::var("FM1_TEST_FWSC").expect("FM1_TEST_FWSC");
         let pkg = std::fs::read(path).unwrap();
-        let mut m = Machine::boot(&pkg, &[], 100, true).unwrap();
+        let mut m = Machine::boot(&pkg, &[], &[], 100, true).unwrap();
         let t0 = std::time::Instant::now();
         let (mut loud, mut out) = (0usize, vec![0i16; 2 * 512]);
         for _ in 0..(44_100 * 4 / 512) {
@@ -215,7 +239,7 @@ mod tests {
     fn real_time() {
         let pkg = std::fs::read(std::env::var("FM1_TEST_FWSC").expect("FM1_TEST_FWSC")).unwrap();
         let mhz = std::env::var("MHZ").ok().and_then(|v| v.parse().ok()).unwrap_or(240);
-        let mut m = Machine::boot(&pkg, &[], mhz, true).unwrap();
+        let mut m = Machine::boot(&pkg, &[], &[], mhz, true).unwrap();
         let mut out = vec![0i16; 2 * 256];
         for second in 0..4 {
             let t0 = std::time::Instant::now();
@@ -226,6 +250,51 @@ mod tests {
 
     #[test]
     fn junk_is_not_a_package() {
-        assert!(Machine::boot(&[0; 64], &[], 100, false).is_err());
+        assert!(Machine::boot(&[0; 64], &[], &[], 100, false).is_err());
+    }
+
+    fn v15_package() -> Vec<u8> {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../fm1kit/src/test/resources/FM-1_015.fwsc");
+        std::fs::read(&path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
+    }
+
+    fn bank_syx(fill: u8) -> Vec<u8> {
+        let mut syx = vec![0xf0, 0x43, 0x00, 0x09, 0x20, 0x00];
+        syx.extend(std::iter::repeat(fill).take(4096));
+        syx.push(0);
+        syx.push(0xf7);
+        syx
+    }
+
+    fn sector_payload<'a>(changes: &'a [u8], at: u32) -> Option<&'a [u8]> {
+        changes.chunks_exact(RECORD).find(|record| {
+            u32::from_le_bytes(record[..4].try_into().unwrap()) == at
+        }).map(|record| &record[4..])
+    }
+
+    #[test]
+    fn a_dx7_bank_lands_in_flash_and_replaces_a_saved_sector() {
+        let pkg = v15_package();
+        let syx = bank_syx(0x11);
+        let loaded = Machine::boot(&pkg, &[], &syx, 100, false).unwrap();
+        let changes = loaded.flash_changes();
+        let voice = changes.chunks_exact(RECORD)
+            .find(|record| record[4..].iter().all(|&byte| byte == 0x11))
+            .expect("the 32 voices are one saved sector of the bank");
+        let at = u32::from_le_bytes(voice[..4].try_into().unwrap());
+
+        let saved = record(at, 0x22);
+        let replaced = Machine::boot(&pkg, &saved, &syx, 100, false).unwrap();
+        let replaced_changes = replaced.flash_changes();
+        let payload = sector_payload(&replaced_changes, at).expect("voice sector changed");
+        assert!(payload.iter().all(|&byte| byte == 0x11), "the bank replaces the saved voices");
+
+        let kept = Machine::boot(&pkg, &saved, &[], 100, false).unwrap();
+        let kept_changes = kept.flash_changes();
+        let stayed = sector_payload(&kept_changes, at).expect("saved voices differ from stock");
+        assert!(stayed.iter().all(|&byte| byte == 0x22));
+
+        assert!(Machine::boot(&pkg, &[], &[1, 2, 3], 100, false).is_err());
     }
 }

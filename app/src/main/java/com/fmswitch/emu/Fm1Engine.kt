@@ -22,6 +22,8 @@ class Fm1Engine(
     private val playInBackground: Boolean = false,
     /** A flash probe boots silently. It still renders, so a start is heard by the engine and not the room. */
     private val audible: Boolean = true,
+    /** A DX7 32-voice bank written into slots 1–32 after any saved flash is restored. */
+    private val bank: ByteArray? = null,
 ) : Fm1PanelSource, AutoCloseable {
 
     sealed class Status {
@@ -85,8 +87,9 @@ class Fm1Engine(
             return
         }
         val saved = saveFile?.takeIf { it.isFile }?.let { runCatching { it.readBytes() }.getOrNull() }
-        var handle = Fm1Native.boot(pkg, saved, mhz, true)
-        if (handle == 0L && saved != null) handle = Fm1Native.boot(pkg, null, mhz, true)
+        val bankBytes = bank?.takeIf { it.isNotEmpty() }
+        var handle = bootNative(saved, bankBytes)
+        if (handle == 0L && saved != null) handle = bootNative(null, bankBytes)
         if (handle == 0L) {
             status = Status.Stopped("This firmware couldn't be opened.")
             return
@@ -105,6 +108,12 @@ class Fm1Engine(
             persist(handle, null)
             Fm1Native.release(handle)
         }
+    }
+
+    private fun bootNative(saved: ByteArray?, bankBytes: ByteArray?): Long = if (bankBytes != null) {
+        Fm1Native.bootWithBank(pkg, saved, bankBytes, mhz, true)
+    } else {
+        Fm1Native.boot(pkg, saved, mhz, true)
     }
 
     private fun run(handle: Long, track: AudioTrack, saved: ByteArray?) {

@@ -140,7 +140,7 @@ fun fetchUpdateBytes(url: String, maxBytes: Int): ByteArray {
             readTimeout = 60_000
             instanceFollowRedirects = false
             requestMethod = "GET"
-            setRequestProperty("User-Agent", "FM-1-Swap/0.5")
+            setRequestProperty("User-Agent", "FM-1-Swap/0.6")
             if (current.contains("api.github.com")) {
                 setRequestProperty("Accept", "application/vnd.github+json")
             }

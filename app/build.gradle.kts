@@ -37,7 +37,7 @@ android {
             isMinifyEnabled = false
             isDebuggable = false
             // Same CI certificate as the debug builds, so a later APK from the
-            // v0.5.0 release installs over this one. The package id does not
+            // v0.6.0 release installs over this one. The package id does not
             // get the .debug suffix, and the process is not debuggable.
             signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
@@ -160,4 +160,4 @@ fun resolvedVersionCode(): Int {
 }
 
 fun resolvedVersionName(): String =
-    System.getenv("VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "0.5.0"
+    System.getenv("VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "0.6.0"

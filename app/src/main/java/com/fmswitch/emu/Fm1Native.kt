@@ -8,6 +8,8 @@ object Fm1Native {
     val available: Boolean = runCatching { System.loadLibrary("fm1emu") }.isSuccess
 
     @JvmStatic external fun boot(pkg: ByteArray, saved: ByteArray?, mhz: Int, jit: Boolean): Long
+    /** Boot, then write [bank] (a DX7 32-voice dump) into Official V15's first 32 slots. */
+    @JvmStatic external fun bootWithBank(pkg: ByteArray, saved: ByteArray?, bank: ByteArray, mhz: Int, jit: Boolean): Long
     @JvmStatic external fun release(handle: Long)
     @JvmStatic external fun render(handle: Long, out: ShortArray, maxInsns: Int): Int
     /** The screen's revision; [out] is only filled when that differs from [known]. */

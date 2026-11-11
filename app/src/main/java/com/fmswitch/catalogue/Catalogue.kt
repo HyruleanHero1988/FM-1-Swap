@@ -53,6 +53,8 @@ data class CatalogueEntry(
     val vintage: Boolean = false,
     /** GitHub Actions built this file and the hub checked the signature. */
     val builtFromSource: Boolean = false,
+    /** What is known of this package on a newer FM-1 (flash 0xB36014). Unknown until a source says otherwise. */
+    val newChip: NewChipSupport = NewChipSupport.UNKNOWN,
 ) {
     val requiresOfficialFirmware: Boolean get() = loader?.lowercase() == "mvave"
     val isDownloadable: Boolean get() = packageURL != null
@@ -126,6 +128,7 @@ object HubFeed {
             installs = obj["installs"]?.jsonPrimitive?.intOrNull,
             vintage = obj["vintage"]?.jsonPrimitive?.booleanOrNull ?: false,
             builtFromSource = builtFromSource(obj),
+            newChip = NewChipSupport.fromHub(obj.str("chip")),
         )
     }
 

@@ -41,6 +41,7 @@ import com.fmswitch.catalogue.CatalogueOrder
 import com.fmswitch.catalogue.CatalogueSearch
 import com.fmswitch.catalogue.FirmwareKind
 import com.fmswitch.catalogue.FirmwareSort
+import com.fmswitch.catalogue.NewChipSupport
 import com.fmswitch.catalogue.RescueMode
 import com.fmswitch.model.AppViewModel
 import com.fmswitch.model.CurationSeed
@@ -160,6 +161,8 @@ fun CatalogueScreen(model: AppViewModel) {
                         "No favorites yet. Press FAVORITE on a firmware, or turn FAVORITES off."
                     model.settings.curatedOnly ->
                         "Nothing in your favorites matches. Turn FAVORITES off to search the whole list."
+                    kind == FirmwareKind.NEW_CHIP ->
+                        "No firmware in this list is confirmed to save on a newer FM-1 yet. Press REFRESH for the hub's latest data, or press ALL."
                     kind != FirmwareKind.ALL ->
                         "No firmwares in this group. Press ALL, or clear the search."
                     else ->
@@ -194,6 +197,8 @@ fun CatalogueScreen(model: AppViewModel) {
                         model.history.lastFor(entry)?.let { installed ->
                             MonoText(lastInstalledMarker(installed, entry.version), size = 13)
                         }
+                        Spacer(Modifier.height(4.dp))
+                        NewChipTag(entry.newChip, model.settings.unitGeneration)
                         val rankBits = buildList {
                             entry.stars?.takeIf { it > 0 }?.let { add("★ $it") }
                         }
@@ -218,6 +223,8 @@ fun CatalogueScreen(model: AppViewModel) {
         }
         val shipped = model.catalogue.catalogue
         when {
+            shipped?.bundled == true && kind == FirmwareKind.NEW_CHIP ->
+                NoteText("This list came with the app, from before most newer-FM-1 results were in. REFRESH gets the hub's latest.")
             shipped?.bundled == true ->
                 NoteText("This list came with the app. REFRESH gets a newer one.")
             shipped?.hubUpdated != null ->
@@ -271,6 +278,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
             placeholder = "NO SCREENSHOT YET",
         )
         entry.what?.let { MonoText(it, size = 15) }
+        NewChipBanner(entry.name, entry.newChip, model.settings.unitGeneration)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             PixelButton("TRY", prominent = true, wrap = true, modifier = Modifier.weight(1f)) {
                 model.openEmulator(entry)
@@ -352,6 +360,14 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         }
         PixelPanel(title = "DETAILS") {
             MonoText("Reports  ${entry.product ?: "unknown"}", size = 14)
+            MonoText(
+                "Newer FM-1s  " + when (entry.newChip) {
+                    NewChipSupport.WORKS -> "saves (confirmed)"
+                    NewChipSupport.BRICKS -> "fails"
+                    NewChipSupport.UNKNOWN -> "untested"
+                },
+                size = 14,
+            )
             MonoText("Size  ${entry.size?.let { formattedBytes(it) } ?: "unknown"}", size = 14)
             entry.sha256?.let { MonoText("Checksum  ${it.take(16)}…", size = 14) }
             if (entry.requiresOfficialFirmware) MonoText("Needs official firmware running first.", size = 14)

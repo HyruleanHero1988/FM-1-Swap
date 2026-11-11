@@ -12,6 +12,8 @@ import com.fmswitch.catalogue.EditorListing
 import com.fmswitch.catalogue.HubFeed
 import com.fmswitch.catalogue.HubShots
 import com.fmswitch.catalogue.MergedCatalogue
+import com.fmswitch.catalogue.NewChipOverlay
+import com.fmswitch.catalogue.NewChipSupport
 import com.fmswitch.catalogue.PackageDiscovery
 import com.fmswitch.catalogue.PhotoOverlay
 import com.fmswitch.catalogue.RedtailListing
@@ -76,6 +78,10 @@ class AppSettings(private val prefs: SharedPreferences) {
     var showBeta: Boolean
         get() = prefs.getBoolean("showBeta", true)
         set(value) { prefs.edit().putBoolean("showBeta", value).apply() }
+    /** Which FM-1 the user has. The app cannot read the flash chip over MIDI, so this is the user's word. */
+    var unitGeneration: UnitGeneration
+        get() = UnitGeneration.fromId(prefs.getString("unitGeneration", null))
+        set(value) { prefs.edit().putString("unitGeneration", value.id).apply() }
     var showLinksOnly: Boolean
         get() = prefs.getBoolean("showLinksOnly", false)
         set(value) { prefs.edit().putBoolean("showLinksOnly", value).apply() }
@@ -409,6 +415,7 @@ class CatalogueStore(private val context: Context) {
     }
 
     private val photoOverlayText: String by lazy { assetText(PhotoOverlay.ASSET_PATH) }
+    private val newChipMarks: NewChipOverlay.Marks by lazy { NewChipOverlay.parse(assetText(NewChipOverlay.ASSET_PATH)) }
     private val aboutOverlayText: String by lazy { assetText(AboutOverlay.ASSET_PATH) }
 
     private fun assetText(path: String): String = runCatching {
@@ -419,11 +426,18 @@ class CatalogueStore(private val context: Context) {
         get() {
             val listed = catalogue?.entries.orEmpty()
             val withOfficial = if (listed.any { it.isOfficial }) listed else listOf(officialCatalogueEntry()) + listed
-            val described = AboutOverlay.apply(withOfficial, aboutOverlayText)
+            val marked = NewChipOverlay.apply(withOfficial, newChipMarks)
+            val described = AboutOverlay.apply(marked, aboutOverlayText)
             return CatalogueRank.ordered(PhotoOverlay.apply(described, photoOverlayText))
         }
 
     fun entry(id: String): CatalogueEntry? = entries.firstOrNull { it.id == id }
+
+    /** What is known of the exact package with this SHA-256 on a newer FM-1. Unknown when no source covers it. */
+    fun newChipFor(sha256: String): NewChipSupport = NewChipSupport.merge(
+        entries.filter { it.sha256.equals(sha256, ignoreCase = true) }.map { it.newChip } +
+            newChipMarks.statusOf(sha256),
+    )
 
     fun entriesMatching(product: String): List<CatalogueEntry> = entries.filter { it.product == product }
 

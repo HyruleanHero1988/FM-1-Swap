@@ -4,6 +4,19 @@ Install that file from this release and nowhere else. If Android refuses the ins
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
+## New in 0.6.3
+
+**Newer FM-1s.** FM-1s sold since autumn 2026 have a different flash chip (UC25HQ80, ID `0xB36014`). Most firmwares were written for the first units' chip. On a newer FM-1 such a firmware does not keep your saves, and it often can't take another update, which leaves the FM-1 stuck until you recover it from a computer. Nobody has been able to test every firmware on a newer unit, so FIRMWARE now says what is known:
+
+- Every firmware is marked **SAVES ON NEWER FM-1S**, **FAILS ON NEWER FM-1S**, or **UNTESTED ON NEWER FM-1S**. Untested is the default. A firmware is only marked as saving when a source confirms it.
+- The new **SAVES ON NEWER FM-1S** chip under FIRMWARE shows only the confirmed ones.
+- A firmware known to fail can't be flashed until you tick that you accept the risk. An untested one shows a warning.
+- SETUP has **WHICH FM-1 DO YOU HAVE?** with how to tell the two apart. The app can't read the chip over USB, so you tell it: **NEWER**, **OLDER**, or **NOT SURE**, which is treated like newer. **OLDER** hides these warnings.
+
+The marks come from [The Firmware Hub](https://thefirmwarehub.com) (CC BY 4.0), which reads the chip out of every package it lists. REFRESH brings the hub's latest marks. The list that ships with the app is from October, so most of it shows as untested until you REFRESH. The README says where the data comes from and how to update it.
+
+A phone already on 0.6.2 shows this release under the top bar. **UPDATE** downloads it.
+
 ## New in 0.6.2
 
 PATCHES has **TRY ON V15**. It loads that bank's 32 patches into Official V15 and starts it. They fill the first 32 slots. Patches you already saved in those slots on the virtual FM-1 are replaced, and the bank stays for the next time you TRY that same virtual FM-1.

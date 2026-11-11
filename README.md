@@ -31,6 +31,7 @@ that first, then install this file.
 ## What it does
 
 - Opens on a firmware list baked into the app (no network required to see it). Official V15 is first; the rest are ranked by GitHub stars (and hub installs), so SLOOP, Felucca, X0X, JIANT and Melodee sit at the top instead of drowning alphabetically. Each row shows a shot from the project's GitHub page when the README has one (the first image under Screenshots, otherwise the first picture that isn't a logo), and otherwise from fm1-editor.com or the publisher. The snapshot includes Baud Girl's FM-1+VA, isod89's Clipper 1.0, M-VAVE's Official Open (the eight-track groovebox they ship as [FM1 Open](https://github.com/m-vave/fm1_open) — currently V14, whose `.fwsc` is inside the Workbench HTML), and RedtailWorks' LOF-1, ECO-1 and GRAV-1 (HYP-1 is already on the hub). **REFRESH** re-pulls the hub, fm1-editor.com, and the RedtailWorks pack. Clipper and the experimental RedtailWorks machines are marked beta (shown unless **SETUP** hides them). OPEN-1 is a different synth, not an FM-1 firmware, so it is not listed.
+- Marks every firmware **SAVES ON NEWER FM-1S**, **FAILS ON NEWER FM-1S**, or **UNTESTED ON NEWER FM-1S** (untested is the default), and has a **SAVES ON NEWER FM-1S** chip that shows only the confirmed ones. A firmware known to fail can't be flashed until you tick that you accept the risk, and an untested one shows a warning. See [Newer FM-1s](#newer-fm-1s-the-new-flash-chip).
 - **FAVORITE** marks a firmware. **SORT** orders the catalogue by **FAVORITES** (marked ones first, in the order you set with EARLIER and LATER), **POPULAR**, **NAME**, **AUTHOR**, or **NEWEST**. **FAVORITES** hides everything you have not marked. Chips under that row filter the same groups as the firmware hub: synths, grooveboxes, drums, chords, trackers, for devs, other, vintage, in browser, and from source. With none marked, the list opens on Baud Girl, SLOOP, Clipper, HYP-1, Felucca, and Rainbow Mode. The marks are stored on the phone.
 - Downloads `.fwsc` packages, checks SHA-256, and keeps them offline. A missing file says the firmware list may be out of date and offers **REFRESH**. On TRY, that refresh downloads the file when the listing has moved.
 - When a newer release of the app is published, a line under the top bar says so. **UPDATE** downloads that APK and hands it to Android, which asks you to confirm before it installs. **LATER** hides the line for that version. SETUP still offers **UPDATE**.
@@ -63,6 +64,33 @@ no GPL installer code.
 
 Once the identity sticks, **DEVICE ▸ PLAY TEST NOTES** is the check that USB MIDI is
 actually carrying channel-voice messages, not only SysEx handshakes.
+
+## Newer FM-1s (the new flash chip)
+
+FM-1s sold since autumn 2026 carry a different flash chip from the first units. The first units have a Puya, JEDEC ID `0x856014`. Newer ones have a UC25HQ80, ID `0xB36014`. Most firmwares were written when only the first chip existed and write the flash only when they see that ID. On a newer FM-1 such a firmware keeps your saves in RAM (gone at power-off), and it often can't take another update either: the installer stops, or M-UPGRADE refuses it. The unit isn't destroyed, because the chip's bootloader is in ROM, but it stays stuck until you recover it from a computer (see below). That is the "bricked" people report.
+
+**How to tell which FM-1 you have.** There is no sure sign on the outside that anyone has published, and FM-1 Swap can't read the chip: the FM-1 reports its firmware identity (`FM-1_xxx`) over USB MIDI and nothing about the flash, and the Firmware Hub, which has the same MIDI access in a browser, says the same. No one has documented USB descriptors, serial numbers or chip markings as a way to tell, and the maintainer, who has only an older unit, couldn't check. What does work:
+
+- **M-Flasher** (Windows, macOS, Linux) shows the flash ID as soon as the FM-1 is in download mode. `0xB36014` is a newer unit, `0x856014` is one of the first.
+- **The signs.** Saves vanish at power-off, or the firmware says "save error", while M-VAVE's V15 keeps them, and the firmware isn't marked as saving on newer units.
+- **When you bought it.** A unit bought from autumn 2026 is likely newer. That is a hint, not proof.
+
+If you can't be sure, treat it as newer. SETUP has **WHICH FM-1 DO YOU HAVE?** with the same help and three buttons: **NEWER** (FIRMWARE opens on the confirmed ones), **OLDER** (hides these warnings), and **NOT SURE**, the default, which warns like newer.
+
+**What the app does about it.**
+
+- Each firmware is marked as saving, as failing, or untested on newer FM-1s. Untested is the default for anything no source has confirmed. The marks never guess a firmware is safe.
+- The **SAVES ON NEWER FM-1S** chip under FIRMWARE shows only the firmwares confirmed to work there.
+- A firmware known to fail shows a red warning on its page and on the flash sheet, and CONTINUE stays off until you tick that you accept the risk. This holds for a flash that first installs V15, too. An untested one shows an amber warning.
+- Choosing **OLDER** in SETUP hides the warnings and the gate.
+
+**Where the data comes from.** [The Firmware Hub](https://thefirmwarehub.com) (zvenson) reads a `chip` value out of every package it lists, and has its own "Saves on newer FM-1s" filter. Its `catalog.json` is CC BY 4.0: "Firmware list: The Firmware Hub – https://thefirmwarehub.com". FM-1 Swap changes it by reducing the `chip` value to three marks. `new` knows the newer chip, which the app marks as saving. `old` knows only the first units' chip, which the app marks as failing. `any` doesn't check the chip and the hub hasn't tried it on the newer one, so the app leaves it untested, even though the hub's own filter includes it. Official V15 is marked as saving from the hub's rescue page, which uses V15 keeping saves as the sign of a newer unit. [fm1-editor.com](https://fm1-editor.com/firmware/) has no per-firmware chip data. It mentions the chip in a couple of descriptions (CULTBOX "accepts both flash chips", which the hub agrees with, and a game "verified on the original flash chip"), which is not enough to mark anything, so it marks nothing here. Nobody has tested these on a newer unit for this app: the maintainer has only an older FM-1, so every mark is the community's, as read by the hub.
+
+The marks are in `app/src/main/assets/catalogue/newchip.json`, one line per package, keyed by the package's SHA-256, so a mark never carries over to a different build of a firmware. A package that isn't in that file shows what the live hub list said when you pressed REFRESH, and is untested if it said nothing. If sources disagree, the failure wins. The list that ships in the app is older than the hub's data, so most of it shows as untested until you REFRESH.
+
+To update the marks, run `scripts/update-newchip.py` (it fetches the hub's `catalog.json`, or reads a copy you pass it; the hub asks apps to read it at most once a day). It rewrites `newchip.json` and keeps lines marked `"origin": "manual"`. To mark a firmware by hand, for example one a user reports as bricking, add a line with its `sha256`, a `status` of `works`, `bricks` or `unknown`, `"origin": "manual"` and a `source` link.
+
+**If one already got stuck.** Don't install again and again. The hub's [rescue page](https://thefirmwarehub.com/tools/rescue/) has the steps. M-Flasher and MvaveFM1Unbricker take the newer chip, put a firmware that knows it back through the chip's download mode, and keep a full backup of the flash first. Melodee's recovery tool refused the newer chip in its releases up to 1.6.1 when the hub last checked (5 Nov 2026).
 
 ## Building
 

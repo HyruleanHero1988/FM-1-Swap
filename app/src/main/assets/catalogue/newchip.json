@@ -1,0 +1,1458 @@
+{
+  "about": "Per-package compatibility with newer FM-1s (flash chip 0xB36014). Anything not listed, or marked unknown, is untested. Rewritten by scripts/update-newchip.py.",
+  "source": {
+    "name": "The Firmware Hub",
+    "url": "https://thefirmwarehub.com/",
+    "feed": "https://thefirmwarehub.com/catalog.json",
+    "license": "CC-BY-4.0",
+    "attribution": "Firmware list: The Firmware Hub – https://thefirmwarehub.com",
+    "hubUpdated": "2026-11-11 03:01 UTC",
+    "retrieved": "2026-11-11",
+    "meaning": {
+      "works": "hub chip=new: the package knows the newer flash chip, so it saves and can update there",
+      "bricks": "hub chip=old: the package knows only the first units' chip; on a newer FM-1 it keeps saves in RAM and often refuses updates",
+      "unknown": "hub chip=any (or no data): not checked or not tried on the newer chip. Never treated as safe"
+    }
+  },
+  "firmwares": [
+    {
+      "id": "mvave-official",
+      "name": "FM-1 V15",
+      "version": "V15",
+      "sha256": "db1642b2b6fa5c2cccb11ffd13878068bb28601678d3644049f99dc40e7edb8a",
+      "status": "works",
+      "origin": "manual",
+      "source": "https://thefirmwarehub.com/tools/rescue/ (\"Which chip is in yours?\": a newer FM-1 loses saves \"while M-VAVE's V15 keeps them\"). The hub also offers V15 as the way back on newer units."
+    },
+    {
+      "id": "386dx",
+      "name": "386DX",
+      "version": "2.0",
+      "sha256": "2ba90c24c0586c7519bc524113a9727e43fec60dd3314ddc245179833871e059",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "aisling",
+      "name": "AISLING",
+      "version": "1.2",
+      "sha256": "b3cf01bc2bb9f8b67cd85dc19eb5d223fa111cd258db7e9e1a70839d2f5f3451",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "amb",
+      "name": "AMB-1",
+      "version": "1.3.2",
+      "sha256": "a949a6a2a1ced8b3857d156ad0409a55e6ba53bbdd4094d0a38f2779364064f3",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "amenity",
+      "name": "Amenity",
+      "version": "2.0.0",
+      "sha256": "f76af4b2f278b561bf6f3b10d0db0f6b219bfb564dad3c872b90ec656cbbb506",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "arctic",
+      "name": "Arctic Scream",
+      "version": "1.5.2",
+      "sha256": "53a942e154bde3776697a8b13de047838cac0e7f629fb5e8b51765afdf5cba3d",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "arcturus",
+      "name": "Arcturus S6",
+      "version": "1.7",
+      "sha256": "18b829548a23da9ef85087f0cbc1181c4ca0610a25a7d9e393079504172faee3",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "artihive",
+      "name": "ARTIHIVE",
+      "version": "2.0.3",
+      "sha256": "055aeeed495248b44783f4ffbf4a040916256d66ec20e91139c06295288256f4",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "atek303",
+      "name": "ATEK303",
+      "version": "1.2",
+      "sha256": "d7fe6293e45fa003c82c7017886e172f53bd64190100282a82e778f21faded6e",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "atlatl",
+      "name": "Skiff Atlatl",
+      "version": "1.1",
+      "sha256": "e4a3b4e2d79f1de003ef6372b2441c2a3eb1f734c99d3a1229f44304146b59a8",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "audiorouter",
+      "name": "FM1 Audio Router",
+      "version": "0.2.0",
+      "sha256": "db1bac9e3f07cf173c3359ba0022fad56714eb296278db16111d45ddd09cc011",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "b1",
+      "name": "B1",
+      "version": "5.6",
+      "sha256": "4efc8646d729844f78fa3f85093cdbc45250738e218526f3f06aa69ce81cac61",
+      "status": "unknown",
+      "origin": "hub",
+      "note": "The package does not check the flash chip and the hub has not tried it on the newer chip 0xB36014."
+    },
+    {
+      "id": "b3organ",
+      "name": "B3 ORGAN",
+      "version": "0.2",
+      "sha256": "b8e9572afa1ca4161244ee05d6161dc9b46330e068455490de6dc7ce217f572a",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "bb1",
+      "name": "BB1",
+      "version": "2.2",
+      "sha256": "2bbe009c4b00f4db718638fca5e25efe5271b34a00486afa4e798fa3266df42b",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "beetle",
+      "name": "BEETLE",
+      "version": "1.8.3",
+      "sha256": "1c88c620b6d8763835597e085c3287b54dba9921d535efc764f4b4c5f3468538",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "beetleblue",
+      "name": "BEETLE BLUE",
+      "version": "1.3.1",
+      "sha256": "78de3d0ddd47ffdf98795b4a75c033c33ad96c5c8431cb7e8225e98580f3455d",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "berlinan",
+      "name": "Berlinan",
+      "version": "0.5.1",
+      "sha256": "660b2a0059ec1d002d59dd1fb1ff86f93510a6468ddd385073db22d59cf478d1",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "bigorna",
+      "name": "Bigorna",
+      "version": "2026.11.09",
+      "sha256": "8f531156e1fb3e2649d07b176f5ceb8e0978a1f99bd90edb452ae86f4bbcc8be",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "blop",
+      "name": "Blop",
+      "version": "1.1.0",
+      "sha256": "c6caccf8654d03f518c4b1c79449736579a983f9960f7fd6d14a1c7b3b0e901c",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "bocjuhn",
+      "name": "bocjuhn",
+      "version": "1.0.0-rc8",
+      "sha256": "56e9cae59a05233ef48b930e719f643dfc26452aae420d46e46da4fc4f43ea62",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "bubba",
+      "name": "Bubba Machine",
+      "version": "0.10.0-beta",
+      "sha256": "e1f444059553b7a8e9ea6b916fed0ea3c7d5404a6e913a130f11b9d3d9624e7d",
+      "status": "unknown",
+      "origin": "hub",
+      "note": "The package does not check the flash chip and the hub has not tried it on the newer chip 0xB36014."
+    },
+    {
+      "id": "bunker",
+      "name": "Bunker Evolved",
+      "version": "1.0.0",
+      "sha256": "db0b50d0ae9c3bfccee76e3b93de09fffa55389169278a0c5899dad9c79e6bb8",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "bytemania",
+      "name": "Bytemania",
+      "version": "1.3.1",
+      "sha256": "ba94dcb0fb9902fa29a8fa22b0818a7e80dc6ed334bfe9bb86d7c1242ca43925",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "caravel",
+      "name": "Caravel",
+      "version": "0.12.0",
+      "sha256": "d8fb37e83764665c31041875f19534051e64199b5125161bc443efac600e897f",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "carnac",
+      "name": "Carnac OS",
+      "version": "0.9.6",
+      "sha256": "6d81a8d1186fecc8c4e8be082c163f5cc3d2a3286b70f66e42b4b941e604f1b2",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "chipbox",
+      "name": "Chipbox",
+      "version": "1.5.5",
+      "sha256": "7495fd0a14527ff847a98a288ca1aa518e297beb5f31ab70563920de410f2611",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "choppah",
+      "name": "CHOPPAH",
+      "version": "1.2",
+      "sha256": "cffdcd139f887a7ccfeb037b7793a7c01ce7b76dc0d9fe8e5038add9a1b1a10f",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "choralroot",
+      "name": "ChoralRoot",
+      "version": "0.39",
+      "sha256": "b2e190bf4b5e0c218dbda057368d32c29ef602b1aee06fd25264c0d4c73631e7",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "chord",
+      "name": "fm1-chord",
+      "version": "0.3",
+      "sha256": "e2d06d0bfd4cd93bb0913494496a526775cb4661a3f2973818c4dd696807d145",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "clatter",
+      "name": "CLATTER Pocket",
+      "version": "1.0.0",
+      "sha256": "4d661dae903801385adc99abe3387474b059210f1c49037cef3ef1cacb6f5956",
+      "status": "unknown",
+      "origin": "hub",
+      "note": "The package does not check the flash chip and the hub has not tried it on the newer chip 0xB36014."
+    },
+    {
+      "id": "clipper",
+      "name": "Clipper",
+      "version": "1.3.1",
+      "sha256": "b29d53498a7bc40eb6d8409270b15b53576a6d116c2839217ac6210bf96e752a",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "coqui",
+      "name": "COQUÍ",
+      "version": "1.1.1",
+      "sha256": "9edbd1c8d66b3d9bc908924b33b9001c93625c406be3d4d64eac9efa9d45d238",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "coralflower",
+      "name": "CoralFlower",
+      "version": "0.7.1",
+      "sha256": "d87d6327e0f98000cfa740bab70487728de85d3d64fd96c3a65dfd6bbdf71bbd",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "cs1",
+      "name": "CS-1",
+      "version": "2026.10.22",
+      "sha256": "25179bef57f6136a36071647bbca6d6b82f718042d8ca6ccb5b13d1c9051110c",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "ctl",
+      "name": "CTL-1",
+      "version": "1.0.3",
+      "sha256": "1ecf7e3c2af255c7f404fa6232e9a55cdbaaf3e60cc1c549e14ecd310f7d5104",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "cultbox",
+      "name": "CULTBOX",
+      "version": "1.2",
+      "sha256": "472dd790dd2169e6a764ae5be1bf9843b3a1599b45129ba7196d5ec99d17fae5",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "cutador",
+      "name": "Cut-A-Dor",
+      "version": "1.2.1",
+      "sha256": "5d4be92061cc5bf1396d3ff599ac3a1ef9ec1261afe003b74e32f4298307f614",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "dark1",
+      "name": "DARK-1",
+      "version": "1.0.6",
+      "sha256": "c215cfad7eb2784abb6e056ae86db977f3e8f3eac6289290b790d3e2b4b974a5",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "daurade",
+      "name": "Daurade",
+      "version": "1.0.1-01d6bd0",
+      "sha256": "11c4ce13a13e3ee6cd7f3bf0bf47373c1f79b447fe9a57bdb5e476520f295118",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "delrio",
+      "name": "Del Rio",
+      "version": "1.0",
+      "sha256": "3bcff066a91c221f79c335569c0330fd80f4da262a764e56a9d0a56d4a41aff2",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "demake",
+      "name": "Demake",
+      "version": "0.4.24",
+      "sha256": "b496d0efdfc403dba0d447a7987331cd7dbe2a5dbc8908cafbc2154f72f584da",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "dinghy",
+      "name": "Dinghy",
+      "version": "0.5",
+      "sha256": "139da045ea20eb5e772e7da5242ae2efaa0dcd9b533ac169992f7795a77efb90",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "drift",
+      "name": "DRIFT",
+      "version": "0.9.6",
+      "sha256": "df7b25c88964be5d3c70ef5f19b35a5c98c78bfce8761bc99e3c8f3a28f72d6e",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "drumlab",
+      "name": "Drumlab",
+      "version": "0.1.3-beta",
+      "sha256": "a697e43830bacf48ec8e02a4dc028f5a6e0b98bd2b57c31a6a22378f90dfc0ba",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "dub",
+      "name": "DUB-1",
+      "version": "1.4.3",
+      "sha256": "19cc9649583192d0634467e18e28532078d4d7889231c9e842da7fb4ff869c0a",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "duell",
+      "name": "DUELL",
+      "version": "1.2",
+      "sha256": "031a3feef898b407537214f2694cb0c7e5014e2c02553c8d57b4865308aa3690",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "dungeontracker",
+      "name": "Dungeon Tracker",
+      "version": "1.5",
+      "sha256": "ba6994ccb82327840c6e475da0fd5a30fb2a097d5fe852be216f0d1d0a353cae",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "dx747",
+      "name": "DX747",
+      "version": "0.1",
+      "sha256": "91f9acd06e37cea10d2af519d74a50343507709f5edd69b635d7711b69520934",
+      "status": "unknown",
+      "origin": "hub",
+      "note": "The package does not check the flash chip and the hub has not tried it on the newer chip 0xB36014."
+    },
+    {
+      "id": "echofield",
+      "name": "ECHOFIELD",
+      "version": "0.2.10",
+      "sha256": "98c615181952e3736e1d949edf9b5ee66b6b5c6464c040fb0292d568ad332e96",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "elixir",
+      "name": "Elixir",
+      "version": "1.3",
+      "sha256": "27a820cdad60b9a987611fdd150e7fbbdbd9a3ca2a1df26d19b205d9dc0db28b",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "emb",
+      "name": "Evander's Music Box",
+      "version": "1.5.2",
+      "sha256": "4316a6e114912952ed70e1b230b0fc199b353f1fa0bc5c8c04ebb4bcd4801b57",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "estampie",
+      "name": "ESTAMPIE",
+      "version": "0.3.8",
+      "sha256": "6889451585cd623e9d524cb64ef143b75a783b8a7952ea71f1f89d9a46f54c61",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "etch",
+      "name": "ETCH",
+      "version": "1.88",
+      "sha256": "65bcb51012d81c9c8206c4843ce04b5c03177b8f09ed74313799ebec0798330f",
+      "status": "unknown",
+      "origin": "hub",
+      "note": "The package does not check the flash chip and the hub has not tried it on the newer chip 0xB36014."
+    },
+    {
+      "id": "fart",
+      "name": "Fart Machine One",
+      "version": "1.1.0",
+      "sha256": "b9e380061ddc086d5c45cfa4d4e583249a9bfb45869e1fcd6fdaf5249c7ee7e2",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "felucca",
+      "name": "Felucca",
+      "version": "1.8.2-beta",
+      "sha256": "b57724fff5a9b55b67d6f8a7d852e68d5d5814ed6fb769ec80a274fb44958e12",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "felucca8",
+      "name": "Felucca 8 Patterns",
+      "version": "1.8.2",
+      "sha256": "eb22b8a324527f931320745d0863458855bd8c91bfe274c6a50851973bf38239",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "fimba",
+      "name": "FiMba-1",
+      "version": "0.7.0",
+      "sha256": "c77036f22fb85a0922310cd50f40c00edbef504cbceffc7506468843dbe4dc34",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "fizz",
+      "name": "FIZZ",
+      "version": "0.12.0-beta.14",
+      "sha256": "a98d97af506252caa421a7d6cc5018dbd1b07f8c9350c2f319343318e4572605",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "floyd",
+      "name": "SLOOP Floyd FM",
+      "version": "2.4",
+      "sha256": "d70301ad3e1f67a71792a2644829658a8570eceb0681ba2ac6eb41d771cc7560",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "flyfish",
+      "name": "Flyfish",
+      "version": "1.1.1-fc4974e",
+      "sha256": "ba0908bce9dfa317e7364a8e6371b32f13d014d3c41562186d8476a8579b36db",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "fm106",
+      "name": "FM-106",
+      "version": "1.0",
+      "sha256": "41746d625216f1647964c7d8993be3e0b9e1950b415288e723603fa5f8c45ca6",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "fm1dock",
+      "name": "fm1-dock",
+      "version": "0.8",
+      "sha256": "ed5d8c0330e87959b01fd8b6716c13d181eebf369e8820175f8a8470bf1545d6",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "fm1gm",
+      "name": "FM1-GM",
+      "version": "1.2.0",
+      "sha256": "42187d51166f2850005aa1235ca440f40e94ec41911f71e8e75d06ce8e45f75e",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "fm1quest",
+      "name": "FM1 Quest",
+      "version": "43",
+      "sha256": "08a9d725bdb3f00aef7703e0a00f27a9f3e2e63794d47bfc1f152507a3c0f483",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "fm1sid",
+      "name": "FM-1 SID",
+      "version": "0.3",
+      "sha256": "30fbbeb839e34eb9cd06b543b9142cce3a937d6b0a221e9985412cebba324ed3",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "fm1trax",
+      "name": "FM1-TRAX",
+      "version": "0.9.5",
+      "sha256": "86de2ecc0fbba397abae98cfa07315003ee6c5d8bafa99be6acdcc24d22e6478",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "fmdj",
+      "name": "FMDj",
+      "version": "2026.10.22",
+      "sha256": "857bd4fafca1fb78ac47386b5c02ab58acd8c72ca69ce341461f188c49b68342",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "fmel",
+      "name": "FMEL-1",
+      "version": "1.0",
+      "sha256": "0e6b9b31d422e875b035db06f7c82aba91f53bbffd0038cdbf7c3f5a726a920a",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "fmfam",
+      "name": "FM-FAM",
+      "version": "0.2.6",
+      "sha256": "9ed64d08ce787d4aa60e867c0d426f9651403b1c56bbfd0c0e6683c16bea900a",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "fmini",
+      "name": "FMini-1",
+      "version": "2.5.0",
+      "sha256": "3beb51e9dac507f9300f2164a3b4c147ff4b655fd30eb208daa1d5e94dc8f2e1",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "fomajam",
+      "name": "FOMAJAM",
+      "version": "0.1.12",
+      "sha256": "b18d747f4e005f392a4071a00847268fe244d5e4e7d8bd7a359c25bd9dc3ac88",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "fomni",
+      "name": "FoMni",
+      "version": "0.4.1",
+      "sha256": "f937b807da1cfe13d43bef86c2469fa45d6a88b2b3a7f4b6f5b9741bdb0351ab",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "frasil",
+      "name": "FRASIL",
+      "version": "3.2",
+      "sha256": "d609254941c886a4a1a13f705ebbe394ececc4817f6524626b456d064dd9954f",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "frodhes",
+      "name": "Frodhes",
+      "version": "0.9.10",
+      "sha256": "73b3f1b46b2299fd47a75785e0d2e10359a3f53cfcfcb647e2f94f0f9d396f6c",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "fumi",
+      "name": "FuMi-1",
+      "version": "1.1.0",
+      "sha256": "211db1c2efc379b0a29a284aea523c67e230d98dab7a7f91336cc3fbd1201188",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "gammawave",
+      "name": "Pocket GammaWave",
+      "version": "1.2.1-GW",
+      "sha256": "f8fae2b0191662713225608cd0191e60a18f0347748f60fad0f6327d6f81dc4b",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "gator",
+      "name": "GATOR",
+      "version": "0.6",
+      "sha256": "52bcd2428c098b373f237622a392424069219b83d87f7a5606ca91cf28430bfb",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "ghoulbox",
+      "name": "GHOULBOX",
+      "version": "2.4",
+      "sha256": "92630ae278d4a0b4233ff2512b62ad9b5dbe976a4c9083046222d9293a8df749",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "golana",
+      "name": "Golana",
+      "version": "1.3",
+      "sha256": "49806d009e140d1e90a1396d0f8caf54870d9d633d3ade2718ec0461b9501745",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "golanadz",
+      "name": "Golana DZ Edition",
+      "version": "0.1.0-beta",
+      "sha256": "b93e2c911366037031e83c9a366158ca090aa2eb9c939889e9e5982dfc568ca7",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "grimm",
+      "name": "GR!MM",
+      "version": "2.0.2",
+      "sha256": "d85c0dd3d668f48157afad7b9a1eb2e49e376f931afd2349bebef9014eb1375d",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "guitchordi",
+      "name": "GuitChordi",
+      "version": "0.1.0-beta.1",
+      "sha256": "330396f043093bcdda65aacbd0098dd1fc1f253a17d5707db19ff5d971e05217",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "hawkchua",
+      "name": "hawk-chua",
+      "version": "2.1.3",
+      "sha256": "c278504ca61dfe113adfcab6ecfe98dbc280bbeaf17f0bb2e6c1d121bb4b0a10",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "hera",
+      "name": "HERA",
+      "version": "1.1",
+      "sha256": "dc0153ecba3daecfe289cb59124509117701311d15717db9a326d192928a9c45",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "hortator",
+      "name": "Hortator",
+      "version": "1.0.1",
+      "sha256": "ac81af292e035ee0c4b8b7ab3a78b942e4f03deee31ae213a2613c743cd9110f",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "hortator-bt",
+      "name": "Hortator (Bluetooth)",
+      "version": "1.0.1",
+      "sha256": "3d5fc15367945576cc590dac20269b108658fd592200b9e4c3626f9b7c8aab61",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "hungrytravis",
+      "name": "Hungry Travis",
+      "version": "2026.11.10",
+      "sha256": "de460db393835644f013540ba5620396eb23c72e4373cdcbac889466bd7ef32c",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "hyp1",
+      "name": "HYP-1",
+      "version": "1.5.62",
+      "sha256": "7b858f2acb7c9913fbc2118f769db1ee8b548c6570186c376c266b915c27c777",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "j6",
+      "name": "J6",
+      "version": "1.4.0",
+      "sha256": "0bf0a53e4213e070917650294acf92c8bf83f12b2539f78aee29de9330f3de8f",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "jam",
+      "name": "Jam Playground",
+      "version": "1.2.0",
+      "sha256": "be3f972864fcc7a38b813991b18eac17bef3213441bac4db19dabd7a6fdb7214",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "jamtrack",
+      "name": "JAMTRACK",
+      "version": "0.2.3",
+      "sha256": "4111f8e9b2019ba4bbc1d3137c490ffcd4261574ad7265992dc15ef0806e1902",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "jangada",
+      "name": "Jangada",
+      "version": "1.0.1",
+      "sha256": "c382e334057bd107294940e456e5c1140754917ba152a1958af3aa1696333588",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "jiant",
+      "name": "JIANT FM",
+      "version": "V10.7.17",
+      "sha256": "1f097f9d2543d2e1bafa566cb6e7d405a87fb857336d519c5a90adde58a0e777",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "karma",
+      "name": "KARMA",
+      "version": "3.1",
+      "sha256": "f1f28096a2e1a64c0ca0fe626b38818d96bb4950025b2e6d14db40df369eea1f",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "kawa",
+      "name": "KAWA",
+      "version": "0.9",
+      "sha256": "05bd45948f591159780c025d637aa04629501ceb93b4d00e86a56ad3cc6dc1b4",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "keystepone",
+      "name": "keySTEP ONE",
+      "version": "0.5.42",
+      "sha256": "9de60f29818022dd72cd2c098b91c9d27427bd8898682cf0c30863fc5754569b",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "kitten",
+      "name": "Kitten Synths",
+      "version": "2.8-kitten.8",
+      "sha256": "314c185e3f8f7c6799dadbcbf260dab46956440d9ac0c966c48bb1e9e1ed7d05",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "kittenrack",
+      "name": "Kitten Rack",
+      "version": "1.4.0",
+      "sha256": "ecc5417dbf527e8cc29a0eef236833f47718d34549d6353dcee717e831194b23",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "kwasub",
+      "name": "K-WASUB",
+      "version": "1.1.02",
+      "sha256": "226cfda1f63e487deb4f8e515c2a76b77eff1c6b2d4c2a2d5d1440eaeaf8d3f3",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "loom",
+      "name": "LOOM-8",
+      "version": "0.14",
+      "sha256": "362d04a31e75a3acacebf58f1c39faead5b98d3ee3c76f18d3b82495703f0d2c",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "loomfm1",
+      "name": "Loom FM-1",
+      "version": "0.1.0",
+      "sha256": "bbb5ba438d62e947158c614b18ac37264a64a472a077d57eb271acb60f6f47af",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "lsdjburrito",
+      "name": "LSDJ Burrito",
+      "version": "0.9.97",
+      "sha256": "5cf2d3caac4addc30840d57dd508f25982cbd10075462dc87bcd46b270ac629b",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "luxr",
+      "name": "LUXR",
+      "version": "2026.11.02",
+      "sha256": "46e6c949c483db5f2ea5f5040975004e954d7f8e22e29996f63e1b50c7f2a365",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "makohai",
+      "name": "Makohai",
+      "version": "1.4",
+      "sha256": "ab5005203d68798175cf0ef6e798ac93656d4d90164bf13106a0794b0b81f4c9",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "maku",
+      "name": "MAKU",
+      "version": "1.0",
+      "sha256": "b55d471fd179008511dfea032530750f0692d5be8eab263970f5c3c2162b53ea",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "matryoshka",
+      "name": "Matryoshka",
+      "version": "1.13.0",
+      "sha256": "5d52951efcc1d44ca530a2ad777dafb44d8323d50dedf45a10034b4bb6975d31",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "mc1",
+      "name": "MC-1",
+      "version": "1.2.0",
+      "sha256": "cb0b5454d3e459da11489f73818d4537093907aa13adee0230f3404227a701e4",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "melodee",
+      "name": "Melodee",
+      "version": "1.6.1",
+      "sha256": "8555dc54670a9e39b352e228cf5fb5ecc877fc2b702f19631f155dd85e58ba66",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "midimon",
+      "name": "MIDIMON",
+      "version": "0.5",
+      "sha256": "8d13651e14a84a68107832de5d5fa569fa1b645a051745d8f6aed9356c254159",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "mikufm",
+      "name": "Miku-FM",
+      "version": "0.8",
+      "sha256": "4b864381b127d7d2d904aefb511819c2763404625fc9be7845f1d3bed43e633a",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "min1",
+      "name": "MIN-1",
+      "version": "0.2.1",
+      "sha256": "82715d6ee18c8b12c287d614c131a4fb37f8606d811ae23301f1cd42bd4548c3",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "minitone",
+      "name": "Mini-Tone",
+      "version": "1.0.5",
+      "sha256": "6e188e18052c67d3b2684781a35af3b0cf8a54ed7645e8c55e313fa143f0b9ca",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "mnm1",
+      "name": "MNM-1",
+      "version": "1.0.1",
+      "sha256": "d44011bf035314c037e16ab36a8e7895d9274732329e1d60e0bd94bd512eabf9",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "modelar",
+      "name": "MODELAR",
+      "version": "0.3",
+      "sha256": "14de4b6efdc5550149fe745158b22929d13fcfa6268bc751ace7eb27f21ffeac",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "monk",
+      "name": "MONK-1",
+      "version": "0.10",
+      "sha256": "60b4f16be48fc3c088b626b8a5403620de2377941cc96c570c5d886eaa1165c5",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "mono2k",
+      "name": "MONO2K",
+      "version": "1.9.1",
+      "sha256": "4fb65f626d079539f6f94efc35b108d3b80826a8c9f80348fc8df605dcb4eb43",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "monohull",
+      "name": "Monohull",
+      "version": "0.2.0",
+      "sha256": "6ed6e01d76066f1e7cefae7b528822de89d62b77ca2e7470d7ce81ee0570a83c",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "mope1",
+      "name": "MOPE-1",
+      "version": "0.4.1",
+      "sha256": "25a3ec001464746062006f0e2bf85b1760cbba4dd627cad1094e16628a59d5ac",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "morpheus",
+      "name": "MORPHEUS",
+      "version": "1.0.0",
+      "sha256": "42c3c084c4effa457cb2839bd9196d39e943e4379e0b4bc69c4c2c76ef64a712",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "mutable",
+      "name": "Mutable Dreams",
+      "version": "1.5",
+      "sha256": "ee5d410fc13b9861baa2336303821ccf66ec8c7143c167649886fad368198b52",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "mycelium",
+      "name": "MYCELIUM",
+      "version": "1.0-test",
+      "sha256": "9aa2802a0ac07f412e36c079c8034820b7405e3477468d0b3cfc7fd3f93e0da8",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "nachtfahrt",
+      "name": "NACHTFAHRT",
+      "version": "1.0.0",
+      "sha256": "46693845a35291dae72f8d0e0819215887dd3b630d593485e77ac2a26a731518",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "nauclerus",
+      "name": "Nauclerus",
+      "version": "1.0.0",
+      "sha256": "72e923840964a892a25dadb3db6b91576734fca1e1e73b86ec1a2aa007f478e0",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "niagara",
+      "name": "Niagara Drift",
+      "version": "0.2.1",
+      "sha256": "11b2fce37efdd33d981bedacd84b4dbd15af3060137cfabe04ebd2eeadd492f4",
+      "status": "unknown",
+      "origin": "hub",
+      "note": "The package does not check the flash chip and the hub has not tried it on the newer chip 0xB36014."
+    },
+    {
+      "id": "nmsfm",
+      "name": "No Man Sky FM",
+      "version": "0.9",
+      "sha256": "3633c4ff4955ab107df2bec30919017ab40c02469d8e922f64f8b9963db623f0",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "noizdemons",
+      "name": "NOIZ DEMONS",
+      "version": "666",
+      "sha256": "b1c14859d45bd8ea1d5ea6ca630083e2a647178f1a45b33865e92da7a01e9b8a",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "obervave",
+      "name": "OberVave",
+      "version": "3.3.2",
+      "sha256": "ba54723e1ec0d40d3552fb463a384d3b9a33290e57fdf8a615f7f22fa34644a2",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "ombak",
+      "name": "Ombak",
+      "version": "1.2",
+      "sha256": "98be2b69266ae097e4aeefe5b9e29813b9c9c02b16eaf0fc4e585a5eb0ec5182",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "opn1",
+      "name": "OPN-1",
+      "version": "2.0.0",
+      "sha256": "31b88c6fd4ec081ce85393977453e61ff86c6f545f10e7b1db2023986803675c",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "orbit",
+      "name": "ORBIT",
+      "version": "1.0.1B",
+      "sha256": "7309faae591d43cc21490c5a465dc4143ac4e3939c4482c8a1214bc16d61e164",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "penumbra",
+      "name": "Penumbra",
+      "version": "1.3",
+      "sha256": "314fa0d32c3d0236732e22e9046941853caa36c091e2313011b621fd5ec0a325",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "perf1",
+      "name": "PERF-1",
+      "version": "0.17.0",
+      "sha256": "f006cc6dd54eb867dd6b31963af2f9c8cf328e620be0f8b7c0fa81960c75cf92",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "pigeon",
+      "name": "PIGEON",
+      "version": "0.5.0-beta.1",
+      "sha256": "a6cbb4fbd80baa38eb99400bb4bef5ddd5d4167024a8342189a07bc6b8861bed",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "piterfly",
+      "name": "Piterfly",
+      "version": "1.0.1",
+      "sha256": "d5e3309ee41145d2eae6b4dde07c93ea59f5c69953f850505f39ca74f16c3dd5",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "polly",
+      "name": "Polly",
+      "version": "0.6.2",
+      "sha256": "77dce089612e1d68a35ee6d2374d5d0612a667952b8f2ef632a6c27fb7235d56",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "ptfm",
+      "name": "PT/FM",
+      "version": "0.26",
+      "sha256": "91deae9e804c737e2e78ae88726dbd9e52ca40fc552ea87e3924d98a83681b2a",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "pulhra",
+      "name": "PULHRA",
+      "version": "1.5.1",
+      "sha256": "f2c1d0c5aa531f135cc8f27e33918e7efe0b464ec06dbe6d4122945104562497",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "purplemonkey",
+      "name": "PurpleMonkey",
+      "version": "0.12",
+      "sha256": "322701e7dd9d9a5226aa0dd3793411807a395b3b46f3f951e24ffaf76f6aecbc",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "quartet",
+      "name": "Quartet",
+      "version": "1.1",
+      "sha256": "841c80f9f9dd91d8630d515c22aa831a72ee1b905d2e1a23b684741cf92b19dc",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "rainbow",
+      "name": "Rainbow Mode",
+      "version": "1.1.5-rb",
+      "sha256": "22156c96381ff78ffa6d265d1157562f1cc83d412cfebb1764ffd08290702430",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "ravel",
+      "name": "Ravel",
+      "version": "1.33.0",
+      "sha256": "d7f0c8402f45ca1821a594420ea977972ba439395dfc0d36503d75674ba3bc1f",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "remotefm1",
+      "name": "RemoteFM1",
+      "version": "0.3.6",
+      "sha256": "5c712b1402a31a33b2c3227f771a5603a0facf8162933e699c5d29f1c762017e",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "rhythmer",
+      "name": "Rhythmer",
+      "version": "0.1.1-beta3",
+      "sha256": "8b9d4af568135e76465ca73d20c9e544753babc1dcac60f7a0f76ebd6fa2feb1",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "rupture",
+      "name": "RUPTURE",
+      "version": "1.85.2",
+      "sha256": "c0de3025f84b0ba371fa6f7ca69b32bb0be9534daa404b4dcd89f28698ce6856",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "s1vave",
+      "name": "S1Vave",
+      "version": "1.12.3",
+      "sha256": "ed29867c640f482b0b77f008a59285d640db20f0f9154f1b6e9ddfdba3c8f828",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "salt",
+      "name": "Felucca [Salt]",
+      "version": "0.9-salt14",
+      "sha256": "efb516a7131d12eb5c008ff9af5a380d07e82eb1040bd03990f28d1233417e28",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "sardine",
+      "name": "Sardine",
+      "version": "1.0.6",
+      "sha256": "16c29ab754b1850e9c941262e103c5a1030da74a571507fbac59fefc8a27565b",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "scintilla",
+      "name": "Scintilla",
+      "version": "0.2.0",
+      "sha256": "cc80acf331161b69a705a65c9602f064c80cdb72fe37ff2399019773be42ecce",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "shineon",
+      "name": "Shine On",
+      "version": "3.0.1",
+      "sha256": "72070fba5d9c27b67ae8d62d663d41c9adf0992556ea3c36f1762eeccee5d835",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "sid1",
+      "name": "SID-1",
+      "version": "1.0.0",
+      "sha256": "4ee3dbe2079ea066e33a3843ec8e508e9eab191a500cad4944e00fd603683838",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "sidj",
+      "name": "SiDJ",
+      "version": "1.5.1",
+      "sha256": "4df5d3f1a7360b76974e13775ad15af376a1216e0c9318e8d5922dddf7b551a8",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "sidou",
+      "name": "SIDOU",
+      "version": "1.9.0",
+      "sha256": "f88bbead3178fcd3894a67f45d262d2009c812eb32e87ed3474711887390d445",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "sill",
+      "name": "Sill",
+      "version": "1.0.4-beeebd6",
+      "sha256": "e4ded606db54e7e0cdb0a45063e4f693444ad96d0e7923d02fec4aaef0d68cc3",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "skiff",
+      "name": "Skiff",
+      "version": "2.5.1",
+      "sha256": "4b7f99b3ff972a4115e5d63e5c5b3beea9f7ca14ac700c604db8a99a12b61dc6",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "sloop",
+      "name": "SLOOP",
+      "version": "2.8.5",
+      "sha256": "b0446effb840740a3aa5c386ce004e79334e4f833d48d82a9eb5edbfde92ae67",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "sloopbanks",
+      "name": "SLOOP DX7 Banks",
+      "version": "2.5-b28-test",
+      "sha256": "a54e9d815db8502565023b11977f83da2fa9bcbdf824ee64ec67d81d601e4cd3",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "sloopdx",
+      "name": "sloopDX",
+      "version": "4.0.1",
+      "sha256": "cebc88c0f996f338d4741502ec7f99d05ecb9c6de3715ab674401a14d6a255d7",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "smileyface",
+      "name": "Smileyface",
+      "version": "1.1.5",
+      "sha256": "455f175c70c71609f60aefabf4f32084951699a627dc7ecd2dfc3440a2083822",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "spampy",
+      "name": "SPAMPY",
+      "version": "1.0",
+      "sha256": "9bc240d1455e31a61d13d4b4a179d1bfdca24c3947144468e50b5b25d32e5a89",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "spellbox",
+      "name": "SPELLBOX",
+      "version": "0.3",
+      "sha256": "b4b3f5ca96c4f7f5971586e9ada95cc343d789a8d4b3761b832c39f0920a4c05",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "tastywaves",
+      "name": "TastyWaves",
+      "version": "1.0.1",
+      "sha256": "b94d8e4b118ced2aa78c31a19119f5e538f58165aa8d9146a473c57e58d9dcad",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "tessera",
+      "name": "Tessera",
+      "version": "3.4.1",
+      "sha256": "9e52600f98fbd553fd2ada66a424023c64e570f9f670c08a20e2db9dcedc9987",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "tonitor",
+      "name": "Tonitor",
+      "version": "2026.11.10",
+      "sha256": "c5d8838dc39505be4948f5ce4583c734bbec5130912e59f3a83d91ad73d26f79",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "tribe",
+      "name": "TRIBE",
+      "version": "0.3-beta",
+      "sha256": "daa953ea5c37a5612d6db6f508a86879a79214768acc79d6ae04f2e0b93b6f6b",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "tuna",
+      "name": "Tuna",
+      "version": "1.2-6f9a6dd",
+      "sha256": "1e3fdda10a00d50bb1df6dc181be7f0a9872f6caf3fa8aa75c4b85d0f3ac066d",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "unholy",
+      "name": "Unholy Union",
+      "version": "0.2.3",
+      "sha256": "025bec05d71da1b106ecb05d52e165ea6592812e92209cfe2626278047f7abba",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "vector37",
+      "name": "Vector37",
+      "version": "0.3.2",
+      "sha256": "4c9ff3c9ca0b874d98760497a4d80d7d4380aa3f187503f67e6fde6462a81a9a",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "veffbox",
+      "name": "Veffbox",
+      "version": "0.8.0",
+      "sha256": "29e2719593de2632c111836cf603b53223056f83de1c6034847e122ab82a8247",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "vesper",
+      "name": "VESPER",
+      "version": "2.0.2",
+      "sha256": "c6f40b9a832f069f43c7aa9cb6ef0211d8316c5f4ea870f7e18daa99946a45f3",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "vibe-link",
+      "name": "VIBE FM Link",
+      "version": "0.4",
+      "sha256": "c5eb6fc07ec601650cc08f4c57c50374bf70844a38495f59b508864283f26733",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "wanderer",
+      "name": "Wanderer",
+      "version": "1.4.0",
+      "sha256": "9135b62169409efb73a6492561673bb5465979563824605956ab3316c50d5b32",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "waveloop",
+      "name": "WaveLoop FM-1",
+      "version": "1.0.5.2-midi23",
+      "sha256": "e9529deb7ff626ee64b08fe06a550e39cd2a99c3cc1697bfcb65828f030cf22d",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "winampfm",
+      "name": "winampFM Synth",
+      "version": "0.12",
+      "sha256": "32a78b18132be64b83557886f9fc1c8c4419adb8932a2b8bc83bb5fb7e681b0b",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "x0x",
+      "name": "X0X",
+      "version": "1.2.1",
+      "sha256": "b0039140d54459d678e27b4101895018d3e127f16ee9e1f1e432459d772b3827",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "x0xrmx",
+      "name": "X0X-RMX",
+      "version": "1.1.0",
+      "sha256": "b343c135779c1de933d655236b14628103816036e170d65faed706aba620dcaa",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "xenolith",
+      "name": "XENOLITH",
+      "version": "1.0",
+      "sha256": "85079c89d3e7f53abdb1bc5017f9acd7a66de0f41dc0d581bd9a44ab1702641e",
+      "status": "works",
+      "origin": "hub"
+    },
+    {
+      "id": "xmod",
+      "name": "XMOD",
+      "version": "1.2.0",
+      "sha256": "e985c66c5e19cabc6ee6b102c3aba7fe5f663a312a4cceb5cb735ee5f5519697",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "zen",
+      "name": "ZEN-1",
+      "version": "1.2",
+      "sha256": "e3c51c045b1a763b6d16d2a7e783289ee874b25790e9010c0a5a084ddb65a125",
+      "status": "bricks",
+      "origin": "hub"
+    },
+    {
+      "id": "zp12",
+      "name": "zp12",
+      "version": "2.5",
+      "sha256": "fb1e6bfc01a74f145f93793fbeace8483888391be48f75aec7d423f05b6fac9d",
+      "status": "bricks",
+      "origin": "hub"
+    }
+  ]
+}

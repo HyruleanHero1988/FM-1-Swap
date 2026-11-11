@@ -83,8 +83,11 @@ fun flashCanProceed(
     backedUp: Boolean,
     autoBackup: Boolean,
     backupPending: Boolean = false,
+    newChipRisk: Boolean = false,
+    newChipUnderstood: Boolean = false,
 ): Boolean {
     if (checking || missingOfficial || backupPending) return false
+    if (newChipRisk && !newChipUnderstood) return false
     if (switching && !backedUp && !autoBackup) return false
     if (risky && !understood) return false
     return true

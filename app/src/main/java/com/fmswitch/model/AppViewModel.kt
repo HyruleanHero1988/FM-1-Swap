@@ -16,6 +16,7 @@ import androidx.lifecycle.viewModelScope
 import com.fmswitch.BuildConfig
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.MissingPackage
+import com.fmswitch.catalogue.NewChipSupport
 import com.fmswitch.catalogue.catalogueListUpdated
 import com.fmswitch.catalogue.missingFileAfterRefresh
 import com.fmswitch.catalogue.FirmwareKind
@@ -532,8 +533,27 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         tryLedger.note(sha, started)
     }
 
-    fun flash(steps: List<StoredFirmware>, confirmsSwitchingFirmware: Boolean, confirmsSameIdentity: Boolean) {
+    /** What is known of this saved package on a newer FM-1. Matched by checksum, so an imported copy of a listed file counts. */
+    fun newChipSupport(item: StoredFirmware): NewChipSupport = catalogue.newChipFor(item.sha256)
+
+    fun newChipGateFor(steps: List<StoredFirmware>): NewChipGate =
+        newChipGate(steps.map { it.name to newChipSupport(it) }, settings.unitGeneration)
+
+    fun setUnitGeneration(unit: UnitGeneration) {
+        settings.unitGeneration = unit
+        if (unit == UnitGeneration.NEWER) settings.firmwareKind = FirmwareKind.NEW_CHIP
+        listTick++
+    }
+
+    /** [acknowledgesNewChipRisk] is the user's explicit yes to flashing a package known to fail on newer FM-1s. */
+    fun flash(
+        steps: List<StoredFirmware>,
+        confirmsSwitchingFirmware: Boolean,
+        confirmsSameIdentity: Boolean,
+        acknowledgesNewChipRisk: Boolean = false,
+    ) {
         if (steps.isEmpty() || isWriting) return
+        if (!newChipFlashAllowed(newChipGateFor(steps), acknowledgesNewChipRisk)) return
         log = emptyList()
         lastBackup = null
         val autoBackup = identity?.supportsBaudGirlBackup == true || backupOffer.auto

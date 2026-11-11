@@ -33,6 +33,7 @@ import com.fmswitch.catalogue.SafetyNotice
 import com.fmswitch.model.AppIcon
 import com.fmswitch.model.AppViewModel
 import com.fmswitch.model.TransportKind
+import com.fmswitch.model.UnitGeneration
 import com.fmswitch.theme.LocalPhosphor
 import com.fmswitch.theme.MonoText
 import com.fmswitch.theme.NoteText
@@ -62,6 +63,28 @@ fun SettingsScreen(model: AppViewModel) {
             MonoText(SafetyNotice.TEXT, size = 14)
             Spacer(Modifier.height(8.dp))
             MonoText(SafetyNotice.RECOVERY, size = 14)
+        }
+        PixelPanel(title = "WHICH FM-1 DO YOU HAVE?") {
+            @Suppress("UNUSED_EXPRESSION")
+            model.listTick
+            UnitGenerationHelp()
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                UnitGeneration.entries.forEach { unit ->
+                    PixelButton(
+                        unit.label,
+                        compact = true,
+                        prominent = model.settings.unitGeneration == unit,
+                    ) { model.setUnitGeneration(unit) }
+                }
+            }
+            NoteText(
+                when (model.settings.unitGeneration) {
+                    UnitGeneration.UNSURE -> "Not sure is treated like newer: firmwares known to fail, or not tested, on newer FM-1s show a warning."
+                    UnitGeneration.NEWER -> "FIRMWARE opens on SAVES ON NEWER FM-1S, and a firmware known to fail can't be flashed until you accept the risk."
+                    UnitGeneration.OLDER -> "The newer-FM-1 warnings are hidden. Only pick this if you know your FM-1 has the first units' chip."
+                },
+            )
         }
         PixelPanel(title = "IF IT WON'T START AT ALL") {
             MonoText(SafetyNotice.ROM_RECOVERY, size = 14)

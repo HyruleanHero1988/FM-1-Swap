@@ -204,6 +204,8 @@ fun FlashConfirmSheet(
     var understood by remember(failed) { mutableStateOf(false) }
     val backupPending = model.backupOffer is BackupOffer.Checking ||
         (model.backupOffer is BackupOffer.Unknown && model.identity?.mightHaveEditorBackup == true)
+    val newChipGate = model.newChipGateFor(steps)
+    var newChipUnderstood by remember(newChipGate.bricking) { mutableStateOf(false) }
     val checking = probe is FlashProbe.Idle || probe is FlashProbe.Checking || backupPending
     androidx.compose.runtime.LaunchedEffect(stepKey, model.identity?.text) {
         val first = steps.firstOrNull()
@@ -239,6 +241,7 @@ fun FlashConfirmSheet(
             steps.forEachIndexed { index, step ->
                 MonoText("${index + 1}. ${step.name} ${step.version}", size = 17)
             }
+            NewChipFlashNotice(newChipGate, newChipUnderstood) { newChipUnderstood = it }
             if (missingOfficial) {
                 MonoText("This needs the official firmware first, and none is saved. Add it under SAVED.", size = 14)
             }
@@ -309,12 +312,15 @@ fun FlashConfirmSheet(
                         backedUp = backedUp,
                         autoBackup = autoBackup,
                         backupPending = backupPending,
+                        newChipRisk = newChipGate.needsAcknowledgement,
+                        newChipUnderstood = newChipUnderstood,
                     ),
                 ) {
                     model.flash(
                         steps,
                         confirmsSwitchingFirmware = switching && (backedUp || autoBackup),
                         confirmsSameIdentity = sameIdentity,
+                        acknowledgesNewChipRisk = newChipUnderstood,
                     )
                     onDismiss()
                 }

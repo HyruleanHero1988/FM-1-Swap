@@ -260,8 +260,8 @@
       </ul>
       <p class="lede">It plugs into an M-VAVE FM-1 with a USB cable. It is not affiliated with M-VAVE. Flashing custom firmware can leave the instrument unable to start.</p>
       <div class="actions">
-        <a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.6.2/FM-1-Swap.apk">Download 0.6.2</a>
-        <a class="ghost" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/tag/v0.6.2">0.6.2 release</a>
+        <a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest/download/FM-1-Swap.apk">Download 0.6.3</a>
+        <a class="ghost" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest">0.6.3 release</a>
       </div>
       <div class="video">
         <iframe
@@ -278,6 +278,7 @@
       <ul>
         <li><a href="#install">Install</a></li>
         <li><a href="#risks">Risks</a></li>
+        <li><a href="#newer">Newer FM-1s</a></li>
         <li><a href="#screens">Screens</a></li>
         <li><a href="#try">Hear it first</a></li>
         <li><a href="#flash">Flashing</a></li>
@@ -294,7 +295,7 @@
     <div class="wrap">
       <section id="install">
         <h2>Install</h2>
-        <p>The current release is 0.6.2. Download <span class="mono">FM-1-Swap.apk</span> from this GitHub release and install it on the phone. It replaces an earlier release of FM-1 Swap already there. The phone needs Android 8 or newer. A computer emulator will not see a USB FM-1.</p>
+        <p>The current release is 0.6.3. Download <span class="mono">FM-1-Swap.apk</span> from this GitHub release and install it on the phone. It replaces an earlier release of FM-1 Swap already there. The phone needs Android 8 or newer. A computer emulator will not see a USB FM-1.</p>
         <ol>
           <li>Download the APK on the phone, or copy it across.</li>
           <li>Open it and allow install from the browser or the files app when Android asks.</li>
@@ -312,10 +313,24 @@
             <li>Stay in the app, and leave the cable in, until it says it finished. An install takes about a minute. The screen stays awake.</li>
             <li>If the write is interrupted after the FM-1 has restarted into its update loader, leave it plugged in and press <span class="mono">RESUME</span> with the same firmware. It waits in that loader until a write finishes.</li>
             <li>If a firmware does not start on the virtual FM-1, the flash sheet shows a red warning. <span class="mono">CONTINUE</span> stays off until you check <span class="mono">I UNDERSTAND</span>. <span class="mono">SKIP CHECK</span> writes without waiting for that start check.</li>
+            <li>Newer FM-1s have a different flash chip, and some firmwares fail on it. See <a href="#newer">Newer FM-1s</a>. A firmware known to fail cannot be flashed until you check that you accept the risk.</li>
             <li>Official V15 and Felucca 1.6.1 have no USB recovery gesture. Holding OCT− while switching those on starts them normally.</li>
             <li>If the FM-1 will not start at all, this app cannot repair it. Recovery then needs a computer. See <a href="#recovery">Recovery</a>.</li>
           </ul>
         </div>
+      </section>
+
+      <section id="newer">
+        <h2>Newer FM-1s</h2>
+        <p>FM-1s sold since autumn 2026 have a different flash chip. The first units have a Puya, ID <span class="mono">0x856014</span>. Newer ones have a UC25HQ80, ID <span class="mono">0xB36014</span>. A firmware written for the first chip does not save on a newer FM-1: its saves are gone at power-off, and it often cannot take another update, which leaves the FM-1 stuck until it is recovered from a computer. Nothing is destroyed, because the chip's bootloader is in ROM.</p>
+        <ul>
+          <li>Every firmware is marked <span class="mono">SAVES ON NEWER FM-1S</span>, <span class="mono">FAILS ON NEWER FM-1S</span>, or <span class="mono">UNTESTED ON NEWER FM-1S</span>. Untested is the default, and a firmware is only marked as saving when a source confirms it.</li>
+          <li>The <span class="mono">SAVES ON NEWER FM-1S</span> chip under FIRMWARE shows only the confirmed ones.</li>
+          <li>A firmware known to fail shows a red warning, and <span class="mono">CONTINUE</span> stays off until you check that you accept the risk. An untested one shows a warning.</li>
+          <li>The marks come from <a href="https://thefirmwarehub.com">The Firmware Hub</a>, which reads the chip out of every package it lists (CC BY 4.0). <span class="mono">REFRESH</span> brings its latest. The list that ships with the app is older, so most of it shows as untested until you refresh.</li>
+        </ul>
+        <p><strong>Which FM-1 do you have?</strong> The app cannot read the chip. It is not reported over USB MIDI. M-Flasher, on a computer, shows the flash ID as soon as the FM-1 is in download mode: <span class="mono">0xB36014</span> is a newer unit. Another sign is saves vanishing at power-off, or a "save error", with a firmware that is not marked as saving on newer FM-1s while M-VAVE's V15 keeps them. A unit bought from autumn 2026 is likely newer, which is a hint and not proof. Under SETUP, <span class="mono">WHICH FM-1 DO YOU HAVE?</span> takes <span class="mono">NEWER</span>, <span class="mono">OLDER</span>, or <span class="mono">NOT SURE</span>. Not sure is the default and warns like newer. Older hides the warnings.</p>
+        <p>If one already got stuck, do not install again and again. The hub's <a href="https://thefirmwarehub.com/tools/rescue/">rescue page</a> has the steps. M-Flasher and MvaveFM1Unbricker take the newer chip.</p>
       </section>
 
       <section id="screens">
@@ -454,7 +469,7 @@
       <section id="record">
         <h2>What has been tried on a real FM-1</h2>
         <p>FM-1 Swap has been used to swap firmwares on a real FM-1, including SLOOP, Felucca Rainbow, and Clipper. Those swaps completed. One of them started on SLOOP 2.7.1, which reported <span class="mono">FM-1_900</span>. FM-1 Swap wrote Rainbow Mode 1.1.5-rb, and the FM-1 came back reporting <span class="mono">FM-1_911</span>.</p>
-        <p><a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.6.2/FM-1-Swap.apk">Download 0.6.2</a></p>
+        <p><a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest/download/FM-1-Swap.apk">Download 0.6.3</a></p>
       </section>
 
       <section id="credits">

@@ -178,3 +178,5 @@ Type in the app is Silkscreen (the [Silkscreen Project](https://github.com/googl
 - Aquanode banks: CC0, Aquanode, from aquanode-soundscapes
 - Fonts: SIL Open Font License
 - fm1-emu (compiled into `libfm1emu.so`): MIT, Joakim Eriksson
+
+Related: try FM-1 firmwares in the browser with the free community [FM-1 Emulator](https://fm1-emulator.atst.tools/).

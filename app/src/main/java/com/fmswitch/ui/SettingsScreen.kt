@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fmswitch.BuildConfig
 import com.fmswitch.catalogue.SafetyNotice
+import com.fmswitch.model.Appearance
 import com.fmswitch.model.AppIcon
 import com.fmswitch.model.AppViewModel
 import com.fmswitch.model.TransportKind
@@ -99,6 +100,21 @@ fun SettingsScreen(model: AppViewModel) {
             }
         }
         PixelPanel(title = "COLOUR + SCREEN") {
+            MonoText("APPEARANCE", size = 14)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Appearance.entries.forEach { mode ->
+                    PixelButton(
+                        mode.label,
+                        compact = true,
+                        prominent = model.settings.appearance == mode,
+                    ) {
+                        model.settings.appearance = mode
+                        model.bumpTheme()
+                    }
+                }
+            }
+            NoteText("SYSTEM follows the phone. LIGHT puts the phosphor on paper. DARK is the CRT look.")
+            Spacer(Modifier.height(8.dp))
             MonoText("APP ICON", size = 14)
             Spacer(Modifier.height(6.dp))
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -309,9 +309,10 @@ fun CRTOverlay() {
     )
     Canvas(Modifier.fillMaxSize()) {
         if (theme.scanlines) {
+            val line = Color.Black.copy(alpha = if (theme.light) 0.06f else 0.12f)
             var y = 0f
             while (y < size.height) {
-                drawRect(Color.Black.copy(alpha = 0.12f), topLeft = androidx.compose.ui.geometry.Offset(0f, y), size = androidx.compose.ui.geometry.Size(size.width, 1f))
+                drawRect(line, topLeft = androidx.compose.ui.geometry.Offset(0f, y), size = androidx.compose.ui.geometry.Size(size.width, 1f))
                 y += 3f
             }
         }

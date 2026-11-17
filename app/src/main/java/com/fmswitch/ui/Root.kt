@@ -24,14 +24,19 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.app.Activity
 import android.content.res.Configuration
+import androidx.core.view.WindowInsetsControllerCompat
 import com.fmswitch.catalogue.SafetyNotice
 import com.fmswitch.model.AppTab
 import com.fmswitch.model.AppViewModel
@@ -45,7 +50,18 @@ import com.fmswitch.theme.pixelText
 
 @Composable
 fun RootScreen(model: AppViewModel) {
-    val theme = model.theme
+    @Suppress("UNUSED_EXPRESSION")
+    model.themeTick
+    val dark = model.settings.appearance.resolvesDark(isSystemInDarkTheme())
+    val theme = model.theme(dark)
+    val view = LocalView.current
+    SideEffect {
+        val window = (view.context as? Activity)?.window ?: return@SideEffect
+        WindowInsetsControllerCompat(window, view).apply {
+            isAppearanceLightStatusBars = !dark
+            isAppearanceLightNavigationBars = !dark
+        }
+    }
     BackHandler(
         enabled = !model.needsSafetyNotice &&
             model.job == null &&

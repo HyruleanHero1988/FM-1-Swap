@@ -44,10 +44,31 @@ enum class TransportKind(val id: String, val label: String) {
     SIMULATED("simulated", "SIMULATED FM-1"),
 }
 
+/** Screen look: paper, CRT dark, or the phone's own light/dark setting. */
+enum class Appearance(val id: String, val label: String) {
+    LIGHT("light", "LIGHT"),
+    DARK("dark", "DARK"),
+    SYSTEM("system", "SYSTEM"),
+    ;
+
+    fun resolvesDark(systemDark: Boolean): Boolean = when (this) {
+        LIGHT -> false
+        DARK -> true
+        SYSTEM -> systemDark
+    }
+
+    companion object {
+        fun fromId(id: String?): Appearance = entries.firstOrNull { it.id.equals(id, ignoreCase = true) } ?: DARK
+    }
+}
+
 class AppSettings(private val prefs: SharedPreferences) {
     var phosphorHex: String
         get() = prefs.getString("phosphorHex", PhosphorPreset.Green.hex) ?: PhosphorPreset.Green.hex
         set(value) { prefs.edit().putString("phosphorHex", value).apply() }
+    var appearance: Appearance
+        get() = Appearance.fromId(prefs.getString("appearance", Appearance.DARK.id))
+        set(value) { prefs.edit().putString("appearance", value.id).apply() }
     /** Home-screen icon body colour. Independent of [phosphorHex]. */
     var appIcon: AppIcon
         get() {
@@ -137,13 +158,13 @@ class AppSettings(private val prefs: SharedPreferences) {
         get() = prefs.getInt("acknowledgedNoticeVersion", 0)
         set(value) { prefs.edit().putInt("acknowledgedNoticeVersion", value).apply() }
 
-    val theme: PhosphorTheme
-        get() = PhosphorTheme(
-            base = Color(phosphorHex) ?: PhosphorPreset.Green.colour,
-            glow = glow,
-            scanlines = scanlines,
-            flicker = flicker,
-        )
+    fun theme(dark: Boolean): PhosphorTheme = PhosphorTheme(
+        base = Color(phosphorHex) ?: PhosphorPreset.Green.colour,
+        glow = glow,
+        scanlines = scanlines,
+        flicker = flicker,
+        light = !dark,
+    )
 
     fun resetLook() {
         phosphorHex = PhosphorPreset.Green.hex

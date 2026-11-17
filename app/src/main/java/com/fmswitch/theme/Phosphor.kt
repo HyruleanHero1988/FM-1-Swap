@@ -18,15 +18,43 @@ data class PhosphorTheme(
     val glow: Float,
     val scanlines: Boolean,
     val flicker: Boolean,
+    /** Paper-bright CRT desk instead of the dark tube. Accent colours stay phosphor. */
+    val light: Boolean = false,
 ) {
-    val bright: Color get() = base
-    val dim: Color get() = base.copy(alpha = 0.5f)
-    val faint: Color get() = base.copy(alpha = 0.2f)
-    val ink: Color get() = Color(0xFFECE8DF).mix(base, 0.08f)
-    val muted: Color get() = Color(0xFF8D918B).mix(base, 0.10f)
-    val background: Color get() = Color(0xFF0C0E0D).mix(base, 0.03f)
-    val surface: Color get() = Color(0xFF151917).mix(base, 0.05f)
-    val shadow: Color get() = Color.Black.copy(alpha = 0.55f)
+    /** UI accent. Slightly deepened in light mode so Green/Ice/Paper stay readable on paper. */
+    val bright: Color get() = if (light) base.mix(Color(0xFF1A221C), 0.38f) else base
+    val dim: Color get() = bright.copy(alpha = 0.5f)
+    val faint: Color get() = bright.copy(alpha = 0.2f)
+    val ink: Color
+        get() = if (light) {
+            Color(0xFF1A1C1A).mix(base, 0.10f)
+        } else {
+            Color(0xFFECE8DF).mix(base, 0.08f)
+        }
+    val muted: Color
+        get() = if (light) {
+            Color(0xFF5E645E).mix(base, 0.12f)
+        } else {
+            Color(0xFF8D918B).mix(base, 0.10f)
+        }
+    val background: Color
+        get() = if (light) {
+            Color(0xFFF3F0E6).mix(base, 0.04f)
+        } else {
+            Color(0xFF0C0E0D).mix(base, 0.03f)
+        }
+    val surface: Color
+        get() = if (light) {
+            Color(0xFFE7E3D6).mix(base, 0.06f)
+        } else {
+            Color(0xFF151917).mix(base, 0.05f)
+        }
+    val shadow: Color
+        get() = if (light) {
+            Color(0xFF1A1C1A).copy(alpha = 0.20f)
+        } else {
+            Color.Black.copy(alpha = 0.55f)
+        }
 
     companion object {
         val Standard = PhosphorTheme(PhosphorPreset.Green.colour, 0.25f, scanlines = false, flicker = false)

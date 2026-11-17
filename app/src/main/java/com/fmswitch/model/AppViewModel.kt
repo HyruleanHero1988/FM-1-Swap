@@ -278,7 +278,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (key == PREF_INSTALL_STATUS) mainHandler.post { noteReturnedFromUpdate() }
     }
 
-    val theme: PhosphorTheme get() = settings.theme.also { themeTick }
+    fun theme(dark: Boolean): PhosphorTheme = settings.theme(dark).also { themeTick }
     val isWriting: Boolean get() = job?.phase?.isRunning == true || voiceRestore.isRunning || backupRestore.isRunning
     val needsSafetyNotice: Boolean get() = settings.acknowledgedNoticeVersion < SafetyNotice.VERSION
 

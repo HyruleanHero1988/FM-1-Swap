@@ -4,6 +4,12 @@ Install that file from this release and nowhere else. If Android refuses the ins
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
+## New in 0.6.4
+
+**Appearance.** SETUP has **LIGHT**, **DARK**, and **SYSTEM**. Light puts the phosphor colours on paper. Dark is the CRT look. System follows the phone.
+
+A phone already on 0.6.3 shows this release under the top bar. **UPDATE** downloads it.
+
 ## New in 0.6.3
 
 **Newer FM-1s.** FM-1s sold since autumn 2026 have a different flash chip (UC25HQ80, ID `0xB36014`). Most firmwares were written for the first units' chip. On a newer FM-1 such a firmware does not keep your saves, and it often can't take another update, which leaves the FM-1 stuck until you recover it from a computer. Nobody has been able to test every firmware on a newer unit, so FIRMWARE now says what is known:

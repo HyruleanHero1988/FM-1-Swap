@@ -10,6 +10,10 @@ import android.media.AudioManager
 import android.os.PowerManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -24,6 +28,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -41,6 +46,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.FullscreenExit
+import androidx.compose.material3.Icon
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -65,6 +74,7 @@ import com.fmswitch.model.EmulatorPackage
 import com.fmswitch.model.StoredFirmware
 import com.fmswitch.theme.LocalPhosphor
 import com.fmswitch.theme.MonoText
+import com.fmswitch.theme.PixelBox
 import com.fmswitch.theme.PixelButton
 import com.fmswitch.theme.pixelText
 import kotlinx.coroutines.Dispatchers
@@ -95,6 +105,7 @@ fun EmulatorScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    var fullScreen by remember(entry.id) { mutableStateOf(false) }
     var saveError by remember(entry.id) { mutableStateOf<String?>(null) }
     var mhz by remember(entry.id, chooseClock) {
         mutableIntStateOf(EmulatorClock.get(context, entry, chooseClock))
@@ -109,7 +120,9 @@ fun EmulatorScreen(
             onSave().onFailure { saveError = it.message }
         }
     }
-    BackHandler(onBack = onBack)
+    BackHandler {
+        if (fullScreen) fullScreen = false else onBack()
+    }
     DisposableEffect(Unit) {
         val activity = context as? Activity
         val previous = activity?.requestedOrientation
@@ -144,7 +157,7 @@ fun EmulatorScreen(
         RunningSlot(
             prepared = it,
             mhz = mhz,
-            expand = landscape,
+            expand = landscape || fullScreen,
             phosphorPanel = phosphorPanel,
             chooseClock = chooseClock,
             runInBackground = runInBackground,
@@ -157,13 +170,20 @@ fun EmulatorScreen(
         )
     }
 
-    if (landscape) {
+    if (landscape || fullScreen) {
         HideSystemBars()
+    }
+
+    if (landscape) {
         // The panel keeps the FM-1's shape and sits against the far edge. Every other
         // control is clipped to the leftover strip, so it cannot land on the knobs or the screen.
         BoxWithConstraints(Modifier.fillMaxSize().background(theme.background)) {
             // 88dp holds BACK in the pixel font, plus the button's own padding.
-            val fit = EmulatorFrame.fit(maxWidth.value, maxHeight.value, minChrome = 88f)
+            val fit = EmulatorFrame.fit(
+                maxWidth.value,
+                maxHeight.value,
+                minChrome = if (fullScreen) 0f else EmulatorScreenLandscapeChrome,
+            )
             val panel = EmulatorFrame.panelRect(maxWidth.value, maxHeight.value, fit)
             val chrome = EmulatorFrame.chromeRect(maxWidth.value, maxHeight.value, fit)
             Box(
@@ -189,36 +209,84 @@ fun EmulatorScreen(
                     is EmulatorPackage.Ready -> slot?.let { running(it) }
                 }
             }
-            Column(
-                Modifier
-                    .offset(chrome.x.dp, chrome.y.dp)
-                    .width(chrome.width.dp)
-                    .height(chrome.height.dp)
-                    .clipToBounds()
-                    .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.displayCutout))
-                    .verticalScroll(rememberScrollState())
-                    .padding(4.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                // ‹ is in the pixel font. The other arrow is not, and a fallback glyph
-                // was wide enough to push BACK out of this strip.
-                PixelButton("‹ BACK", compact = true, wrap = true, modifier = Modifier.fillMaxWidth(), onClick = onBack)
-                if (canSave) {
-                    PixelButton(
-                        if (saving) "SAVING" else "SAVE",
-                        compact = true,
-                        wrap = true,
-                        enabled = !saving,
+            if (fullScreen) {
+                FullscreenToggleButton(
+                    fullScreen = true,
+                    onToggle = { fullScreen = false },
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.displayCutout))
+                        .padding(8.dp),
+                )
+            } else {
+                Column(
+                    Modifier
+                        .offset(chrome.x.dp, chrome.y.dp)
+                        .width(chrome.width.dp)
+                        .height(chrome.height.dp)
+                        .clipToBounds()
+                        .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.displayCutout))
+                        .verticalScroll(rememberScrollState())
+                        .padding(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    // ‹ is in the pixel font. The other arrow is not, and a fallback glyph
+                    // was wide enough to push BACK out of this strip.
+                    PixelButton("‹ BACK", compact = true, wrap = true, modifier = Modifier.fillMaxWidth(), onClick = onBack)
+                    FullscreenToggleButton(
+                        fullScreen = false,
+                        onToggle = { fullScreen = true },
                         modifier = Modifier.fillMaxWidth(),
-                        onClick = ::keep,
+                        showLabel = true,
                     )
+                    if (canSave) {
+                        PixelButton(
+                            if (saving) "SAVING" else "SAVE",
+                            compact = true,
+                            wrap = true,
+                            enabled = !saving,
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = ::keep,
+                        )
+                    }
+                    saveError?.let { MonoText(it, size = 11) }
+                    BasicText(entry.name.uppercase(), style = pixelText(13.sp, bold = true, color = theme.bright, glow = true))
+                    if (chooseClock && prepared is EmulatorPackage.Ready) ClockRow(mhz, ::clock, narrow = true)
+                    if (liveStatus.isNotEmpty()) MonoText(liveStatus, size = 11, dim = true)
+                    MonoText(midiLine.ifEmpty { "USB KEYBOARD" }, size = 11, dim = midiLine.isEmpty(), maxLines = 3)
                 }
-                saveError?.let { MonoText(it, size = 11) }
-                BasicText(entry.name.uppercase(), style = pixelText(13.sp, bold = true, color = theme.bright, glow = true))
-                if (chooseClock && prepared is EmulatorPackage.Ready) ClockRow(mhz, ::clock, narrow = true)
-                if (liveStatus.isNotEmpty()) MonoText(liveStatus, size = 11, dim = true)
-                MonoText(midiLine.ifEmpty { "USB KEYBOARD" }, size = 11, dim = midiLine.isEmpty(), maxLines = 3)
             }
+        }
+    } else if (fullScreen) {
+        BoxWithConstraints(Modifier.fillMaxSize().background(theme.background)) {
+            val fit = EmulatorFrame.fit(maxWidth.value, maxHeight.value)
+            val panel = EmulatorFrame.panelRect(maxWidth.value, maxHeight.value, fit)
+            Box(
+                Modifier
+                    .offset(panel.x.dp, panel.y.dp)
+                    .width(panel.width.dp)
+                    .height(panel.height.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                when (prepared) {
+                    EmulatorPackage.Preparing -> MonoText("GETTING THIS FIRMWARE…", size = 13, dim = true, modifier = Modifier.padding(24.dp))
+                    is EmulatorPackage.Failed -> FirmwareFetchFailed(
+                        prepared,
+                        refreshing = refreshing,
+                        onRetry = onRetry,
+                        onRefresh = onRefresh,
+                    )
+                    is EmulatorPackage.Ready -> slot?.let { running(it) }
+                }
+            }
+            FullscreenToggleButton(
+                fullScreen = true,
+                onToggle = { fullScreen = false },
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.displayCutout))
+                    .padding(8.dp),
+            )
         }
     } else {
         Column(
@@ -230,6 +298,7 @@ fun EmulatorScreen(
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 PixelButton("◂ BACK", compact = true, onClick = onBack)
+                FullscreenToggleButton(fullScreen = false, onToggle = { fullScreen = true })
                 if (canSave) {
                     PixelButton(if (saving) "SAVING" else "SAVE", compact = true, enabled = !saving, onClick = ::keep)
                 }
@@ -280,7 +349,59 @@ private fun FirmwareFetchFailed(
     }
 }
 
-/** Sideways TRY hides the status and navigation bars. Turning upright, or leaving TRY, brings them back. A swipe from the screen edge shows them for a moment. */
+/** Room for BACK and FULL in the landscape chrome strip, in dp-equivalent layout units. */
+internal const val EmulatorScreenLandscapeChrome = 88f
+
+/**
+ * Enter or leave TRY full-screen mode. Uses the standard expand/exit arrows; [showLabel] adds
+ * FULL beside the icon when the chrome strip is wide enough.
+ */
+@Composable
+private fun FullscreenToggleButton(
+    fullScreen: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+    showLabel: Boolean = false,
+) {
+    val theme = LocalPhosphor.current
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val depth = 2.dp
+    val edge = theme.bright
+    val imageVector = if (fullScreen) Icons.Filled.FullscreenExit else Icons.Filled.Fullscreen
+    val description = if (fullScreen) "Exit full screen" else "Full screen"
+    Box(
+        modifier
+            .padding(bottom = depth, end = depth)
+            .clickable(interactionSource = interaction, indication = null, onClick = onToggle),
+    ) {
+        Box(
+            Modifier
+                .matchParentSize()
+                .offset(depth, depth)
+                .background(theme.shadow, PixelBox(2.dp)),
+        )
+        Row(
+            Modifier
+                .offset(if (pressed) depth else 0.dp, if (pressed) depth else 0.dp)
+                .background(theme.surface, PixelBox(2.dp))
+                .border(2.dp, edge, PixelBox(2.dp))
+                .padding(horizontal = if (showLabel) 8.dp else 6.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(imageVector, contentDescription = description, tint = edge, modifier = Modifier.size(22.dp))
+            if (showLabel) {
+                BasicText(
+                    if (fullScreen) "EXIT" else "FULL",
+                    style = pixelText(10.sp, bold = true, color = edge),
+                )
+            }
+        }
+    }
+}
+
+/** Sideways TRY and portrait full-screen hide the status and navigation bars. Turning upright, leaving TRY, or leaving full-screen brings them back. A swipe from the screen edge shows them for a moment. */
 @Composable
 private fun HideSystemBars() {
     val view = LocalView.current

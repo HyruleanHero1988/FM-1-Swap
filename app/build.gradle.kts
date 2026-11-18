@@ -161,4 +161,4 @@ fun resolvedVersionCode(): Int {
 }
 
 fun resolvedVersionName(): String =
-    System.getenv("VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "0.6.4"
+    System.getenv("VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "0.6.5"

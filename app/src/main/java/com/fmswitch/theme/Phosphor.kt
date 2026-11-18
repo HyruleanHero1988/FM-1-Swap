@@ -56,6 +56,12 @@ data class PhosphorTheme(
             Color.Black.copy(alpha = 0.55f)
         }
 
+    /** Halo and body outlines on the TRY phosphor panel. */
+    val panelTrace: Color get() = if (light) muted else base
+
+    /** Hot core on traced lines, knobs, and labels on the TRY panel. */
+    val panelCore: Color get() = if (light) ink else base.mix(Color.White, 0.45f)
+
     companion object {
         val Standard = PhosphorTheme(PhosphorPreset.Green.colour, 0.25f, scanlines = false, flicker = false)
     }

@@ -31,6 +31,21 @@ class EmulatorFrameTest {
     }
 
     @Test
+    fun wideLandscapeTryShrinksTheSideStripAndWidensThePanel() {
+        val normal = EmulatorFrame.fit(800f, 400f, minChrome = EmulatorFrame.LANDSCAPE_CHROME_MIN)
+        val wide = EmulatorFrame.fit(
+            800f,
+            400f,
+            maxChrome = EmulatorFrame.LANDSCAPE_CHROME_NARROW,
+        )
+        assertTrue(wide.panelWidth > normal.panelWidth)
+        assertEquals(EmulatorFrame.LANDSCAPE_CHROME_NARROW, wide.side, 0.01f)
+        val panel = EmulatorFrame.panelRect(800f, 400f, wide)
+        val chrome = EmulatorFrame.chromeRect(800f, 400f, wide)
+        assertFalse(chrome.intersects(panel))
+    }
+
+    @Test
     fun aNarrowGapGrowsUntilALabelFits() {
         val tight = EmulatorFrame.fit(1280f, 820f, minChrome = 100f)
         assertTrue(tight.side >= 100f)
@@ -54,8 +69,12 @@ class EmulatorFrameTest {
             10f to 0f,
         )
         for ((width, height) in spaces) {
-            for (minChrome in listOf(0f, 80f)) {
-                val fit = EmulatorFrame.fit(width, height, minChrome)
+            for ((minChrome, maxChrome) in listOf(
+                0f to Float.MAX_VALUE,
+                80f to Float.MAX_VALUE,
+                0f to EmulatorFrame.LANDSCAPE_CHROME_NARROW,
+            )) {
+                val fit = EmulatorFrame.fit(width, height, minChrome, maxChrome)
                 val panel = EmulatorFrame.panelRect(width, height, fit)
                 val chrome = EmulatorFrame.chromeRect(width, height, fit)
                 assertFalse(

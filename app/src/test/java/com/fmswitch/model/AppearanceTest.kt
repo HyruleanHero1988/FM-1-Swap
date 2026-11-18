@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import com.fmswitch.theme.PhosphorPreset
 import com.fmswitch.theme.PhosphorTheme
+import com.fmswitch.theme.mix
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -37,5 +38,15 @@ class AppearanceTest {
         assertTrue(light.ink.luminance() < light.background.luminance())
         assertTrue(light.bright.luminance() < PhosphorPreset.Green.colour.luminance())
         assertEquals(Color(0xFF0C0E0D).red, dark.background.red, 0.05f)
+    }
+
+    @Test
+    fun lightPanelTraceStandsOutOnThePaperBackground() {
+        val light = PhosphorTheme(PhosphorPreset.Green.colour, 0.25f, scanlines = false, flicker = false, light = true)
+        val dark = PhosphorTheme(PhosphorPreset.Green.colour, 0.25f, scanlines = false, flicker = false, light = false)
+        assertTrue(light.panelTrace.luminance() + 0.08f < light.background.luminance())
+        assertTrue(light.panelCore.luminance() + 0.15f < light.background.luminance())
+        assertEquals(dark.base, dark.panelTrace)
+        assertEquals(dark.base.mix(Color.White, 0.45f).red, dark.panelCore.red, 0.02f)
     }
 }

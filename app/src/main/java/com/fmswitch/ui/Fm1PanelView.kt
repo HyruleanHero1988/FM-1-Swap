@@ -105,8 +105,11 @@ fun Fm1PanelView(
     var shownRevision by remember { mutableLongStateOf(-1L) }
     val heat = remember { FloatArray(MATRIX_IDS) }
     val sweep = remember { FloatArray(Fm1Panel.encoders.size + 1) }
-    val beam = remember(phosphor, glow) { phosphor?.let { Beam(it, glow) } }
-    val page = LocalPhosphor.current.background
+    val theme = LocalPhosphor.current
+    val beam = remember(phosphor, glow, theme.light, theme.panelTrace, theme.panelCore) {
+        phosphor?.let { Beam(theme.panelTrace, theme.panelCore, glow, theme.light) }
+    }
+    val page = theme.background
 
     fun knobAngle(i: Int): Float =
         if (i == Fm1Panel.encoders.size) potAngle(pot.toInt()) else (clicks[i] ?: 0) * CLICK_DEGREES * DEG
@@ -345,36 +348,49 @@ private fun DrawScope.knob(cx: Float, cy: Float, r: Float, angle: Float) {
 private val Halo = listOf(16f to 0.045f, 9f to 0.09f, 4.5f to 0.2f)
 private const val CORE = 1.8f
 
-private class Beam(val colour: Color, glow: Float) {
-    val halo = 0.6f + glow.coerceIn(0f, 1f) * 1.6f
-    val hot = colour.mix(Color.White, 0.45f)
+private class Beam(
+    val colour: Color,
+    val hot: Color,
+    glow: Float,
+    light: Boolean,
+) {
+    val halo = if (light) {
+        0.35f + glow.coerceIn(0f, 1f) * 0.5f
+    } else {
+        0.6f + glow.coerceIn(0f, 1f) * 1.6f
+    }
+    val bloom = !light
 }
+
+private fun DrawScope.beamBlend(b: Beam): BlendMode = if (b.bloom) BlendMode.Plus else BlendMode.SrcOver
 
 /** One traced line: soft halo passes added under a hot core, as a scope's phosphor blooms. */
 private inline fun DrawScope.beam(b: Beam, level: Float, stroke: DrawScope.(Color, Float) -> Unit) {
     val l = level.coerceIn(0f, 1f)
+    val coreAlpha = if (b.bloom) l else (0.55f + 0.45f * l).coerceIn(0f, 1f)
     for ((width, alpha) in Halo) stroke(b.colour.copy(alpha = (alpha * b.halo * l).coerceIn(0f, 1f)), width)
-    stroke(b.hot.copy(alpha = l), CORE)
+    stroke(b.hot.copy(alpha = coreAlpha), CORE)
 }
 
 private fun DrawScope.beamRect(b: Beam, level: Float, x: Float, y: Float, w: Float, h: Float, r: Float) =
     beam(b, level) { c, width ->
-        drawRoundRect(c, Offset(x, y), Size(w, h), CornerRadius(r), style = Stroke(width), blendMode = BlendMode.Plus)
+        drawRoundRect(c, Offset(x, y), Size(w, h), CornerRadius(r), style = Stroke(width), blendMode = beamBlend(b))
     }
 
 private fun DrawScope.beamLine(b: Beam, level: Float, from: Offset, to: Offset) =
     beam(b, level) { c, width ->
-        drawLine(c, from, to, strokeWidth = width, cap = StrokeCap.Round, blendMode = BlendMode.Plus)
+        drawLine(c, from, to, strokeWidth = width, cap = StrokeCap.Round, blendMode = beamBlend(b))
     }
 
 private fun DrawScope.beamCircle(b: Beam, level: Float, cx: Float, cy: Float, r: Float) =
     beam(b, level) { c, width ->
-        drawCircle(c, r, Offset(cx, cy), style = Stroke(width), blendMode = BlendMode.Plus)
+        drawCircle(c, r, Offset(cx, cy), style = Stroke(width), blendMode = beamBlend(b))
     }
 
 private fun DrawScope.phosphorFill(b: Beam, heat: Float, x: Float, y: Float, w: Float, h: Float, r: Float) {
     if (heat < 0.01f) return
-    drawRoundRect(b.colour.copy(alpha = 0.3f * heat), Offset(x, y), Size(w, h), CornerRadius(r), blendMode = BlendMode.Plus)
+    val alpha = if (b.bloom) 0.3f * heat else 0.18f * heat
+    drawRoundRect(b.colour.copy(alpha = alpha), Offset(x, y), Size(w, h), CornerRadius(r), blendMode = beamBlend(b))
 }
 
 private fun DrawScope.drawPhosphorPanel(
@@ -422,7 +438,7 @@ private fun DrawScope.drawPhosphorPanel(
                 useCenter = true,
                 topLeft = Offset(k.cx - r, k.cy - r),
                 size = Size(r * 2, r * 2),
-                blendMode = BlendMode.Plus,
+                blendMode = beamBlend(b),
             )
         }
         beamLine(

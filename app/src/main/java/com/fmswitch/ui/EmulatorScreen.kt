@@ -90,6 +90,7 @@ fun EmulatorScreen(
     midiSkipKey: String,
     midiSkipIds: () -> Set<Int>,
     bank: ByteArray? = null,
+    wideLandscapeTry: Boolean = false,
 ) {
     val theme = LocalPhosphor.current
     val context = LocalContext.current
@@ -162,8 +163,12 @@ fun EmulatorScreen(
         // The panel keeps the FM-1's shape and sits against the far edge. Every other
         // control is clipped to the leftover strip, so it cannot land on the knobs or the screen.
         BoxWithConstraints(Modifier.fillMaxSize().background(theme.background)) {
-            // 88dp holds BACK in the pixel font, plus the button's own padding.
-            val fit = EmulatorFrame.fit(maxWidth.value, maxHeight.value, minChrome = 88f)
+            val fit = EmulatorFrame.fit(
+                maxWidth.value,
+                maxHeight.value,
+                minChrome = if (wideLandscapeTry) 0f else EmulatorFrame.LANDSCAPE_CHROME_MIN,
+                maxChrome = if (wideLandscapeTry) EmulatorFrame.LANDSCAPE_CHROME_NARROW else Float.MAX_VALUE,
+            )
             val panel = EmulatorFrame.panelRect(maxWidth.value, maxHeight.value, fit)
             val chrome = EmulatorFrame.chromeRect(maxWidth.value, maxHeight.value, fit)
             Box(
@@ -200,9 +205,15 @@ fun EmulatorScreen(
                     .padding(4.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                // ‹ is in the pixel font. The other arrow is not, and a fallback glyph
-                // was wide enough to push BACK out of this strip.
-                PixelButton("‹ BACK", compact = true, wrap = true, modifier = Modifier.fillMaxWidth(), onClick = onBack)
+                // ‹ is in the pixel font. Wide landscape TRY keeps only that glyph; the system back
+                // gesture and BackHandler still leave TRY.
+                PixelButton(
+                    if (wideLandscapeTry) "‹" else "‹ BACK",
+                    compact = true,
+                    wrap = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onBack,
+                )
                 if (canSave) {
                     PixelButton(
                         if (saving) "SAVING" else "SAVE",

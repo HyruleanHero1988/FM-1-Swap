@@ -8,9 +8,16 @@ package com.fmswitch.emu
  * the other edge), or the top when the space is taller than the panel. That
  * strip shares an edge with the panel and does not cross it. [minChrome] on
  * [fit] widens the strip, shrinking the panel, when the natural gap is too
- * narrow for a label.
+ * narrow for a label. [maxChrome] shrinks the strip and widens the panel when
+ * the natural gap is wider (SETUP ▸ WIDE LANDSCAPE TRY).
  */
 object EmulatorFrame {
+    /** Sideways TRY reserves at least this much start margin for BACK and the other chrome. */
+    const val LANDSCAPE_CHROME_MIN = 88f
+
+    /** With wide landscape TRY on, chrome is capped here so the virtual panel can grow. */
+    const val LANDSCAPE_CHROME_NARROW = 56f
+
     data class Fit(
         val panelWidth: Float,
         val panelHeight: Float,
@@ -30,7 +37,12 @@ object EmulatorFrame {
         }
     }
 
-    fun fit(spaceWidth: Float, spaceHeight: Float, minChrome: Float = 0f): Fit {
+    fun fit(
+        spaceWidth: Float,
+        spaceHeight: Float,
+        minChrome: Float = 0f,
+        maxChrome: Float = Float.MAX_VALUE,
+    ): Fit {
         if (spaceWidth <= 0f || spaceHeight <= 0f) return Fit(0f, 0f, 0f, 0f)
         val aspect = Fm1Panel.W / Fm1Panel.H
         val widthAtFullHeight = spaceHeight * aspect
@@ -47,8 +59,10 @@ object EmulatorFrame {
         val verticalLeftover = (spaceHeight - panelHeight).coerceAtLeast(0f)
         // Equal leftovers (including none) keep the controls beside the panel.
         if (horizontalLeftover >= verticalLeftover) {
-            val chrome = horizontalLeftover.coerceAtLeast(minChrome).coerceAtMost(spaceWidth)
-            if (chrome > horizontalLeftover) {
+            var chrome = horizontalLeftover
+            if (chrome < minChrome) chrome = minChrome.coerceAtMost(spaceWidth)
+            if (chrome > maxChrome) chrome = maxChrome.coerceAtMost(spaceWidth)
+            if (chrome != horizontalLeftover) {
                 panelWidth = (spaceWidth - chrome).coerceAtLeast(0f)
                 panelHeight = (panelWidth / aspect).coerceAtMost(spaceHeight)
             }
@@ -59,8 +73,10 @@ object EmulatorFrame {
                 bar = 0f,
             )
         }
-        val chrome = verticalLeftover.coerceAtLeast(minChrome).coerceAtMost(spaceHeight)
-        if (chrome > verticalLeftover) {
+        var chrome = verticalLeftover
+        if (chrome < minChrome) chrome = minChrome.coerceAtMost(spaceHeight)
+        if (chrome > maxChrome) chrome = maxChrome.coerceAtMost(spaceHeight)
+        if (chrome != verticalLeftover) {
             panelHeight = (spaceHeight - chrome).coerceAtLeast(0f)
             panelWidth = (panelHeight * aspect).coerceAtMost(spaceWidth)
         }

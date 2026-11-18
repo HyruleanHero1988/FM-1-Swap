@@ -189,6 +189,11 @@ fun SettingsScreen(model: AppViewModel) {
                 model.bumpTheme()
             }
             NoteText("Off, TRY stops when you switch away or the screen turns off. On, it keeps sounding until you leave TRY. Leaving TRY always stops it. Turning the phone does not: the panel changes shape and the firmware keeps running.")
+            PixelToggle("WIDE LANDSCAPE TRY", model.settings.wideLandscapeTry) {
+                model.settings.wideLandscapeTry = it
+                model.bumpTheme()
+            }
+            NoteText("Off, sideways TRY keeps the usual control column on the left. On, that column is narrow so the virtual FM-1 is wider and its buttons are easier to press. Use ‹ in that column, the system back gesture, or the system back button to leave.")
         }
         PixelPanel(title = "CONNECTION") {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

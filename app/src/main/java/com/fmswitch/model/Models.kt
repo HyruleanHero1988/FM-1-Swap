@@ -117,6 +117,10 @@ class AppSettings(private val prefs: SharedPreferences) {
     var backgroundEmulator: Boolean
         get() = prefs.getBoolean("backgroundEmulator", false)
         set(value) { prefs.edit().putBoolean("backgroundEmulator", value).apply() }
+    /** Off, sideways TRY keeps a full control column beside the panel. On, that column is narrow so the panel is wider. */
+    var wideLandscapeTry: Boolean
+        get() = prefs.getBoolean("wideLandscapeTry", false)
+        set(value) { prefs.edit().putBoolean("wideLandscapeTry", value).apply() }
     /** Catalogue ids the user has favorited. First in this list sits highest. */
     var curation: List<String>
         get() = prefs.getString("curation", null).orEmpty().lineSequence().filter { it.isNotBlank() }.toList()

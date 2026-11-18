@@ -12,7 +12,7 @@ object CurationSeed {
     val IDS = listOf(
         "fm1-editor-baud-girl",
         "sloop",
-        "fm1-editor-clipper",
+        "clipper",
         "hyp1",
         "felucca",
         "rainbow",

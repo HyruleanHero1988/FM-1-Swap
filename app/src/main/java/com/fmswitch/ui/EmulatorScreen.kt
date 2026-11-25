@@ -89,6 +89,8 @@ fun EmulatorScreen(
     phosphorPanel: Boolean,
     chooseClock: Boolean,
     runInBackground: Boolean,
+    /** When true, TRY opens already in full screen (SETUP ▸ OPEN TRY FULL SCREEN). */
+    openFullScreen: Boolean = false,
     canSave: Boolean,
     saving: Boolean,
     onSave: suspend () -> Result<StoredFirmware>,
@@ -105,7 +107,7 @@ fun EmulatorScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    var fullScreen by remember(entry.id) { mutableStateOf(false) }
+    var fullScreen by remember(entry.id, openFullScreen) { mutableStateOf(openFullScreen) }
     var saveError by remember(entry.id) { mutableStateOf<String?>(null) }
     var mhz by remember(entry.id, chooseClock) {
         mutableIntStateOf(EmulatorClock.get(context, entry, chooseClock))

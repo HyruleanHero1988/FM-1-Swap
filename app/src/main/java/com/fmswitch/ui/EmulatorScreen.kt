@@ -109,6 +109,8 @@ fun EmulatorScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    // Stretch only sideways — portrait (including FULL) keeps FM-1 proportions.
+    val stretchNow = stretchPanel && landscape
     var fullScreen by remember(entry.id, openFullScreen) { mutableStateOf(openFullScreen) }
     var saveError by remember(entry.id) { mutableStateOf<String?>(null) }
     var mhz by remember(entry.id, chooseClock) {
@@ -166,7 +168,7 @@ fun EmulatorScreen(
             phosphorPanel = phosphorPanel,
             chooseClock = chooseClock,
             runInBackground = runInBackground,
-            stretchPanel = stretchPanel,
+            stretchPanel = stretchNow,
             onStatus = reportStatus,
             onTry = onTry,
             onMidi = reportMidi,
@@ -189,7 +191,7 @@ fun EmulatorScreen(
                 maxWidth.value,
                 maxHeight.value,
                 minChrome = if (fullScreen) 0f else EmulatorScreenLandscapeChrome,
-                stretch = stretchPanel,
+                stretch = stretchNow,
             )
             val panel = EmulatorFrame.panelRect(maxWidth.value, maxHeight.value, fit)
             val chrome = EmulatorFrame.chromeRect(maxWidth.value, maxHeight.value, fit)
@@ -266,7 +268,7 @@ fun EmulatorScreen(
         }
     } else if (fullScreen) {
         BoxWithConstraints(Modifier.fillMaxSize().background(theme.background)) {
-            val fit = EmulatorFrame.fit(maxWidth.value, maxHeight.value, stretch = stretchPanel)
+            val fit = EmulatorFrame.fit(maxWidth.value, maxHeight.value, stretch = stretchNow)
             val panel = EmulatorFrame.panelRect(maxWidth.value, maxHeight.value, fit)
             Box(
                 Modifier

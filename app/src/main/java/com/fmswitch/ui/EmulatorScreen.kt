@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
@@ -89,6 +90,9 @@ fun EmulatorScreen(
     phosphorPanel: Boolean,
     chooseClock: Boolean,
     runInBackground: Boolean,
+    /** When true, TRY opens already in full screen (SETUP ▸ OPEN TRY FULL SCREEN). */
+    openFullScreen: Boolean = false,
+    stretchPanel: Boolean = false,
     canSave: Boolean,
     saving: Boolean,
     onSave: suspend () -> Result<StoredFirmware>,
@@ -105,7 +109,7 @@ fun EmulatorScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    var fullScreen by remember(entry.id) { mutableStateOf(false) }
+    var fullScreen by remember(entry.id, openFullScreen) { mutableStateOf(openFullScreen) }
     var saveError by remember(entry.id) { mutableStateOf<String?>(null) }
     var mhz by remember(entry.id, chooseClock) {
         mutableIntStateOf(EmulatorClock.get(context, entry, chooseClock))
@@ -144,6 +148,7 @@ fun EmulatorScreen(
                 phosphorPanel = slot.phosphorPanel,
                 chooseClock = slot.chooseClock,
                 runInBackground = slot.runInBackground,
+                stretchPanel = slot.stretchPanel,
                 onStatus = slot.onStatus,
                 onTry = slot.onTry,
                 onMidi = slot.onMidi,
@@ -161,6 +166,7 @@ fun EmulatorScreen(
             phosphorPanel = phosphorPanel,
             chooseClock = chooseClock,
             runInBackground = runInBackground,
+            stretchPanel = stretchPanel,
             onStatus = reportStatus,
             onTry = onTry,
             onMidi = reportMidi,
@@ -183,6 +189,7 @@ fun EmulatorScreen(
                 maxWidth.value,
                 maxHeight.value,
                 minChrome = if (fullScreen) 0f else EmulatorScreenLandscapeChrome,
+                stretch = stretchPanel,
             )
             val panel = EmulatorFrame.panelRect(maxWidth.value, maxHeight.value, fit)
             val chrome = EmulatorFrame.chromeRect(maxWidth.value, maxHeight.value, fit)
@@ -259,7 +266,7 @@ fun EmulatorScreen(
         }
     } else if (fullScreen) {
         BoxWithConstraints(Modifier.fillMaxSize().background(theme.background)) {
-            val fit = EmulatorFrame.fit(maxWidth.value, maxHeight.value)
+            val fit = EmulatorFrame.fit(maxWidth.value, maxHeight.value, stretch = stretchPanel)
             val panel = EmulatorFrame.panelRect(maxWidth.value, maxHeight.value, fit)
             Box(
                 Modifier
@@ -375,27 +382,30 @@ private fun FullscreenToggleButton(
             .padding(bottom = depth, end = depth)
             .clickable(interactionSource = interaction, indication = null, onClick = onToggle),
     ) {
-        Box(
-            Modifier
-                .matchParentSize()
-                .offset(depth, depth)
-                .background(theme.shadow, PixelBox(2.dp)),
-        )
-        Row(
-            Modifier
-                .offset(if (pressed) depth else 0.dp, if (pressed) depth else 0.dp)
-                .background(theme.surface, PixelBox(2.dp))
-                .border(2.dp, edge, PixelBox(2.dp))
-                .padding(horizontal = if (showLabel) 8.dp else 6.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Icon(imageVector, contentDescription = description, tint = edge, modifier = Modifier.size(22.dp))
-            if (showLabel) {
-                BasicText(
-                    if (fullScreen) "EXIT" else "FULL",
-                    style = pixelText(10.sp, bold = true, color = edge),
-                )
+        // Size shadow to the button face, not any fillMaxWidth() on the outer box (see ‹ BACK).
+        Box(Modifier.wrapContentSize().align(Alignment.CenterStart)) {
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .offset(depth, depth)
+                    .background(theme.shadow, PixelBox(2.dp)),
+            )
+            Row(
+                Modifier
+                    .offset(if (pressed) depth else 0.dp, if (pressed) depth else 0.dp)
+                    .background(theme.surface, PixelBox(2.dp))
+                    .border(2.dp, edge, PixelBox(2.dp))
+                    .padding(horizontal = if (showLabel) 8.dp else 6.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(imageVector, contentDescription = description, tint = edge, modifier = Modifier.size(22.dp))
+                if (showLabel) {
+                    BasicText(
+                        if (fullScreen) "EXIT" else "FULL",
+                        style = pixelText(10.sp, bold = true, color = edge),
+                    )
+                }
             }
         }
     }
@@ -428,6 +438,7 @@ private data class RunningSlot(
     val phosphorPanel: Boolean,
     val chooseClock: Boolean,
     val runInBackground: Boolean,
+    val stretchPanel: Boolean,
     val onStatus: (String) -> Unit,
     val onTry: (String, Boolean) -> Unit,
     val onMidi: (String) -> Unit,
@@ -473,6 +484,7 @@ private fun RunningEmulator(
     phosphorPanel: Boolean,
     chooseClock: Boolean,
     runInBackground: Boolean,
+    stretchPanel: Boolean = false,
     onStatus: (String) -> Unit = {},
     onTry: (String, Boolean) -> Unit = { _, _ -> },
     onMidi: (String) -> Unit = {},
@@ -585,6 +597,7 @@ private fun RunningEmulator(
             if (expand) Modifier.fillMaxSize() else Modifier.fillMaxWidth(),
             phosphor = if (phosphorPanel) theme.base else null,
             glow = theme.glow,
+            stretch = stretchPanel && expand,
         )
     }
     if (!expand) {

@@ -1,5 +1,7 @@
 package com.fmswitch.emu
 
+import kotlin.math.min
+
 /**
  * The FM-1's front panel in fm1-emu's coordinates (crates/fm1-live/src/panel.rs): a
  * 1280 x 820 board, the 240 x 240 screen shown at 2x. Ids are the key matrix's.
@@ -65,12 +67,16 @@ object Fm1Panel {
 
     private val keysBlackFirst = keys.sortedBy { !it.black }
 
-    /** What a point (in panel units) lands on; touch targets are a little larger than drawn. */
-    fun hit(x: Float, y: Float, slop: Float = 8f): Hit? {
+    /**
+     * What a point (in panel units) lands on; touch targets are a little larger than drawn.
+     * [scaleX]/[scaleY] are the panel→screen scales: knobs stay circular in screen space
+     * (as drawn when the panel is stretched), so their hit uses [min] of the two.
+     */
+    fun hit(x: Float, y: Float, slop: Float = 8f, scaleX: Float = 1f, scaleY: Float = 1f): Hit? {
         encoders.forEachIndexed { i, k ->
-            if (inCircle(x, y, k, slop)) return Hit.Encoder(i)
+            if (inCircle(x, y, k, slop, scaleX, scaleY)) return Hit.Encoder(i)
         }
-        if (inCircle(x, y, pot, slop)) return Hit.Pot
+        if (inCircle(x, y, pot, slop, scaleX, scaleY)) return Hit.Pot
         for (b in buttons) {
             if (x >= b.x - slop && x < b.x + b.w + slop && y >= b.y - slop && y < b.y + b.h + slop) return Hit.Press(b.id)
         }
@@ -93,10 +99,17 @@ object Fm1Panel {
         return null
     }
 
-    private fun inCircle(x: Float, y: Float, k: Knob, slop: Float): Boolean {
-        val dx = x - k.cx
-        val dy = y - k.cy
-        val r = k.r + slop
+    private fun inCircle(
+        x: Float,
+        y: Float,
+        k: Knob,
+        slop: Float,
+        scaleX: Float = 1f,
+        scaleY: Float = 1f,
+    ): Boolean {
+        val dx = (x - k.cx) * scaleX
+        val dy = (y - k.cy) * scaleY
+        val r = (k.r + slop) * min(scaleX, scaleY)
         return dx * dx + dy * dy <= r * r
     }
 }

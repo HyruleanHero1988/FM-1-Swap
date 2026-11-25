@@ -41,6 +41,23 @@ class EmulatorFrameTest {
     }
 
     @Test
+    fun stretchFillsTheLeftoverSpaceAndDropsTheAspectLock() {
+        val letterbox = EmulatorFrame.fit(800f, 400f, minChrome = 0f, stretch = false)
+        val stretch = EmulatorFrame.fit(800f, 400f, minChrome = 0f, stretch = true)
+        assertEquals(800f, stretch.panelWidth, 0.01f)
+        assertEquals(400f, stretch.panelHeight, 0.01f)
+        assertTrue(stretch.panelWidth > letterbox.panelWidth)
+        assertTrue(stretch.panelWidth / stretch.panelHeight > Fm1Panel.W / Fm1Panel.H)
+        val withChrome = EmulatorFrame.fit(800f, 400f, minChrome = 56f, stretch = true)
+        assertEquals(56f, withChrome.side, 0.01f)
+        assertEquals(744f, withChrome.panelWidth, 0.01f)
+        assertEquals(400f, withChrome.panelHeight, 0.01f)
+        val panel = EmulatorFrame.panelRect(800f, 400f, withChrome)
+        val chrome = EmulatorFrame.chromeRect(800f, 400f, withChrome)
+        assertFalse(chrome.intersects(panel))
+    }
+
+    @Test
     fun aNarrowGapGrowsUntilALabelFits() {
         val tight = EmulatorFrame.fit(1280f, 820f, minChrome = 100f)
         assertTrue(tight.side >= 100f)

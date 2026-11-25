@@ -89,6 +89,7 @@ fun EmulatorScreen(
     phosphorPanel: Boolean,
     chooseClock: Boolean,
     runInBackground: Boolean,
+    stretchPanel: Boolean = false,
     canSave: Boolean,
     saving: Boolean,
     onSave: suspend () -> Result<StoredFirmware>,
@@ -144,6 +145,7 @@ fun EmulatorScreen(
                 phosphorPanel = slot.phosphorPanel,
                 chooseClock = slot.chooseClock,
                 runInBackground = slot.runInBackground,
+                stretchPanel = slot.stretchPanel,
                 onStatus = slot.onStatus,
                 onTry = slot.onTry,
                 onMidi = slot.onMidi,
@@ -161,6 +163,7 @@ fun EmulatorScreen(
             phosphorPanel = phosphorPanel,
             chooseClock = chooseClock,
             runInBackground = runInBackground,
+            stretchPanel = stretchPanel,
             onStatus = reportStatus,
             onTry = onTry,
             onMidi = reportMidi,
@@ -183,6 +186,7 @@ fun EmulatorScreen(
                 maxWidth.value,
                 maxHeight.value,
                 minChrome = if (fullScreen) 0f else EmulatorScreenLandscapeChrome,
+                stretch = stretchPanel,
             )
             val panel = EmulatorFrame.panelRect(maxWidth.value, maxHeight.value, fit)
             val chrome = EmulatorFrame.chromeRect(maxWidth.value, maxHeight.value, fit)
@@ -259,7 +263,7 @@ fun EmulatorScreen(
         }
     } else if (fullScreen) {
         BoxWithConstraints(Modifier.fillMaxSize().background(theme.background)) {
-            val fit = EmulatorFrame.fit(maxWidth.value, maxHeight.value)
+            val fit = EmulatorFrame.fit(maxWidth.value, maxHeight.value, stretch = stretchPanel)
             val panel = EmulatorFrame.panelRect(maxWidth.value, maxHeight.value, fit)
             Box(
                 Modifier
@@ -428,6 +432,7 @@ private data class RunningSlot(
     val phosphorPanel: Boolean,
     val chooseClock: Boolean,
     val runInBackground: Boolean,
+    val stretchPanel: Boolean,
     val onStatus: (String) -> Unit,
     val onTry: (String, Boolean) -> Unit,
     val onMidi: (String) -> Unit,
@@ -473,6 +478,7 @@ private fun RunningEmulator(
     phosphorPanel: Boolean,
     chooseClock: Boolean,
     runInBackground: Boolean,
+    stretchPanel: Boolean = false,
     onStatus: (String) -> Unit = {},
     onTry: (String, Boolean) -> Unit = { _, _ -> },
     onMidi: (String) -> Unit = {},
@@ -581,6 +587,7 @@ private fun RunningEmulator(
             if (expand) Modifier.fillMaxSize() else Modifier.fillMaxWidth(),
             phosphor = if (phosphorPanel) theme.base else null,
             glow = theme.glow,
+            stretch = stretchPanel && expand,
         )
     }
     if (!expand) {

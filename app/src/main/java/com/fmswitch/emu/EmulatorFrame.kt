@@ -3,12 +3,14 @@ package com.fmswitch.emu
 /**
  * Where the TRY panel sits, and the only place other controls are allowed to sit.
  *
- * The panel keeps the FM-1's shape. Controls take the whole leftover strip on
- * one edge: the start side when the phone is sideways (the panel sits against
- * the other edge), or the top when the space is taller than the panel. That
- * strip shares an edge with the panel and does not cross it. [minChrome] on
- * [fit] widens the strip, shrinking the panel, when the natural gap is too
- * narrow for a label.
+ * The panel keeps the FM-1's shape unless [fit]'s [stretch] is on, in which case
+ * it fills the leftover space (keys and buttons grow; the LCD and knobs stay
+ * honest inside [Fm1PanelView]). Controls take the whole leftover strip on one
+ * edge: the start side when the phone is sideways (the panel sits against the
+ * other edge), or the top when the space is taller than the panel. That strip
+ * shares an edge with the panel and does not cross it. [minChrome] on [fit]
+ * widens the strip, shrinking the panel, when the natural gap is too narrow
+ * for a label.
  */
 object EmulatorFrame {
     data class Fit(
@@ -30,8 +32,28 @@ object EmulatorFrame {
         }
     }
 
-    fun fit(spaceWidth: Float, spaceHeight: Float, minChrome: Float = 0f): Fit {
+    fun fit(spaceWidth: Float, spaceHeight: Float, minChrome: Float = 0f, stretch: Boolean = false): Fit {
         if (spaceWidth <= 0f || spaceHeight <= 0f) return Fit(0f, 0f, 0f, 0f)
+        if (stretch) {
+            // Fill every leftover pixel. Chrome still claims [minChrome] on the wider axis.
+            val beside = spaceWidth >= spaceHeight
+            if (beside) {
+                val side = minChrome.coerceIn(0f, spaceWidth)
+                return Fit(
+                    panelWidth = (spaceWidth - side).coerceAtLeast(0f),
+                    panelHeight = spaceHeight,
+                    side = side,
+                    bar = 0f,
+                )
+            }
+            val bar = minChrome.coerceIn(0f, spaceHeight)
+            return Fit(
+                panelWidth = spaceWidth,
+                panelHeight = (spaceHeight - bar).coerceAtLeast(0f),
+                side = 0f,
+                bar = bar,
+            )
+        }
         val aspect = Fm1Panel.W / Fm1Panel.H
         val widthAtFullHeight = spaceHeight * aspect
         var panelWidth: Float

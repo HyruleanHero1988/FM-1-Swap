@@ -121,6 +121,13 @@ class AppSettings(private val prefs: SharedPreferences) {
     var tryOpensFullScreen: Boolean
         get() = prefs.getBoolean("tryOpensFullScreen", false)
         set(value) { prefs.edit().putBoolean("tryOpensFullScreen", value).apply() }
+    /**
+     * On, TRY stretches the chassis to fill the leftover space so keys and buttons grow.
+     * Knobs stay round; the LCD keeps square pixels inside its bezel.
+     */
+    var stretchTryPanel: Boolean
+        get() = prefs.getBoolean("stretchTryPanel", false)
+        set(value) { prefs.edit().putBoolean("stretchTryPanel", value).apply() }
     /** Catalogue ids the user has favorited. First in this list sits highest. */
     var curation: List<String>
         get() = prefs.getString("curation", null).orEmpty().lineSequence().filter { it.isNotBlank() }.toList()

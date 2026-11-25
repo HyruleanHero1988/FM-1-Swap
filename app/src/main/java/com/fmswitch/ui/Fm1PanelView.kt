@@ -48,6 +48,7 @@ import com.fmswitch.theme.mix
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
@@ -87,6 +88,9 @@ private sealed class Grab {
  * With [phosphor] set, everything except the screen is traced as glowing vector lines in
  * that colour. The screen is the firmware's own pixels in both styles and nothing is drawn
  * over it.
+ *
+ * [stretch] fills the available box with independent X/Y scales so keys and buttons grow;
+ * knobs stay round and the LCD keeps a square (uniform) mapping inside its bezel.
  */
 @Composable
 fun Fm1PanelView(
@@ -94,6 +98,7 @@ fun Fm1PanelView(
     modifier: Modifier = Modifier,
     phosphor: Color? = null,
     glow: Float = 0.25f,
+    stretch: Boolean = false,
 ) {
     val measurer = rememberTextMeasurer()
     val lcd = remember { Bitmap.createBitmap(240, 240, Bitmap.Config.ARGB_8888) }
@@ -141,13 +146,23 @@ fun Fm1PanelView(
         val density = LocalDensity.current
         val widthPx = with(density) { maxWidth.toPx() }
         val heightPx = if (maxHeight.value.isFinite()) with(density) { maxHeight.toPx() } else Float.MAX_VALUE
-        val scale = minOf(widthPx / Fm1Panel.W, heightPx / Fm1Panel.H)
-        val panelSize = with(density) { DpSize((Fm1Panel.W * scale).toDp(), (Fm1Panel.H * scale).toDp()) }
+        val sx: Float
+        val sy: Float
+        if (stretch) {
+            sx = widthPx / Fm1Panel.W
+            sy = heightPx / Fm1Panel.H
+        } else {
+            val s = minOf(widthPx / Fm1Panel.W, heightPx / Fm1Panel.H)
+            sx = s
+            sy = s
+        }
+        val panelSize = with(density) { DpSize((Fm1Panel.W * sx).toDp(), (Fm1Panel.H * sy).toDp()) }
+        val textScale = density.fontScale * density.density
 
         Canvas(
             Modifier
                 .size(panelSize)
-                .pointerInput(engine, scale) {
+                .pointerInput(engine, sx, sy) {
                     val grabs = HashMap<PointerId, Grab>()
                     fun release(grab: Grab?) {
                         if (grab is Grab.Press) {
@@ -164,12 +179,12 @@ fun Fm1PanelView(
                             while (true) {
                             val event = awaitPointerEvent()
                             for (change in event.changes) {
-                                val x = change.position.x / scale
-                                val y = change.position.y / scale
+                                val x = change.position.x / sx
+                                val y = change.position.y / sy
                                 val grab = grabs[change.id]
                                 when {
                                     change.pressed && grab == null && !change.previousPressed -> {
-                                        when (val hit = Fm1Panel.hit(x, y)) {
+                                        when (val hit = Fm1Panel.hit(x, y, scaleX = sx, scaleY = sy)) {
                                             is Fm1Panel.Hit.Press -> { press(hit.id); grabs[change.id] = Grab.Press(hit.id) }
                                             is Fm1Panel.Hit.Encoder -> grabs[change.id] = Grab.Turn(hit.index, 0f)
                                             Fm1Panel.Hit.Pot -> grabs[change.id] = Grab.Pot(pot.toInt(), y)
@@ -179,7 +194,7 @@ fun Fm1PanelView(
                                     }
                                     change.pressed && grab == null -> {
                                         // The finger came down off a key. Sliding onto one plays it.
-                                        val id = Fm1Panel.slideKey(null, Fm1Panel.hit(x, y, slop = 0f))
+                                        val id = Fm1Panel.slideKey(null, Fm1Panel.hit(x, y, slop = 0f, scaleX = sx, scaleY = sy))
                                         if (id != null) {
                                             press(id)
                                             grabs[change.id] = Grab.Press(id)
@@ -187,11 +202,12 @@ fun Fm1PanelView(
                                         change.consume()
                                     }
                                     change.pressed && grab != null -> {
-                                        val dx = (change.position.x - change.previousPosition.x) / scale
-                                        val dy = (change.position.y - change.previousPosition.y) / scale
+                                        val unit = min(sx, sy).coerceAtLeast(1e-6f)
+                                        val dx = (change.position.x - change.previousPosition.x) / unit
+                                        val dy = (change.position.y - change.previousPosition.y) / unit
                                         when (grab) {
                                             is Grab.Press -> {
-                                                val id = Fm1Panel.slideKey(grab.id, Fm1Panel.hit(x, y, slop = 0f))
+                                                val id = Fm1Panel.slideKey(grab.id, Fm1Panel.hit(x, y, slop = 0f, scaleX = sx, scaleY = sy))
                                                 if (id != null) {
                                                     release(grab)
                                                     press(id)
@@ -237,35 +253,40 @@ fun Fm1PanelView(
         ) {
             tick
             val leds = engine.frame.get()?.leds
-            fun DrawScope.drawLcd() = drawImage(
-                lcdImage,
-                srcOffset = IntOffset.Zero,
-                srcSize = IntSize(240, 240),
-                dstOffset = IntOffset(Fm1Panel.LCD_X.toInt(), Fm1Panel.LCD_Y.toInt()),
-                dstSize = IntSize(Fm1Panel.LCD_SIZE.toInt(), Fm1Panel.LCD_SIZE.toInt()),
-                filterQuality = FilterQuality.None,
-            )
+            fun DrawScope.drawLcdSquare() {
+                // Uniform scale into the largest square inside the (possibly stretched) bezel.
+                val left = Fm1Panel.LCD_X * sx
+                val top = Fm1Panel.LCD_Y * sy
+                val boxW = Fm1Panel.LCD_SIZE * sx
+                val boxH = Fm1Panel.LCD_SIZE * sy
+                val side = min(boxW, boxH)
+                val dstX = (left + (boxW - side) / 2f).roundToInt()
+                val dstY = (top + (boxH - side) / 2f).roundToInt()
+                val px = side.roundToInt().coerceAtLeast(1)
+                drawImage(
+                    lcdImage,
+                    srcOffset = IntOffset.Zero,
+                    srcSize = IntSize(240, 240),
+                    dstOffset = IntOffset(dstX, dstY),
+                    dstSize = IntSize(px, px),
+                    filterQuality = FilterQuality.None,
+                )
+            }
             if (beam != null) {
-                withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {
-                    drawPhosphorPanel(beam, page, measurer, density.fontScale * density.density, heat, sweep, ::knobAngle)
-                    drawLcd()
+                withTransform({ scale(sx, sy, pivot = Offset.Zero) }) {
+                    drawPhosphorPanel(
+                        beam, page, measurer, textScale, heat, sweep, ::knobAngle,
+                        drawKnobs = !stretch,
+                    )
                 }
+                if (stretch) {
+                    drawPhosphorKnobsScreen(beam, measurer, textScale, sweep, ::knobAngle, sx, sy)
+                }
+                drawLcdSquare()
                 return@Canvas
             }
-            withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {
+            withTransform({ scale(sx, sy, pivot = Offset.Zero) }) {
                 drawBody()
-                drawLcd()
-                val label = TextStyle(color = Silk, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                fun caption(text: String, cx: Float, top: Float, style: TextStyle) {
-                    val layout = measurer.measure(text, style.copy(fontSize = style.fontSize / density.fontScale / density.density))
-                    drawText(layout, topLeft = Offset(cx - layout.size.width / 2f, top))
-                }
-                caption("MASTER", Fm1Panel.pot.cx, Fm1Panel.pot.cy - Fm1Panel.pot.r - 30f, label)
-                knob(Fm1Panel.pot.cx, Fm1Panel.pot.cy, Fm1Panel.pot.r, (-135f + 270f * pot / 1023f) * (PI / 180).toFloat())
-                Fm1Panel.encoders.forEachIndexed { i, k ->
-                    caption(k.label, k.cx, k.cy - k.r - 30f, label)
-                    knob(k.cx, k.cy, k.r, (clicks[i] ?: 0) * 18f * (PI / 180).toFloat())
-                }
                 for (b in Fm1Panel.buttons) {
                     val pressed = down[b.id] == true
                     val led = bright(leds?.getOrNull(b.id) ?: 0f)
@@ -281,7 +302,7 @@ fun Fm1PanelView(
                     )
                     val ink = if (led > 0.5f) Color(0xFF2A1A03) else ButtonInk
                     val style = TextStyle(color = ink, fontSize = if (b.w > 60) 20.sp else 15.sp, fontWeight = FontWeight.Bold)
-                    val layout = measurer.measure(b.label, style.copy(fontSize = style.fontSize / density.fontScale / density.density))
+                    val layout = measurer.measure(b.label, style.copy(fontSize = style.fontSize / textScale))
                     drawText(layout, topLeft = Offset(b.x + (b.w - layout.size.width) / 2, b.y + off + (b.h - layout.size.height) / 2))
                 }
                 for (k in Fm1Panel.keys) {
@@ -290,15 +311,43 @@ fun Fm1PanelView(
                     val off = if (pressed) 3f else 0f
                     val r = CornerRadius(k.w / 2)
                     drawRoundRect(Color(0xFF1A1A1C), Offset(k.x + 1, k.y + 4), Size(k.w, k.h), r)
-                    val heat = if (pressed) 0.55f else led * 0.6f
+                    val keyHeat = if (pressed) 0.55f else led * 0.6f
                     drawRoundRect(
-                        Brush.verticalGradient(listOf(lerp(KeyTop, Amber, heat), lerp(KeyBottom, Amber, heat * 0.8f)), startY = k.y + off, endY = k.y + off + k.h),
+                        Brush.verticalGradient(listOf(lerp(KeyTop, Amber, keyHeat), lerp(KeyBottom, Amber, keyHeat * 0.8f)), startY = k.y + off, endY = k.y + off + k.h),
                         Offset(k.x, k.y + off), Size(k.w, k.h), r,
                     )
                     val line = lerp(KeyLine, Color(0xFFFFE2B0), if (pressed) 1f else led)
                     drawRoundRect(line, Offset(k.x + k.w / 2 - 2.5f, k.y + 18 + off), Size(5f, k.h - 36), CornerRadius(2.5f))
                 }
+                if (!stretch) {
+                    val label = TextStyle(color = Silk, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    fun caption(text: String, cx: Float, top: Float, style: TextStyle) {
+                        val layout = measurer.measure(text, style.copy(fontSize = style.fontSize / textScale))
+                        drawText(layout, topLeft = Offset(cx - layout.size.width / 2f, top))
+                    }
+                    caption("MASTER", Fm1Panel.pot.cx, Fm1Panel.pot.cy - Fm1Panel.pot.r - 30f, label)
+                    knob(Fm1Panel.pot.cx, Fm1Panel.pot.cy, Fm1Panel.pot.r, (-135f + 270f * pot / 1023f) * (PI / 180).toFloat())
+                    Fm1Panel.encoders.forEachIndexed { i, k ->
+                        caption(k.label, k.cx, k.cy - k.r - 30f, label)
+                        knob(k.cx, k.cy, k.r, (clicks[i] ?: 0) * 18f * (PI / 180).toFloat())
+                    }
+                }
             }
+            if (stretch) {
+                val minS = min(sx, sy)
+                val label = TextStyle(color = Silk, fontSize = (22f * minS / textScale).sp, fontWeight = FontWeight.Bold)
+                fun caption(text: String, cx: Float, top: Float) {
+                    val layout = measurer.measure(text, label)
+                    drawText(layout, topLeft = Offset(cx - layout.size.width / 2f, top))
+                }
+                caption("MASTER", Fm1Panel.pot.cx * sx, Fm1Panel.pot.cy * sy - Fm1Panel.pot.r * minS - 30f * minS)
+                knob(Fm1Panel.pot.cx * sx, Fm1Panel.pot.cy * sy, Fm1Panel.pot.r * minS, (-135f + 270f * pot / 1023f) * (PI / 180).toFloat())
+                Fm1Panel.encoders.forEachIndexed { i, k ->
+                    caption(k.label, k.cx * sx, k.cy * sy - k.r * minS - 30f * minS)
+                    knob(k.cx * sx, k.cy * sy, k.r * minS, (clicks[i] ?: 0) * 18f * (PI / 180).toFloat())
+                }
+            }
+            drawLcdSquare()
         }
     }
 }
@@ -401,6 +450,7 @@ private fun DrawScope.drawPhosphorPanel(
     heat: FloatArray,
     sweep: FloatArray,
     angle: (Int) -> Float,
+    drawKnobs: Boolean = true,
 ) {
     fun label(text: String, cx: Float, cy: Float, size: Float, level: Float) {
         val style = TextStyle(
@@ -413,42 +463,6 @@ private fun DrawScope.drawPhosphorPanel(
         drawText(layout, topLeft = Offset(cx - layout.size.width / 2f, cy - layout.size.height / 2f))
     }
 
-    fun knob(index: Int, k: Fm1Panel.Knob, ticks: Boolean) {
-        val now = angle(index)
-        val trail = sweep[index]
-        beamCircle(b, 0.75f, k.cx, k.cy, k.r)
-        beamCircle(b, 0.3f, k.cx, k.cy, k.r * 0.72f)
-        if (ticks) {
-            for (i in 0..10) {
-                val a = (-135f + 27f * i) * DEG
-                beamLine(
-                    b, 0.4f,
-                    Offset(k.cx + sin(a) * (k.r + 8f), k.cy - cos(a) * (k.r + 8f)),
-                    Offset(k.cx + sin(a) * (k.r + 16f), k.cy - cos(a) * (k.r + 16f)),
-                )
-            }
-        }
-        val behind = now - trail
-        if (abs(behind) > 0.01f) {
-            val r = k.r * 0.8f
-            drawArc(
-                b.colour.copy(alpha = (0.22f * b.halo).coerceIn(0f, 1f)),
-                startAngle = minOf(now, trail) / DEG - 90f,
-                sweepAngle = abs(behind) / DEG,
-                useCenter = true,
-                topLeft = Offset(k.cx - r, k.cy - r),
-                size = Size(r * 2, r * 2),
-                blendMode = beamBlend(b),
-            )
-        }
-        beamLine(
-            b, 1f,
-            Offset(k.cx + sin(now) * k.r * 0.12f, k.cy - cos(now) * k.r * 0.12f),
-            Offset(k.cx + sin(now) * k.r * 0.86f, k.cy - cos(now) * k.r * 0.86f),
-        )
-        label(k.label, k.cx, k.cy - k.r - 24f, 18f, 0.8f)
-    }
-
     drawRect(field, size = Size(Fm1Panel.W, Fm1Panel.H))
     beamRect(b, 0.55f, 14f, 14f, Fm1Panel.W - 28, Fm1Panel.H - 28, 30f)
     beamRect(b, 0.7f, 352f, 24f, 516f, 516f, 22f)
@@ -457,8 +471,10 @@ private fun DrawScope.drawPhosphorPanel(
     beamRect(b, 0.35f, 34f, 562f, 1212f, 236f, 26f)
     beamRect(b, 0.3f, 1134f, 302f, 112f, 72f, 10f)
 
-    knob(Fm1Panel.encoders.size, Fm1Panel.pot, ticks = true)
-    Fm1Panel.encoders.forEachIndexed { i, k -> knob(i, k, ticks = false) }
+    if (drawKnobs) {
+        phosphorKnob(b, measurer, textScale, sweep, angle, Fm1Panel.encoders.size, Fm1Panel.pot, ticks = true)
+        Fm1Panel.encoders.forEachIndexed { i, k -> phosphorKnob(b, measurer, textScale, sweep, angle, i, k, ticks = false) }
+    }
 
     for (btn in Fm1Panel.buttons) {
         val h = heat[btn.id]
@@ -473,4 +489,78 @@ private fun DrawScope.drawPhosphorPanel(
         beamRect(b, (if (key.black) 0.5f else 0.6f) + 0.4f * h, key.x, key.y, key.w, key.h, r)
         beamLine(b, 0.25f + 0.75f * h, Offset(key.x + r, key.y + 20f), Offset(key.x + r, key.y + key.h - 20f))
     }
+}
+
+/** Phosphor knobs in screen pixels so they stay round when the chassis is stretched. */
+private fun DrawScope.drawPhosphorKnobsScreen(
+    b: Beam,
+    measurer: TextMeasurer,
+    textScale: Float,
+    sweep: FloatArray,
+    angle: (Int) -> Float,
+    sx: Float,
+    sy: Float,
+) {
+    val minS = min(sx, sy)
+    fun screenKnob(index: Int, k: Fm1Panel.Knob, ticks: Boolean) {
+        val mapped = Fm1Panel.Knob(k.label, k.encoder, k.cx * sx, k.cy * sy, k.r * minS)
+        phosphorKnob(b, measurer, textScale / minS, sweep, angle, index, mapped, ticks)
+    }
+    screenKnob(Fm1Panel.encoders.size, Fm1Panel.pot, ticks = true)
+    Fm1Panel.encoders.forEachIndexed { i, k -> screenKnob(i, k, ticks = false) }
+}
+
+private fun DrawScope.phosphorKnob(
+    b: Beam,
+    measurer: TextMeasurer,
+    textScale: Float,
+    sweep: FloatArray,
+    angle: (Int) -> Float,
+    index: Int,
+    k: Fm1Panel.Knob,
+    ticks: Boolean,
+) {
+    fun label(text: String, cx: Float, cy: Float, size: Float, level: Float) {
+        val style = TextStyle(
+            fontFamily = PixelFont,
+            fontSize = (size / textScale).sp,
+            color = b.hot.copy(alpha = level.coerceIn(0f, 1f)),
+            shadow = Shadow(b.colour.copy(alpha = (0.55f * b.halo * level).coerceIn(0f, 1f)), Offset.Zero, blurRadius = 9f),
+        )
+        val layout = measurer.measure(text, style)
+        drawText(layout, topLeft = Offset(cx - layout.size.width / 2f, cy - layout.size.height / 2f))
+    }
+    val now = angle(index)
+    val trail = sweep[index]
+    beamCircle(b, 0.75f, k.cx, k.cy, k.r)
+    beamCircle(b, 0.3f, k.cx, k.cy, k.r * 0.72f)
+    if (ticks) {
+        for (i in 0..10) {
+            val a = (-135f + 27f * i) * DEG
+            beamLine(
+                b, 0.4f,
+                Offset(k.cx + sin(a) * (k.r + 8f), k.cy - cos(a) * (k.r + 8f)),
+                Offset(k.cx + sin(a) * (k.r + 16f), k.cy - cos(a) * (k.r + 16f)),
+            )
+        }
+    }
+    val behind = now - trail
+    if (abs(behind) > 0.01f) {
+        val r = k.r * 0.8f
+        drawArc(
+            b.colour.copy(alpha = (0.22f * b.halo).coerceIn(0f, 1f)),
+            startAngle = minOf(now, trail) / DEG - 90f,
+            sweepAngle = abs(behind) / DEG,
+            useCenter = true,
+            topLeft = Offset(k.cx - r, k.cy - r),
+            size = Size(r * 2, r * 2),
+            blendMode = beamBlend(b),
+        )
+    }
+    beamLine(
+        b, 1f,
+        Offset(k.cx + sin(now) * k.r * 0.12f, k.cy - cos(now) * k.r * 0.12f),
+        Offset(k.cx + sin(now) * k.r * 0.86f, k.cy - cos(now) * k.r * 0.86f),
+    )
+    label(k.label, k.cx, k.cy - k.r - 24f, 18f, 0.8f)
 }

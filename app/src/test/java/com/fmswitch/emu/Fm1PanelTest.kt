@@ -24,6 +24,17 @@ class Fm1PanelTest {
     }
 
     @Test
+    fun stretchedKnobsHitAsScreenCircles() {
+        val k = Fm1Panel.pot
+        // Inside the panel-space circle (with slop), but outside the round screen-space target when sx=2.
+        val x = k.cx + (k.r + 8f) * 0.7f
+        val y = k.cy
+        assertEquals(Fm1Panel.Hit.Pot, Fm1Panel.hit(x, y))
+        assertNull(Fm1Panel.hit(x, y, scaleX = 2f, scaleY = 1f))
+        assertEquals(Fm1Panel.Hit.Pot, Fm1Panel.hit(k.cx, k.cy, scaleX = 2f, scaleY = 1f))
+    }
+
+    @Test
     fun aFingerThatMissedCanSlideOntoAKey() {
         val gap = Fm1Panel.hit(61f + 62f, 760f)
         assertNull(gap)

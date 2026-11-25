@@ -146,6 +146,7 @@ fun RootScreen(model: AppViewModel) {
                         chooseClock = model.settings.chooseEmulatorClock,
                         runInBackground = model.settings.backgroundEmulator,
                         openFullScreen = model.settings.tryOpensFullScreen,
+                        stretchPanel = model.settings.stretchTryPanel,
                         canSave = entry.isDownloadable && !kept,
                         saving = entry.id in model.downloadingIds,
                         onSave = { model.save(entry) },

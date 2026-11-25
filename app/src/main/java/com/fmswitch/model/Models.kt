@@ -122,8 +122,8 @@ class AppSettings(private val prefs: SharedPreferences) {
         get() = prefs.getBoolean("tryOpensFullScreen", false)
         set(value) { prefs.edit().putBoolean("tryOpensFullScreen", value).apply() }
     /**
-     * On, TRY stretches the chassis to fill the leftover space so keys and buttons grow.
-     * Knobs stay round; the LCD keeps square pixels inside its bezel.
+     * On, landscape TRY stretches the chassis to fill leftover space so keys and buttons grow.
+     * Portrait keeps real proportions. Knobs stay round; the LCD keeps square pixels inside its bezel.
      */
     var stretchTryPanel: Boolean
         get() = prefs.getBoolean("stretchTryPanel", false)

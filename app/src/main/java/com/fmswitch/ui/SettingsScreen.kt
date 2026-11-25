@@ -198,7 +198,7 @@ fun SettingsScreen(model: AppViewModel) {
                 model.settings.stretchTryPanel = it
                 model.bumpTheme()
             }
-            NoteText("On, the chassis fills the leftover space so keys and buttons get larger. Knobs stay round, and the firmware's screen keeps its square pixels inside the bezel. Off keeps the FM-1's real proportions.")
+            NoteText("On, sideways TRY fills leftover space so keys and buttons get larger. Portrait keeps the FM-1's real proportions. Knobs stay round, and the firmware's screen keeps its square pixels inside the bezel.")
         }
         PixelPanel(title = "CONNECTION") {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

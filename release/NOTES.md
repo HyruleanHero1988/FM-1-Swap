@@ -4,6 +4,16 @@ Install that file from this release and nowhere else. If Android refuses the ins
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
+## New in 0.6.6
+
+**TRY keeps up better.** The virtual FM-1 runs a little ahead of the audio output, and when the phone cannot keep real time the clock steps down on its own (240 → 200 → 160 → 120) and reboots from the firmware's current flash. **SETUP ▸ CHOOSE EMULATOR CLOCK** still locks a fixed 100, 160 or 240 instead. The emulator core is fm1-emu v0.5.1.
+
+**Open TRY full screen.** **SETUP ▸ OPEN TRY FULL SCREEN** starts TRY already filling the display, so you need not press FULL each time. Exit and FULL still work.
+
+**Stretch the panel sideways.** **SETUP ▸ STRETCH TRY PANEL** fills leftover landscape space so keys and buttons get larger. Knobs stay round, and the firmware LCD keeps square pixels. Portrait keeps the FM-1's real proportions.
+
+A phone already on 0.6.5 shows this release under the top bar. **UPDATE** downloads it.
+
 ## New in 0.6.5
 
 **TRY full screen.** The TRY screen has a full-screen toggle so the virtual FM-1 panel can use the whole display (especially sideways on a phone). Status and navigation bars hide while you are in full screen. Tap the exit icon or use the system back gesture to leave full screen; back again leaves TRY as before.

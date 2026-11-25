@@ -22,7 +22,12 @@ import com.fmswitch.catalogue.missingFileAfterRefresh
 import com.fmswitch.catalogue.FirmwareKind
 import com.fmswitch.catalogue.FirmwareSort
 import com.fmswitch.catalogue.SafetyNotice
+import com.fmswitch.catalogue.DevicePlatform
+import com.fmswitch.catalogue.DeviceUiMode
 import com.fmswitch.catalogue.officialCatalogueEntry
+import com.fmswitch.catalogue.targetsPlatform
+import com.fmswitch.fm1kit.DeviceFamily
+import com.fmswitch.fm1kit.DeviceFamilyKind
 import com.fmswitch.fm1kit.BaudGirlLibrarian
 import com.fmswitch.fm1kit.BaudGirlSnapshot
 import com.fmswitch.fm1kit.EditorArchive
@@ -213,7 +218,23 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     var tab by mutableStateOf(AppTab.DEVICE)
     var identity by mutableStateOf<FM1Identity?>(null)
-        private set
+
+    val effectiveDeviceFamily: DeviceFamilyKind
+        get() = DevicePlatform.effective(settings.deviceUiMode, identity)
+
+    val tryEmulatorEnabled: Boolean
+        get() = effectiveDeviceFamily != DeviceFamilyKind.SMK37
+
+    fun catalogueEntries(): List<CatalogueEntry> {
+        val platform = effectiveDeviceFamily
+        return catalogue.entries.filter { it.targetsPlatform(platform) }
+    }
+
+    fun setDeviceUiMode(mode: DeviceUiMode) {
+        settings.deviceUiMode = mode
+        listTick++
+    }
+
     var isScanning by mutableStateOf(false)
         private set
     var ports by mutableStateOf<List<MidiPortDescriptor>>(emptyList())
@@ -604,9 +625,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
         releaseHeld()
         ignorePortChangesUntil = System.currentTimeMillis() + 2_000
+        val allowSibling = current.steps.firstNotNullOfOrNull { step ->
+            step.catalogueID?.let { catalogue.entry(it)?.allowSiblingSmkModel }
+        } == true
         val options = InstallOptions(
             confirmsSwitchingFirmware = current.confirmsSwitchingFirmware,
             confirmsSameIdentity = current.confirmsSameIdentity,
+            allowSiblingSmkModels = allowSibling,
         )
         for (index in startIndex until current.steps.size) {
             val item = current.steps[index]
@@ -646,7 +671,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         job = job?.copy(phase = FlashPhase.BackingUp(0, 1))
         val snapshot: BaudGirlSnapshot?
         val archive: EditorArchive?
-        if (current.supportsBaudGirlBackup) {
+        if (DeviceFamily.deviceFamilyFor(current) == DeviceFamilyKind.SMK37) {
+            appendLog("SMK-37: this app does not back up presets before a flash yet. Save anything you need in the firmware's own editor.")
+            snapshot = null
+            archive = null
+        } else if (current.supportsBaudGirlBackup) {
             appendLog("Backing up 128 presets and 16 patterns from ${current.text}.")
             snapshot = dumpBaudGirl(current)
             archive = null
@@ -1048,6 +1077,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun openEmulator(entry: CatalogueEntry, cancelRefresh: Boolean = true, bank: ByteArray? = null) {
+        if (!tryEmulatorEnabled) return
         emulatorJob?.cancel()
         if (cancelRefresh) catalogueJob?.cancel()
         emulatorBank = bank

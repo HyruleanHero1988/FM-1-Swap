@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fmswitch.BuildConfig
+import com.fmswitch.catalogue.DeviceUiMode
 import com.fmswitch.catalogue.SafetyNotice
 import com.fmswitch.model.Appearance
 import com.fmswitch.model.AppIcon
@@ -64,6 +65,22 @@ fun SettingsScreen(model: AppViewModel) {
             MonoText(SafetyNotice.TEXT, size = 14)
             Spacer(Modifier.height(8.dp))
             MonoText(SafetyNotice.RECOVERY, size = 14)
+        }
+        PixelPanel(title = "KEYBOARD MODE") {
+            MonoText(
+                "AUTO follows a connected device. Otherwise the firmware list and flashing target FM-1 or SMK-37 only.",
+                size = 14,
+            )
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                DeviceUiMode.entries.forEach { mode ->
+                    PixelButton(
+                        mode.label,
+                        compact = true,
+                        prominent = model.settings.deviceUiMode == mode,
+                    ) { model.setDeviceUiMode(mode) }
+                }
+            }
         }
         PixelPanel(title = "WHICH FM-1 DO YOU HAVE?") {
             @Suppress("UNUSED_EXPRESSION")

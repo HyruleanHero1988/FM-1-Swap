@@ -1,0 +1,119 @@
+{
+  "hubUpdated": null,
+  "snapshotVersion": 1,
+  "bundled": true,
+  "entries": [
+    {
+      "id": "mvave-smk-pro-v016",
+      "name": "SMK-37 Pro V016",
+      "author": "M-VAVE",
+      "kinds": ["official"],
+      "what": "M-VAVE stock firmware for the SMK-37 Pro. Download the .fwsc from M-VAVE, then import it here or use SAVED after you download it in the app.",
+      "version": "V016",
+      "product": "SMK-37 Pro_016",
+      "platforms": ["smk37"],
+      "isOfficial": true,
+      "links": [
+        {"label": "M-VAVE downloads", "url": "https://www.m-vave.com/download"}
+      ]
+    },
+    {
+      "id": "mvave-smk-elite-v016",
+      "name": "SMK-37 Elite V016",
+      "author": "M-VAVE",
+      "kinds": ["official"],
+      "what": "M-VAVE stock firmware for the SMK-37 Elite. Download the .fwsc from M-VAVE, then import it here.",
+      "version": "V016",
+      "product": "SMK-37 Elite_016",
+      "platforms": ["smk37"],
+      "isOfficial": true,
+      "links": [
+        {"label": "M-VAVE downloads", "url": "https://www.m-vave.com/download"}
+      ]
+    },
+    {
+      "id": "sloop-pro",
+      "name": "SLOOP Pro",
+      "author": "isod89",
+      "kinds": ["groovebox"],
+      "what": "SLOOP on the SMK-37 keyboard (Pro / Starrykey 37 Play package).",
+      "version": "2.8.4",
+      "product": "SMK-37 Pro_900",
+      "packageURL": "https://github.com/isod89/sloop-pro/releases/download/v2.8.4/sloop-pro-2.8.4.fwsc",
+      "sha256": "7c18163fd2088663ff057b729419e4ff3b08ceb77ad72072fced3c26a8aeb80a",
+      "size": 651224,
+      "platforms": ["smk37"],
+      "allowSiblingSmkModel": true,
+      "links": [
+        {"label": "SLOOP Pro", "url": "https://github.com/isod89/sloop-pro"},
+        {"label": "Install in browser", "url": "https://isod89.github.io/sloop-pro/"}
+      ]
+    },
+    {
+      "id": "sloop-pro-elite",
+      "name": "SLOOP Pro (Elite)",
+      "author": "isod89",
+      "kinds": ["groovebox"],
+      "what": "SLOOP on the SMK-37 Elite. Use the Elite package only on an Elite.",
+      "version": "2.8.4",
+      "product": "SMK-37 Elite_900",
+      "packageURL": "https://github.com/isod89/sloop-pro/releases/download/v2.8.4/sloop-pro-elite-2.8.4.fwsc",
+      "sha256": "c6278514ab3ca7b0bfbe3f976baead02cc2adcd801e39166130cb72a4b42705b",
+      "size": 651224,
+      "platforms": ["smk37"],
+      "links": [
+        {"label": "SLOOP Pro", "url": "https://github.com/isod89/sloop-pro"}
+      ]
+    },
+    {
+      "id": "clipper-pro",
+      "name": "Clipper Pro",
+      "author": "isod89",
+      "kinds": ["synth"],
+      "what": "Clipper synthesizer on the SMK-37 Pro (and Starrykey 37 Play).",
+      "version": "1.3",
+      "product": "SMK-37 Pro_900",
+      "packageURL": "https://github.com/isod89/clipper-pro/releases/download/v1.3/clipper-pro-1.3.fwsc",
+      "sha256": "f8b539209d8650a2be3bb896e4565749119d7ee75602dab281d667599cabbb86",
+      "size": 651245,
+      "platforms": ["smk37"],
+      "allowSiblingSmkModel": true,
+      "links": [
+        {"label": "Clipper Pro", "url": "https://github.com/isod89/clipper-pro"},
+        {"label": "Install in browser", "url": "https://isod89.github.io/clipper-pro/"}
+      ]
+    },
+    {
+      "id": "clipper-pro-elite",
+      "name": "Clipper Pro (Elite)",
+      "author": "isod89",
+      "kinds": ["synth"],
+      "what": "Clipper synthesizer on the SMK-37 Elite.",
+      "version": "1.3",
+      "product": "SMK-37 Elite_900",
+      "packageURL": "https://github.com/isod89/clipper-pro/releases/download/v1.3/clipper-pro-elite-1.3.fwsc",
+      "sha256": "6774c61553d636d8aae8e8f83fe4938e1c28958d396bdf1b7dd6ebc9fbbe5728",
+      "size": 651249,
+      "platforms": ["smk37"],
+      "links": [
+        {"label": "Clipper Pro", "url": "https://github.com/isod89/clipper-pro"}
+      ]
+    },
+    {
+      "id": "baudgirl-smk37va",
+      "name": "SMK-37+VA",
+      "author": "Baud Girl",
+      "kinds": ["synth"],
+      "what": "Virtual Analog and 8-Bit engines for the SMK-37 family. Install from Baud Girl's page in Chrome if this app cannot download the package.",
+      "version": "102",
+      "product": "SMK-37 Pro_102",
+      "platforms": ["smk37"],
+      "allowSiblingSmkModel": true,
+      "links": [
+        {"label": "SMK-37+VA", "url": "https://baudgirl.com/work/SMK-37+VA"},
+        {"label": "Install", "url": "https://baudgirl.com/work/SMK-37+VA/install"}
+      ]
+    }
+  ],
+  "problems": []
+}

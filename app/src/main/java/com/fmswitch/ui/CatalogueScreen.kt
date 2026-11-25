@@ -73,7 +73,7 @@ fun CatalogueScreen(model: AppViewModel) {
     model.historyTick
     val curation = model.settings.curation
     val curatedIds = curation.toSet()
-    val matching = model.catalogue.entries.filter { entry ->
+    val matching = model.catalogueEntries().filter { entry ->
         (model.settings.showBeta || !entry.beta || entry.id in curatedIds) &&
             (model.settings.showLinksOnly || entry.isDownloadable || model.library.items.any { it.catalogueID == entry.id }) &&
             (!model.settings.curatedOnly || entry.id in curatedIds) &&
@@ -280,8 +280,10 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         entry.what?.let { MonoText(it, size = 15) }
         NewChipBanner(entry.name, entry.newChip, model.settings.unitGeneration)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PixelButton("TRY", prominent = true, wrap = true, modifier = Modifier.weight(1f)) {
-                model.openEmulator(entry)
+            if (model.tryEmulatorEnabled) {
+                PixelButton("TRY", prominent = true, wrap = true, modifier = Modifier.weight(1f)) {
+                    model.openEmulator(entry)
+                }
             }
             if (stored == null && entry.isDownloadable) {
                 PixelButton(
@@ -328,6 +330,10 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         }
         NoteText(
             when {
+                !model.tryEmulatorEnabled && stored == null && !entry.isDownloadable ->
+                    "This listing has no file in the app. Follow the links to download stock firmware from M-VAVE, or use SAVE after you import a .fwsc."
+                !model.tryEmulatorEnabled ->
+                    "SAVE keeps a copy on the phone. FLASH writes a connected SMK-37 keyboard. TRY is not available for SMK firmware in this build."
                 stored == null && !entry.isDownloadable ->
                     "TRY plays this on the virtual FM-1. This listing has no file to save or flash."
                 model.settings.autoSaveTried ->

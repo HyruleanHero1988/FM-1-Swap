@@ -55,6 +55,10 @@ data class CatalogueEntry(
     val builtFromSource: Boolean = false,
     /** What is known of this package on a newer FM-1 (flash 0xB36014). Unknown until a source says otherwise. */
     val newChip: NewChipSupport = NewChipSupport.UNKNOWN,
+    /** `fm1` or `smk37`; empty means FM-1 only. */
+    val platforms: List<String> = listOf("fm1"),
+    /** Starrykey and other rebadged SMK-37 units may use the Pro package. */
+    val allowSiblingSmkModel: Boolean = false,
 ) {
     val requiresOfficialFirmware: Boolean get() = loader?.lowercase() == "mvave"
     val isDownloadable: Boolean get() = packageURL != null

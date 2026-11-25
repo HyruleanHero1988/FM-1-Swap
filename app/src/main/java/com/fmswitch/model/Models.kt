@@ -3,6 +3,7 @@ package com.fmswitch.model
 import android.content.Context
 import android.content.SharedPreferences
 import com.fmswitch.catalogue.AboutOverlay
+import com.fmswitch.catalogue.DeviceUiMode
 import com.fmswitch.catalogue.CatalogueBuilder
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.CatalogueRank
@@ -103,6 +104,10 @@ class AppSettings(private val prefs: SharedPreferences) {
     var unitGeneration: UnitGeneration
         get() = UnitGeneration.fromId(prefs.getString("unitGeneration", null))
         set(value) { prefs.edit().putString("unitGeneration", value.id).apply() }
+    /** SMK-37 mode for catalogue and flashing. AUTO follows a connected device. */
+    var deviceUiMode: DeviceUiMode
+        get() = DeviceUiMode.fromId(prefs.getString("deviceUiMode", DeviceUiMode.AUTO.id))
+        set(value) { prefs.edit().putString("deviceUiMode", value.id).apply() }
     var showLinksOnly: Boolean
         get() = prefs.getBoolean("showLinksOnly", false)
         set(value) { prefs.edit().putBoolean("showLinksOnly", value).apply() }
@@ -456,12 +461,26 @@ class CatalogueStore(private val context: Context) {
 
     val entries: List<CatalogueEntry>
         get() {
-            val listed = catalogue?.entries.orEmpty()
-            val withOfficial = if (listed.any { it.isOfficial }) listed else listOf(officialCatalogueEntry()) + listed
-            val marked = NewChipOverlay.apply(withOfficial, newChipMarks)
+            val fm1 = catalogue?.entries.orEmpty()
+            val withOfficial = if (fm1.any { it.id == "mvave-official" }) {
+                fm1
+            } else {
+                listOf(officialCatalogueEntry()) + fm1
+            }
+            val merged = withOfficial + smkCatalogueEntries()
+            val marked = NewChipOverlay.apply(merged, newChipMarks)
             val described = AboutOverlay.apply(marked, aboutOverlayText)
             return CatalogueRank.ordered(PhotoOverlay.apply(described, photoOverlayText))
         }
+
+    private val smkEntries: List<CatalogueEntry> by lazy {
+        runCatching {
+            val text = context.assets.open("catalogue/smk.json").bufferedReader(Charsets.UTF_8).use { it.readText() }
+            json.decodeFromString<MergedCatalogue>(text).entries
+        }.getOrDefault(emptyList())
+    }
+
+    fun smkCatalogueEntries(): List<CatalogueEntry> = smkEntries
 
     fun entry(id: String): CatalogueEntry? = entries.firstOrNull { it.id == id }
 

@@ -13,9 +13,9 @@ class FM1Updater(
     var lastProbeProblem: String? = null
         private set
 
-    suspend fun find(filter: (FM1Identity) -> Boolean = { true }): FoundDevice? {
+    suspend fun find(filter: (FM1Identity) -> Boolean = { true }, deep: Boolean = false): FoundDevice? {
         val problems = ArrayList<String>()
-        for (port in portsToProbe(transport.ports())) {
+        for (port in portsToProbe(transport.ports(), deep)) {
             val connection = try {
                 transport.open(port)
             } catch (error: Exception) {
@@ -34,10 +34,10 @@ class FM1Updater(
         return null
     }
 
-    suspend fun findAll(filter: (FM1Identity) -> Boolean = { true }): List<FoundDevice> {
+    suspend fun findAll(filter: (FM1Identity) -> Boolean = { true }, deep: Boolean = false): List<FoundDevice> {
         val found = ArrayList<FoundDevice>()
         val problems = ArrayList<String>()
-        for (port in portsToProbe(transport.ports())) {
+        for (port in portsToProbe(transport.ports(), deep)) {
             val connection = try {
                 transport.open(port)
             } catch (error: Exception) {
@@ -63,8 +63,8 @@ class FM1Updater(
             "${port.name}: answered as ${identity.text}, which isn't what this step needs."
         }
 
-    private suspend fun findOnly(filter: (FM1Identity) -> Boolean): FoundDevice? {
-        val found = findAll(filter)
+    private suspend fun findOnly(filter: (FM1Identity) -> Boolean, deep: Boolean = false): FoundDevice? {
+        val found = findAll(filter, deep)
         if (found.size > 1) {
             found.forEach { it.connection.close() }
             throw FM1UpdateError.MultipleDevices(found.size)
@@ -79,19 +79,31 @@ class FM1Updater(
     }
 
     suspend fun check(package_: FwscPackage, buildID: FM1BuildID? = null): InstallCheck {
-        val device = findOnly { !it.isLoader } ?: throw FM1UpdateError.DeviceNotFound
+        val device = findOnly({ identity -> !identity.isLoader }) ?: throw FM1UpdateError.DeviceNotFound
         return try {
-            check(package_, device, buildID ?: knownBuildID(package_))
+            check(package_, device, buildID ?: knownBuildID(package_), InstallOptions())
         } finally {
             device.connection.close()
         }
     }
 
-    private suspend fun check(package_: FwscPackage, device: FoundDevice, buildID: FM1BuildID?): InstallCheck {
+    private suspend fun check(
+        package_: FwscPackage,
+        device: FoundDevice,
+        buildID: FM1BuildID?,
+        options: InstallOptions,
+    ): InstallCheck {
+        if (DeviceFamily.isOtherSmkFirmware(device.identity)) {
+            throw FM1UpdateError.OtherSmkFirmware(device.identity.text)
+        }
+        FwscLayout.boardRefusal(device.identity.hardwareModel, package_.logicalImage)?.let { throw it }
         val capability = capabilityOf(device)
-        if (device.identity.hardwareModel != package_.identity.model &&
-            capability?.family != FM1Capability.FM1_FAMILY
-        ) {
+        val modelsOk = DeviceFamily.modelsCompatible(
+            device.identity.hardwareModel,
+            package_.identity.model,
+            options.allowSiblingSmkModels,
+        ) || capability?.family == FM1Capability.FM1_FAMILY
+        if (!modelsOk) {
             throw FM1UpdateError.ModelMismatch(device.identity.text, package_.product)
         }
         return InstallCheck.of(device.identity, capability, package_, buildID)
@@ -102,11 +114,11 @@ class FM1Updater(
         options: InstallOptions = InstallOptions(),
         events: (UpdateEvent) -> Unit = {},
     ): FM1Identity {
-        val device = findOnly { !it.isLoader } ?: throw FM1UpdateError.DeviceNotFound
+        val device = findOnly({ identity -> !identity.isLoader }) ?: throw FM1UpdateError.DeviceNotFound
         val buildID = options.buildID ?: knownBuildID(package_)
         val staging: ServeOutcome
         try {
-            val check = check(package_, device, buildID)
+            val check = check(package_, device, buildID, options)
             when (check.kind) {
                 InstallKind.REINSTALL -> throw FM1UpdateError.AlreadyInstalled(device.identity.text)
                 InstallKind.SWITCHING_FIRMWARE ->
@@ -146,7 +158,7 @@ class FM1Updater(
         delay(timing.loaderBootMs)
         val model = package_.identity.model
         val armedPrefix = (buildID ?: FM1BuildID.knownHex(package_.sha256)).hex.take(16)
-        val loader = waitFor(timing.loaderSearchMs) { identity ->
+        val loader = waitFor(timing.loaderSearchMs, deep = true) { identity ->
             identity.isLoaderFor(model) && (identity.armedBuildPrefix ?: armedPrefix) == armedPrefix
         } ?: throw FM1UpdateError.LoaderNotFound
         return write(package_, loader, buildID, events)
@@ -154,7 +166,23 @@ class FM1Updater(
 
     suspend fun resume(package_: FwscPackage, events: (UpdateEvent) -> Unit = {}): FM1Identity {
         val model = package_.identity.model
-        val loader = findOnly { it.isLoaderFor(model) } ?: throw FM1UpdateError.LoaderNotFound
+        val loader = findOnly({ it.isLoaderFor(model) }, deep = true)
+            ?: findOnly({ it.isLoader }, deep = true)
+            ?: throw FM1UpdateError.LoaderNotFound
+        FwscLayout.boardRefusal(loader.identity.hardwareModel, package_.logicalImage)?.let {
+            loader.connection.close()
+            throw it
+        }
+        if (!DeviceFamily.isOurLoader(loader.identity)) {
+            loader.connection.close()
+            throw FM1UpdateError.ForeignLoader(loader.identity.text)
+        }
+        if (!loader.identity.isLoaderFor(model) &&
+            !DeviceFamily.sameKeyboard(loader.identity.hardwareModel, model)
+        ) {
+            loader.connection.close()
+            throw FM1UpdateError.ModelMismatch(loader.identity.text, package_.product)
+        }
         return write(package_, loader, knownBuildID(package_), events)
     }
 
@@ -189,7 +217,8 @@ class FM1Updater(
 
         events(UpdateEvent.Rebooting)
         delay(timing.firmwareBootMs)
-        val returned = waitFor(timing.returnSearchMs) { !it.isLoader } ?: throw FM1UpdateError.DeviceDidNotReturn
+        val returned = waitFor(timing.returnSearchMs, deep = true) { !it.isLoader }
+            ?: throw FM1UpdateError.DeviceDidNotReturn
         try {
             if (returned.identity != package_.identity) {
                 throw FM1UpdateError.IdentityMismatch(package_.product, returned.identity.text)
@@ -276,10 +305,14 @@ class FM1Updater(
         }
     }
 
-    private suspend fun waitFor(limitMs: Long, filter: (FM1Identity) -> Boolean): FoundDevice? {
+    private suspend fun waitFor(
+        limitMs: Long,
+        deep: Boolean = false,
+        filter: (FM1Identity) -> Boolean,
+    ): FoundDevice? {
         val deadline = System.nanoTime() + limitMs * 1_000_000L
         while (System.nanoTime() < deadline) {
-            findOnly(filter)?.let { return it }
+            findOnly(filter, deep)?.let { return it }
             delay(timing.scanIntervalMs)
         }
         return null
@@ -352,7 +385,7 @@ class FM1Updater(
     }
 
     private suspend fun restoreVoices(voices: ByteArray, progress: (Double) -> Unit) {
-        val device = findOnly { true } ?: throw FM1UpdateError.DeviceNotFound
+        val device = findOnly({ true }) ?: throw FM1UpdateError.DeviceNotFound
         try {
             if (device.identity != FM1Identity.OFFICIAL_V15) {
                 throw FM1UpdateError.VoiceRestoreNeedsV15(device.identity.text)
@@ -413,7 +446,7 @@ class FM1Updater(
 
     companion object {
         val PROBEABLE_FRAGMENTS = listOf(
-            "fm-1", "fm1", "felucca", "ota", "composite", "usb-midi", "usb midi",
+            "fm-1", "fm1", "smk", "elite", "mke-p37", "starry", "felucca", "ota", "composite", "usb-midi", "usb midi",
             "simulated", "sloop", "clipper", "sinco", "jieli", "ac791", "wl80",
         )
 
@@ -425,17 +458,20 @@ class FM1Updater(
         fun probeRank(port: MidiPortDescriptor): Int {
             val name = port.name.lowercase()
             return when {
-                listOf("fm-1", "fm1").any { name.contains(it) } -> 0
+                listOf("fm-1", "fm1", "smk").any { name.contains(it) } -> 0
                 listOf("clipper", "sloop", "felucca", "sinco").any { name.contains(it) } -> 1
                 listOf("jieli", "ac791", "wl80").any { name.contains(it) } -> 2
                 else -> 3
             }
         }
 
-        fun portsToProbe(ports: List<MidiPortDescriptor>): List<MidiPortDescriptor> {
+        fun portsToProbe(ports: List<MidiPortDescriptor>, deep: Boolean = false): List<MidiPortDescriptor> {
             val named = ports.filter { isProbeable(it) }
-            val pool = named.ifEmpty { ports.filter { isGenericMidiName(it.name) } }
-            return pool.sortedBy { probeRank(it) }
+            val pool = named.ifEmpty {
+                if (deep) ports else ports.filter { isGenericMidiName(it.name) }
+            }
+            val extras = if (deep) ports.filter { port -> pool.none { it.id == port.id } } else emptyList()
+            return (pool + extras).sortedBy { probeRank(it) }
         }
 
         /** "MIDI 2" may still be an FM-1. "AKAI MPK mini 3" is a keyboard, so it is not opened. */

@@ -49,7 +49,7 @@ fun DeviceScreen(model: AppViewModel) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
-        ScreenHeader("DEVICE") {
+        ScreenHeader(if (model.effectiveDeviceFamily == com.fmswitch.fm1kit.DeviceFamilyKind.SMK37) "DEVICE · SMK" else "DEVICE") {
             PixelButton(if (model.isScanning) "SCANNING" else "SCAN", compact = true, enabled = !model.isScanning) {
                 model.scan(force = true)
             }

@@ -1,5 +1,7 @@
 package com.fmswitch.catalogue
 
+import com.fmswitch.fm1kit.DeviceFamily
+import com.fmswitch.fm1kit.FM1Identity
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -24,6 +26,14 @@ data class CatalogueLink(val label: String, val url: String) {
             .removePrefix("www.")
             .trimEnd('/')
 }
+
+@Serializable
+data class SmkModelPackage(
+    val product: String,
+    val packageURL: String,
+    val sha256: String? = null,
+    val size: Int? = null,
+)
 
 @Serializable
 data class CatalogueEntry(
@@ -59,9 +69,37 @@ data class CatalogueEntry(
     val platforms: List<String> = listOf("fm1"),
     /** Starrykey and other rebadged SMK-37 units may use the Pro package. */
     val allowSiblingSmkModel: Boolean = false,
+    /**
+     * Per-keyboard SMK packages keyed `pro` / `elite` / `mke`.
+     * [forDevice] fills [packageURL]/[product]/[sha256]/[size] from the matching variant.
+     */
+    val smkModels: Map<String, SmkModelPackage> = emptyMap(),
 ) {
     val requiresOfficialFirmware: Boolean get() = loader?.lowercase() == "mvave"
-    val isDownloadable: Boolean get() = packageURL != null
+    val isDownloadable: Boolean get() = packageURL != null || smkModels.values.any { it.packageURL.isNotBlank() }
+    /** Link-only SMK cards (e.g. Baud Girl) stay visible in SMK mode without SHOW LISTINGS WITHOUT A PACKAGE. */
+    val isSmkListing: Boolean
+        get() = platforms.any { it.equals(DevicePlatform.SMK37, ignoreCase = true) }
+
+    /**
+     * Picks the Pro / Elite / MKE package for [identity]. Starrykey and unknown SMK names get Pro.
+     * Entries without [smkModels] are unchanged.
+     */
+    fun forDevice(identity: FM1Identity?): CatalogueEntry {
+        if (smkModels.isEmpty()) return this
+        val key = DeviceFamily.smkVariantKey(identity)
+        val variant = smkModels[key]
+            ?: smkModels[DeviceFamily.VARIANT_PRO]
+            ?: smkModels.values.firstOrNull()
+            ?: return this
+        return copy(
+            packageURL = variant.packageURL,
+            product = variant.product,
+            sha256 = variant.sha256,
+            size = variant.size,
+            allowSiblingSmkModel = allowSiblingSmkModel || key == DeviceFamily.VARIANT_PRO,
+        )
+    }
 }
 
 @Serializable

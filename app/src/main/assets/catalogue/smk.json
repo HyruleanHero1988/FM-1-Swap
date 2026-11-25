@@ -7,111 +7,1229 @@
       "id": "mvave-smk-pro-v016",
       "name": "SMK-37 Pro V016",
       "author": "M-VAVE",
-      "kinds": ["official"],
+      "kinds": [
+        "official"
+      ],
       "what": "M-VAVE stock firmware for the SMK-37 Pro. Download the .fwsc from M-VAVE, then import it here or use SAVED after you download it in the app.",
       "version": "V016",
       "product": "SMK-37 Pro_016",
-      "platforms": ["smk37"],
+      "platforms": [
+        "smk37"
+      ],
       "isOfficial": true,
       "links": [
-        {"label": "M-VAVE downloads", "url": "https://www.m-vave.com/download"}
+        {
+          "label": "M-VAVE downloads",
+          "url": "https://www.m-vave.com/download"
+        }
       ]
     },
     {
       "id": "mvave-smk-elite-v016",
       "name": "SMK-37 Elite V016",
       "author": "M-VAVE",
-      "kinds": ["official"],
+      "kinds": [
+        "official"
+      ],
       "what": "M-VAVE stock firmware for the SMK-37 Elite. Download the .fwsc from M-VAVE, then import it here.",
       "version": "V016",
       "product": "SMK-37 Elite_016",
-      "platforms": ["smk37"],
+      "platforms": [
+        "smk37"
+      ],
       "isOfficial": true,
       "links": [
-        {"label": "M-VAVE downloads", "url": "https://www.m-vave.com/download"}
+        {
+          "label": "M-VAVE downloads",
+          "url": "https://www.m-vave.com/download"
+        }
       ]
     },
     {
       "id": "sloop-pro",
       "name": "SLOOP Pro",
       "author": "isod89",
-      "kinds": ["groovebox"],
-      "what": "SLOOP on the SMK-37 keyboard (Pro / Starrykey 37 Play package).",
+      "kinds": [
+        "groovebox"
+      ],
+      "what": "SLOOP on the SMK-37 keyboard. Connect Pro / Starrykey or Elite: SAVE / FLASH picks the matching package.",
       "version": "2.8.4",
       "product": "SMK-37 Pro_900",
       "packageURL": "https://github.com/isod89/sloop-pro/releases/download/v2.8.4/sloop-pro-2.8.4.fwsc",
       "sha256": "7c18163fd2088663ff057b729419e4ff3b08ceb77ad72072fced3c26a8aeb80a",
       "size": 651224,
-      "platforms": ["smk37"],
+      "platforms": [
+        "smk37"
+      ],
       "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_900",
+          "packageURL": "https://github.com/isod89/sloop-pro/releases/download/v2.8.4/sloop-pro-2.8.4.fwsc",
+          "sha256": "7c18163fd2088663ff057b729419e4ff3b08ceb77ad72072fced3c26a8aeb80a",
+          "size": 651224
+        },
+        "elite": {
+          "product": "SMK-37 Elite_900",
+          "packageURL": "https://github.com/isod89/sloop-pro/releases/download/v2.8.4/sloop-pro-elite-2.8.4.fwsc",
+          "sha256": "c6278514ab3ca7b0bfbe3f976baead02cc2adcd801e39166130cb72a4b42705b",
+          "size": 651224
+        }
+      },
       "links": [
-        {"label": "SLOOP Pro", "url": "https://github.com/isod89/sloop-pro"},
-        {"label": "Install in browser", "url": "https://isod89.github.io/sloop-pro/"}
-      ]
-    },
-    {
-      "id": "sloop-pro-elite",
-      "name": "SLOOP Pro (Elite)",
-      "author": "isod89",
-      "kinds": ["groovebox"],
-      "what": "SLOOP on the SMK-37 Elite. Use the Elite package only on an Elite.",
-      "version": "2.8.4",
-      "product": "SMK-37 Elite_900",
-      "packageURL": "https://github.com/isod89/sloop-pro/releases/download/v2.8.4/sloop-pro-elite-2.8.4.fwsc",
-      "sha256": "c6278514ab3ca7b0bfbe3f976baead02cc2adcd801e39166130cb72a4b42705b",
-      "size": 651224,
-      "platforms": ["smk37"],
-      "links": [
-        {"label": "SLOOP Pro", "url": "https://github.com/isod89/sloop-pro"}
+        {
+          "label": "SLOOP Pro",
+          "url": "https://github.com/isod89/sloop-pro"
+        },
+        {
+          "label": "Install in browser",
+          "url": "https://isod89.github.io/sloop-pro/"
+        }
       ]
     },
     {
       "id": "clipper-pro",
       "name": "Clipper Pro",
       "author": "isod89",
-      "kinds": ["synth"],
-      "what": "Clipper synthesizer on the SMK-37 Pro (and Starrykey 37 Play).",
+      "kinds": [
+        "synth"
+      ],
+      "what": "Clipper synthesizer on the SMK-37. Connect Pro / Starrykey or Elite: SAVE / FLASH picks the matching package.",
       "version": "1.3",
       "product": "SMK-37 Pro_900",
       "packageURL": "https://github.com/isod89/clipper-pro/releases/download/v1.3/clipper-pro-1.3.fwsc",
       "sha256": "f8b539209d8650a2be3bb896e4565749119d7ee75602dab281d667599cabbb86",
       "size": 651245,
-      "platforms": ["smk37"],
+      "platforms": [
+        "smk37"
+      ],
       "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_900",
+          "packageURL": "https://github.com/isod89/clipper-pro/releases/download/v1.3/clipper-pro-1.3.fwsc",
+          "sha256": "f8b539209d8650a2be3bb896e4565749119d7ee75602dab281d667599cabbb86",
+          "size": 651245
+        },
+        "elite": {
+          "product": "SMK-37 Elite_900",
+          "packageURL": "https://github.com/isod89/clipper-pro/releases/download/v1.3/clipper-pro-elite-1.3.fwsc",
+          "sha256": "6774c61553d636d8aae8e8f83fe4938e1c28958d396bdf1b7dd6ebc9fbbe5728",
+          "size": 651249
+        }
+      },
       "links": [
-        {"label": "Clipper Pro", "url": "https://github.com/isod89/clipper-pro"},
-        {"label": "Install in browser", "url": "https://isod89.github.io/clipper-pro/"}
-      ]
-    },
-    {
-      "id": "clipper-pro-elite",
-      "name": "Clipper Pro (Elite)",
-      "author": "isod89",
-      "kinds": ["synth"],
-      "what": "Clipper synthesizer on the SMK-37 Elite.",
-      "version": "1.3",
-      "product": "SMK-37 Elite_900",
-      "packageURL": "https://github.com/isod89/clipper-pro/releases/download/v1.3/clipper-pro-elite-1.3.fwsc",
-      "sha256": "6774c61553d636d8aae8e8f83fe4938e1c28958d396bdf1b7dd6ebc9fbbe5728",
-      "size": 651249,
-      "platforms": ["smk37"],
-      "links": [
-        {"label": "Clipper Pro", "url": "https://github.com/isod89/clipper-pro"}
+        {
+          "label": "Clipper Pro",
+          "url": "https://github.com/isod89/clipper-pro"
+        },
+        {
+          "label": "Install in browser",
+          "url": "https://isod89.github.io/clipper-pro/"
+        }
       ]
     },
     {
       "id": "baudgirl-smk37va",
       "name": "SMK-37+VA",
       "author": "Baud Girl",
-      "kinds": ["synth"],
-      "what": "Virtual Analog and 8-Bit engines for the SMK-37 family. Install from Baud Girl's page in Chrome if this app cannot download the package.",
+      "kinds": [
+        "synth"
+      ],
+      "what": "Virtual Analog and 8-Bit engines for the SMK-37 family (Pro / Starrykey and siblings). Closed-source package installs from Baud Girl's site in Chrome; import a .fwsc here afterward if you have one.",
       "version": "102",
       "product": "SMK-37 Pro_102",
-      "platforms": ["smk37"],
+      "platforms": [
+        "smk37"
+      ],
       "allowSiblingSmkModel": true,
       "links": [
-        {"label": "SMK-37+VA", "url": "https://baudgirl.com/work/SMK-37+VA"},
-        {"label": "Install", "url": "https://baudgirl.com/work/SMK-37+VA/install"}
+        {
+          "label": "SMK-37+VA",
+          "url": "https://baudgirl.com/work/SMK-37+VA"
+        },
+        {
+          "label": "Install",
+          "url": "https://baudgirl.com/work/SMK-37+VA/install"
+        }
+      ]
+    },
+    {
+      "id": "makkuro37",
+      "name": "Makkuro37",
+      "author": "genkigenki",
+      "kinds": [
+        "synth"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "0.3",
+      "beta": false,
+      "product": "SMK-37 Pro_703",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/makkuro37-0.3.fwsc",
+      "sha256": "9b17ea5647d009d421fe01d03384330a8dc52607ac510e5d3fcb045190ae03cb",
+      "size": 651195,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_703",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/makkuro37-0.3.fwsc",
+          "sha256": "9b17ea5647d009d421fe01d03384330a8dc52607ac510e5d3fcb045190ae03cb",
+          "size": 651195
+        },
+        "elite": {
+          "product": "SMK-37 Elite_703",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/makkuro37-0.3-elite.fwsc",
+          "sha256": "f52f420c3d385781692befc5e390ea78008710d38910e9a3651549ccf87bae5e",
+          "size": 651199
+        },
+        "mke": {
+          "product": "MKE-P37_703",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/makkuro37-0.3-mke.fwsc",
+          "sha256": "3d5889aa42e510e87d30909b4f225307a9a98309afe62ecc538a247e8fe9f946",
+          "size": 651191
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "vector37",
+      "name": "Vector37",
+      "author": "genkigenki",
+      "kinds": [
+        "synth"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "0.3.2",
+      "beta": false,
+      "product": "SMK-37 Pro_700",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/vector37-0.3.2.fwsc",
+      "sha256": "abc116a4dc8b41eeb8be86b1b4761d3aecd3080c67e9caf3122c3615aeae6153",
+      "size": 651194,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_700",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/vector37-0.3.2.fwsc",
+          "sha256": "abc116a4dc8b41eeb8be86b1b4761d3aecd3080c67e9caf3122c3615aeae6153",
+          "size": 651194
+        },
+        "elite": {
+          "product": "SMK-37 Elite_700",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/vector37-0.3.2-elite.fwsc",
+          "sha256": "0f391cbca19d678800cbd6775763c531a2681e98659ab5eadd36321c2b061db1",
+          "size": 651194
+        },
+        "mke": {
+          "product": "MKE-P37_700",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/vector37-0.3.2-mke.fwsc",
+          "sha256": "8e5163ea6b6eb85ac81de1198afdb2996f564bf6ac281de7406da9ce58541800",
+          "size": 651190
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "speak37",
+      "name": "Speak37",
+      "author": "genkigenki",
+      "kinds": [
+        "synth"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "1.0",
+      "beta": false,
+      "product": "SMK-37 Pro_510",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/speak37-1.0.fwsc",
+      "sha256": "033f23bf63de35f60ba6e2b98a3fd264b4a34aafb790c178f9ad7c1d5db11cce",
+      "size": 651060,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_510",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/speak37-1.0.fwsc",
+          "sha256": "033f23bf63de35f60ba6e2b98a3fd264b4a34aafb790c178f9ad7c1d5db11cce",
+          "size": 651060
+        },
+        "elite": {
+          "product": "SMK-37 Elite_510",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/speak37-1.0-elite.fwsc",
+          "sha256": "14065f0571dac4e8c12b05512832fda7676681d085dfebbac869688d9a73e6a0",
+          "size": 651064
+        },
+        "mke": {
+          "product": "MKE-P37_510",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/speak37-1.0-mke.fwsc",
+          "sha256": "3580a0e2c7d07f9e1b0c453c2b313ee9c27e895b5d8215e9ddbd31b0bf641a57",
+          "size": 651056
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "erik37",
+      "name": "Erik37",
+      "author": "genkigenki",
+      "kinds": [
+        "synth"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "1.3",
+      "beta": false,
+      "product": "SMK-37 Pro_480103",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/erik37-1.3.fwsc",
+      "sha256": "a39557d3443086b6efc880bd2e8259bd53a4193c16e4089204b6cf21dd789656",
+      "size": 651224,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_480103",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/erik37-1.3.fwsc",
+          "sha256": "a39557d3443086b6efc880bd2e8259bd53a4193c16e4089204b6cf21dd789656",
+          "size": 651224
+        },
+        "elite": {
+          "product": "SMK-37 Elite_480103",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/erik37-1.3-elite.fwsc",
+          "sha256": "ef1a39f55d9645eac3511f3dfd8f42daf2b3b372806c0b34c46030988eb9b3ac",
+          "size": 651228
+        },
+        "mke": {
+          "product": "MKE-P37_480103",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/erik37-1.3-mke.fwsc",
+          "sha256": "5ad8b59fb83829b4b8904c7a471fe572d51d62da56cb39ace59866e741896f0f",
+          "size": 651220
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "snoop37",
+      "name": "Snoop37 (SLOOP for the SMK-37)",
+      "author": "isod89 / genkigenki",
+      "kinds": [
+        "groovebox"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "2.8.5",
+      "beta": false,
+      "product": "SMK-37 Pro_900",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/snoop37-2.8.5.fwsc",
+      "sha256": "f88556a77d5998180b7e88a72f08fff7c835fdc5731ff43fd4283a55b54fffc8",
+      "size": 651233,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/snoop37-2.8.5.fwsc",
+          "sha256": "f88556a77d5998180b7e88a72f08fff7c835fdc5731ff43fd4283a55b54fffc8",
+          "size": 651233
+        },
+        "elite": {
+          "product": "SMK-37 Elite_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/snoop37-2.8.5-elite.fwsc",
+          "sha256": "1676b4460d825a9553d3ac9ae10ffd97483da755ff8ef29cfcad4cb702b0570d",
+          "size": 651237
+        },
+        "mke": {
+          "product": "MKE-P37_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/snoop37-2.8.5-mke.fwsc",
+          "sha256": "54d133d8f2b2a8e66b832e65e6be597a10e6be58fc83c7332f2c2743b3b84b9c",
+          "size": 651229
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "x0x37",
+      "name": "X0X \u2014 SMK-37 build",
+      "author": "Charles Vestal / genkigenki",
+      "kinds": [
+        "drums"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "0.2",
+      "beta": false,
+      "product": "SMK-37 Pro_900",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/x0x37-0.2.fwsc",
+      "sha256": "983402ce49bac7dab2b36b30eddf9e5a1ae7a36e63dd35717bd6479a63dcd26d",
+      "size": 650816,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/x0x37-0.2.fwsc",
+          "sha256": "983402ce49bac7dab2b36b30eddf9e5a1ae7a36e63dd35717bd6479a63dcd26d",
+          "size": 650816
+        },
+        "elite": {
+          "product": "SMK-37 Elite_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/x0x37-0.2-elite.fwsc",
+          "sha256": "b577c6aceac17ebe94753046394775153a743eb29502806478fbb2303a416e61",
+          "size": 650820
+        },
+        "mke": {
+          "product": "MKE-P37_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/x0x37-0.2-mke.fwsc",
+          "sha256": "1cd132eb5db3b70f7b5fcde7175a262569d3ee087460a1acd0fb425f0905b53b",
+          "size": 650812
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "fomni37",
+      "name": "FoMni \u2014 SMK-37 build",
+      "author": "Charles Vestal / genkigenki",
+      "kinds": [
+        "chords"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "0.2",
+      "beta": false,
+      "product": "SMK-37 Pro_800",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/fomni37-0.2.fwsc",
+      "sha256": "d7dfe5583b4314eb8aa1b6158553dc6234d8aaf6aaeac4087820086303c0cd76",
+      "size": 650795,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_800",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/fomni37-0.2.fwsc",
+          "sha256": "d7dfe5583b4314eb8aa1b6158553dc6234d8aaf6aaeac4087820086303c0cd76",
+          "size": 650795
+        },
+        "elite": {
+          "product": "SMK-37 Elite_800",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/fomni37-0.2-elite.fwsc",
+          "sha256": "8e7f68295dc99c34307ab523436f85f49f5f074b9f92738a72e7c2a631734cfa",
+          "size": 650799
+        },
+        "mke": {
+          "product": "MKE-P37_800",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/fomni37-0.2-mke.fwsc",
+          "sha256": "d99cabd903362d6c5bd05065a63f1cd052eac68f59503d8c7505d630e5ddf7eb",
+          "size": 650791
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "maku37",
+      "name": "MAKU \u2014 SMK-37 build",
+      "author": "okumurari / genkigenki",
+      "kinds": [
+        "ambient"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "0.1",
+      "beta": false,
+      "product": "SMK-37 Pro_900",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/maku37-0.1.fwsc",
+      "sha256": "cf8b69b26ef7ea6aba37039dd55ed2db9d7dbd7b9b44e9d6aeab67f9fcdb5868",
+      "size": 651211,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/maku37-0.1.fwsc",
+          "sha256": "cf8b69b26ef7ea6aba37039dd55ed2db9d7dbd7b9b44e9d6aeab67f9fcdb5868",
+          "size": 651211
+        },
+        "elite": {
+          "product": "SMK-37 Elite_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/maku37-0.1-elite.fwsc",
+          "sha256": "97198b9de4ab44ebf0cc1c4222d224860fca9b3bb3fb51d2e1a0fa0e5c0e4824",
+          "size": 651211
+        },
+        "mke": {
+          "product": "MKE-P37_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/maku37-0.1-mke.fwsc",
+          "sha256": "79e8d39c711ca82b9e554426c2712491c09778c2bb84d70f457207a1d05bea7c",
+          "size": 651207
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "rainbow37",
+      "name": "Rainbow mode \u2014 SMK-37 build",
+      "author": "joshbartlettband-web / genkigenki",
+      "kinds": [
+        "other"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "0.2",
+      "beta": false,
+      "product": "SMK-37 Pro_902",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/rainbow37-0.2.fwsc",
+      "sha256": "37f923087ae93599cdae5ac27ab02166f8a8888e30d436973fd8a0762d357210",
+      "size": 651211,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_902",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/rainbow37-0.2.fwsc",
+          "sha256": "37f923087ae93599cdae5ac27ab02166f8a8888e30d436973fd8a0762d357210",
+          "size": 651211
+        },
+        "elite": {
+          "product": "SMK-37 Elite_902",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/rainbow37-0.2-elite.fwsc",
+          "sha256": "5a2b5f0f5a5d14df8f38c9e43b7214a672f20aeee716ed385f398a3457b34645",
+          "size": 651211
+        },
+        "mke": {
+          "product": "MKE-P37_902",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/rainbow37-0.2-mke.fwsc",
+          "sha256": "31b78015c76eba31fa6016c7cb9072f30883565e9b37d767d4b11775d3f0b351",
+          "size": 651207
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "ghoulbox",
+      "name": "GHOULBOX \u2014 SMK-37 build",
+      "author": "Jason Persinger / genkigenki",
+      "kinds": [
+        "synth"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "2.1",
+      "beta": false,
+      "product": "SMK-37 Pro_900",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/ghoulbox-2.1.fwsc",
+      "sha256": "923339ebdc49490deec33c608f68e9237f667ed9b9f0dced1c6dfdcaa18f36f3",
+      "size": 651211,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/ghoulbox-2.1.fwsc",
+          "sha256": "923339ebdc49490deec33c608f68e9237f667ed9b9f0dced1c6dfdcaa18f36f3",
+          "size": 651211
+        },
+        "elite": {
+          "product": "SMK-37 Elite_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/ghoulbox-2.1-elite.fwsc",
+          "sha256": "206a97fefb25adbcc4e0b0847544f635cd06ecf2faf2603c9991d04e09d6209f",
+          "size": 651211
+        },
+        "mke": {
+          "product": "MKE-P37_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/ghoulbox-2.1-mke.fwsc",
+          "sha256": "0efda315b7005f02153a109be06f27fb4baac787fdacb5d039066394672aacff",
+          "size": 651207
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "choralroot",
+      "name": "ChoralRoot \u2014 SMK-37 build",
+      "author": "Quixotic7 / genkigenki",
+      "kinds": [
+        "chords"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "0.24-beta3",
+      "beta": true,
+      "product": "SMK-37 Pro_920",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/choralroot-0.24-beta3.fwsc",
+      "sha256": "34821d76c917268e94626b016a7fec0ca441aa3c6f0d99d2bc2f1c44fc9dca05",
+      "size": 651496,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_920",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/choralroot-0.24-beta3.fwsc",
+          "sha256": "34821d76c917268e94626b016a7fec0ca441aa3c6f0d99d2bc2f1c44fc9dca05",
+          "size": 651496
+        },
+        "elite": {
+          "product": "SMK-37 Elite_920",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/choralroot-0.24-beta3-elite.fwsc",
+          "sha256": "467ae6da25470f0968dfdd9ee6b48054035398da7fb29447730ac0ed6fbf6a44",
+          "size": 651500
+        },
+        "mke": {
+          "product": "MKE-P37_920",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/choralroot-0.24-beta3-mke.fwsc",
+          "sha256": "70c5e472f49258da994c326c8143961d7ac7dd104d21fd41236a561e0a5ba2b0",
+          "size": 651492
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "orbit",
+      "name": "ORBIT \u2014 SMK-37 build",
+      "author": "dspaudio / genkigenki",
+      "kinds": [
+        "groovebox"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "0.7.0",
+      "beta": false,
+      "product": "SMK-37 Pro_900",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/orbit-0.7.0.fwsc",
+      "sha256": "e3aab2db84940173dfe045304815ffcb51bd22852ed7c3dce08dec6f0a521363",
+      "size": 651190,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/orbit-0.7.0.fwsc",
+          "sha256": "e3aab2db84940173dfe045304815ffcb51bd22852ed7c3dce08dec6f0a521363",
+          "size": 651190
+        },
+        "elite": {
+          "product": "SMK-37 Elite_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/orbit-0.7.0-elite.fwsc",
+          "sha256": "b6439abd5641e5867182db3f29363f5ca7a785b92f4645978a1533eea125d7a4",
+          "size": 651194
+        },
+        "mke": {
+          "product": "MKE-P37_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/orbit-0.7.0-mke.fwsc",
+          "sha256": "6e90ae7e491ea186ba22a78373eed18984b0f5ef2fc5df9cd58e8258b0d87439",
+          "size": 651186
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "amb",
+      "name": "AMB-1 \u2014 SMK-37 build",
+      "author": "Charles Vestal / genkigenki",
+      "kinds": [
+        "ambient"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "1.1",
+      "beta": false,
+      "product": "SMK-37 Pro_700",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/amb-1.1.fwsc",
+      "sha256": "756f7a49dcb4972d44cb08d4a9f82b10a61c9bb787c5fcd347533fc145081196",
+      "size": 650795,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_700",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/amb-1.1.fwsc",
+          "sha256": "756f7a49dcb4972d44cb08d4a9f82b10a61c9bb787c5fcd347533fc145081196",
+          "size": 650795
+        },
+        "elite": {
+          "product": "SMK-37 Elite_700",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/amb-1.1-elite.fwsc",
+          "sha256": "7b2c3db3dbcdb8171a873f10b186ccdfc460cf033f90bb08a142cfe5bd15617b",
+          "size": 650799
+        },
+        "mke": {
+          "product": "MKE-P37_700",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/amb-1.1-mke.fwsc",
+          "sha256": "9710aebf5f4090dc6b8915a99672174f77aba46d95ef830635a23d834192ef12",
+          "size": 650791
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "polly",
+      "name": "Polly \u2014 SMK-37 build",
+      "author": "Charles Vestal / genkigenki",
+      "kinds": [
+        "other"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "0.4.1",
+      "beta": false,
+      "product": "SMK-37 Pro_300",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/polly-0.4.1.fwsc",
+      "sha256": "cdbc2808b71ca37386a08d3544378f8bc529fa74133b48aed3dfae7c3c961cbe",
+      "size": 650984,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_300",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/polly-0.4.1.fwsc",
+          "sha256": "cdbc2808b71ca37386a08d3544378f8bc529fa74133b48aed3dfae7c3c961cbe",
+          "size": 650984
+        },
+        "elite": {
+          "product": "SMK-37 Elite_300",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/polly-0.4.1-elite.fwsc",
+          "sha256": "8ac9e2de432fb86a546f1c5312403990227d84d4cbdd399ea0f6ebda1cdcdf52",
+          "size": 650988
+        },
+        "mke": {
+          "product": "MKE-P37_300",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/polly-0.4.1-mke.fwsc",
+          "sha256": "061db7375d5a722f864dba56df6b61ccf534a875b756807f3fd747a2ae4e746d",
+          "size": 650980
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "winamp",
+      "name": "winampFM \u2014 SMK-37 build",
+      "author": "Hericdk / genkigenki",
+      "kinds": [
+        "groovebox"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "0.1",
+      "beta": false,
+      "product": "SMK-37 Pro_900",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/winamp-0.1.fwsc",
+      "sha256": "3675e503ce9778675eec04ff95082ddb26fe4d73c3a54f6993eed3f692dc6ae8",
+      "size": 651190,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/winamp-0.1.fwsc",
+          "sha256": "3675e503ce9778675eec04ff95082ddb26fe4d73c3a54f6993eed3f692dc6ae8",
+          "size": 651190
+        },
+        "elite": {
+          "product": "SMK-37 Elite_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/winamp-0.1-elite.fwsc",
+          "sha256": "07713808fffa2e8cad8c3fe5014ccbffd13d55bd6da6f4f7c145eb949cac6514",
+          "size": 651194
+        },
+        "mke": {
+          "product": "MKE-P37_900",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/winamp-0.1-mke.fwsc",
+          "sha256": "1f6da9710b1a4bbfe2242f8d66a9ce57a71200b2b32f8f950fe4ff9fa358d14d",
+          "size": 651186
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "dub",
+      "name": "DUB-1 \u2014 SMK-37 build",
+      "author": "sbegueria / genkigenki",
+      "kinds": [
+        "groovebox"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "1.0.0",
+      "beta": false,
+      "product": "SMK-37 Pro_800",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/dub-1.0.0.fwsc",
+      "sha256": "c185e35c52de1222e98fe25190fc0ea96f9006130d32a7df3dba37a1afae745f",
+      "size": 650803,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_800",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/dub-1.0.0.fwsc",
+          "sha256": "c185e35c52de1222e98fe25190fc0ea96f9006130d32a7df3dba37a1afae745f",
+          "size": 650803
+        },
+        "elite": {
+          "product": "SMK-37 Elite_800",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/dub-1.0.0-elite.fwsc",
+          "sha256": "c2e8ff0f55981ac25d1e201e4aadae202f9efaf9e8549608c2737871e68eae24",
+          "size": 650807
+        },
+        "mke": {
+          "product": "MKE-P37_800",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/dub-1.0.0-mke.fwsc",
+          "sha256": "48ab26fe312e4a04d29e0e97b534140fdbe794f751aad374c7adfc2775c50db3",
+          "size": 650799
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "ketch",
+      "name": "Ketch \u2014 SMK-37 build",
+      "author": "risseraka / genkigenki",
+      "kinds": [
+        "tracker"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "0.1",
+      "beta": false,
+      "product": "SMK-37 Pro_951",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/ketch-0.1.fwsc",
+      "sha256": "84be6c37fe7a1c5d63df46ac6bd3c6c2b06d49ce128d9416d7940816c4aa2f78",
+      "size": 651944,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_951",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/ketch-0.1.fwsc",
+          "sha256": "84be6c37fe7a1c5d63df46ac6bd3c6c2b06d49ce128d9416d7940816c4aa2f78",
+          "size": 651944
+        },
+        "elite": {
+          "product": "SMK-37 Elite_951",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/ketch-0.1-elite.fwsc",
+          "sha256": "accd7cef122f37c83da71229633a7ad6f1597d31875879cc3d093a8e73c2bb55",
+          "size": 651944
+        },
+        "mke": {
+          "product": "MKE-P37_951",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/ketch-0.1-mke.fwsc",
+          "sha256": "60f84f933f64247130b928624283fff29c2da3bf5ef5ebc40d57fe1c7fcbcc3c",
+          "size": 651942
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "melodee",
+      "name": "Melodee \u2014 SMK-37 build",
+      "author": "keremimo / genkigenki",
+      "kinds": [
+        "synth"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "1.4.5",
+      "beta": false,
+      "product": "SMK-37 Pro_91045",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/melodee-1.4.5.fwsc",
+      "sha256": "622a8f3d02b12627b489d966a3568f714ed1b3a32d851fd2a7cd03a020188676",
+      "size": 651660,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_91045",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/melodee-1.4.5.fwsc",
+          "sha256": "622a8f3d02b12627b489d966a3568f714ed1b3a32d851fd2a7cd03a020188676",
+          "size": 651660
+        },
+        "elite": {
+          "product": "SMK-37 Elite_91045",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/melodee-1.4.5-elite.fwsc",
+          "sha256": "3b01f768f1c44e3ece20b6e85d1e646718fbebf36fc707e5f71c6d8eda140902",
+          "size": 651660
+        },
+        "mke": {
+          "product": "MKE-P37_91045",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/melodee-1.4.5-mke.fwsc",
+          "sha256": "67ec46c5bb354801ece11f65244822b30266dc2cc59cf1e616f6a5beab71c72a",
+          "size": 651656
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "fmel",
+      "name": "FMEL-1 \u2014 SMK-37 build",
+      "author": "Antonio Altea / genkigenki",
+      "kinds": [
+        "synth"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "0.1-beta",
+      "beta": true,
+      "product": "SMK-37 Pro_451",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/fmel-0.1-beta.fwsc",
+      "sha256": "4fb10421f223bb71000e461f1262e5b4b1dc5e61c9e9fb475c3c990b07b11660",
+      "size": 651266,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_451",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/fmel-0.1-beta.fwsc",
+          "sha256": "4fb10421f223bb71000e461f1262e5b4b1dc5e61c9e9fb475c3c990b07b11660",
+          "size": 651266
+        },
+        "elite": {
+          "product": "SMK-37 Elite_451",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/fmel-0.1-beta-elite.fwsc",
+          "sha256": "4af1372b518cdba5d999793dccd5e367feb7fc09de24b03dde0b4f8501c12b92",
+          "size": 651270
+        },
+        "mke": {
+          "product": "MKE-P37_451",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/fmel-0.1-beta-mke.fwsc",
+          "sha256": "8bdf83818063b06570f8ed8273ff67045511c6b7d4eebf05f3006d7c585e2a21",
+          "size": 651262
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "frodhes",
+      "name": "Frodhes \u2014 SMK-37 build",
+      "author": "Leonardo Mirabal / genkigenki",
+      "kinds": [
+        "synth"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "0.9.2",
+      "beta": false,
+      "product": "SMK-37 Pro_470",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/frodhes-0.9.2.fwsc",
+      "sha256": "3363807b50524989a3d0bc2a0e03649f8b79a73d6b804359a554e0cbea110463",
+      "size": 651270,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_470",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/frodhes-0.9.2.fwsc",
+          "sha256": "3363807b50524989a3d0bc2a0e03649f8b79a73d6b804359a554e0cbea110463",
+          "size": 651270
+        },
+        "elite": {
+          "product": "SMK-37 Elite_470",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/frodhes-0.9.2-elite.fwsc",
+          "sha256": "0ca594e75e4683cf5f559a169972e064cd894a5b8e074b9a059e8baf57e039bc",
+          "size": 651270
+        },
+        "mke": {
+          "product": "MKE-P37_470",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/frodhes-0.9.2-mke.fwsc",
+          "sha256": "09974f1fb9470a23b83dc5e524508b83acf2c6057959caada5b125e67ba3e06c",
+          "size": 651266
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "zen",
+      "name": "ZEN-1 \u2014 SMK-37 build",
+      "author": "aceyprime / genkigenki",
+      "kinds": [
+        "ambient"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "1.0.2",
+      "beta": false,
+      "product": "SMK-37 Pro_460102",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/zen-1.0.2.fwsc",
+      "sha256": "5d950e4537403adc9ac8d053fd67eca4b0fa1770f52660df8575dc361e292f11",
+      "size": 650795,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_460102",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/zen-1.0.2.fwsc",
+          "sha256": "5d950e4537403adc9ac8d053fd67eca4b0fa1770f52660df8575dc361e292f11",
+          "size": 650795
+        },
+        "elite": {
+          "product": "SMK-37 Elite_460102",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/zen-1.0.2-elite.fwsc",
+          "sha256": "bae2bd96581f18a3cf79668a6c17610b330ba5f1ee0a7b5f368175626a976a70",
+          "size": 650799
+        },
+        "mke": {
+          "product": "MKE-P37_460102",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/zen-1.0.2-mke.fwsc",
+          "sha256": "944782878c0b5630d5af17ce163f17d942e2bee86af90d6659d8a48930c8f38f",
+          "size": 650791
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
+      ]
+    },
+    {
+      "id": "obervave",
+      "name": "OberVave \u2014 SMK-37 build",
+      "author": "zvenson / genkigenki",
+      "kinds": [
+        "synth"
+      ],
+      "what": "SMK-37 build from genkigenki. Connect your keyboard: SAVE / FLASH picks the Pro, Elite, or MKE-P37 package automatically. Starrykey 37 Play uses the Pro package.",
+      "version": "1.5-beta",
+      "beta": true,
+      "product": "SMK-37 Pro_955",
+      "packageURL": "https://genkigenki.github.io/smk37/firmware/obervave-1.5-beta.fwsc",
+      "sha256": "f24d3a72d68b7edc9efdf354e3c997cfdbd7088fb49a9b388083160d1952b266",
+      "size": 651270,
+      "platforms": [
+        "smk37"
+      ],
+      "allowSiblingSmkModel": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_955",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/obervave-1.5-beta.fwsc",
+          "sha256": "f24d3a72d68b7edc9efdf354e3c997cfdbd7088fb49a9b388083160d1952b266",
+          "size": 651270
+        },
+        "elite": {
+          "product": "SMK-37 Elite_955",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/obervave-1.5-beta-elite.fwsc",
+          "sha256": "f5e24e8880b23ce135e2f952248a4f704617b3b0ef78d8cb2ac615c4cda562b4",
+          "size": 651270
+        },
+        "mke": {
+          "product": "MKE-P37_955",
+          "packageURL": "https://genkigenki.github.io/smk37/firmware/obervave-1.5-beta-mke.fwsc",
+          "sha256": "7c52d9569761a993deaeee71f1185802eb9c6f352cf0198f64885447959052d3",
+          "size": 651266
+        }
+      },
+      "links": [
+        {
+          "label": "Install page",
+          "url": "https://genkigenki.github.io/smk37/"
+        },
+        {
+          "label": "The Firmware Hub (SMK-37)",
+          "url": "https://thefirmwarehub.com/smk37/"
+        }
       ]
     }
   ],

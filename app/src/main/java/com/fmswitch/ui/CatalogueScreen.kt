@@ -75,7 +75,8 @@ fun CatalogueScreen(model: AppViewModel) {
     val curatedIds = curation.toSet()
     val matching = model.catalogueEntries().filter { entry ->
         (model.settings.showBeta || !entry.beta || entry.id in curatedIds) &&
-            (model.settings.showLinksOnly || entry.isDownloadable || model.library.items.any { it.catalogueID == entry.id }) &&
+            (model.settings.showLinksOnly || entry.isDownloadable || entry.isSmkListing ||
+                model.library.items.any { it.catalogueID == entry.id }) &&
             (!model.settings.curatedOnly || entry.id in curatedIds) &&
             CatalogueSearch.matches(entry, search)
     }
@@ -88,7 +89,7 @@ fun CatalogueScreen(model: AppViewModel) {
         CurationSeed.IDS,
     )
     if (selected != null) {
-        val entry = model.catalogue.entry(selected!!.id) ?: selected!!
+        val entry = model.catalogueEntry(selected!!.id) ?: selected!!
         FirmwareDetail(model, entry) { selected = null }
         return
     }
@@ -331,7 +332,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         NoteText(
             when {
                 !model.tryEmulatorEnabled && stored == null && !entry.isDownloadable ->
-                    "This listing has no file in the app. Follow the links to download stock firmware from M-VAVE, or use SAVE after you import a .fwsc."
+                    "This listing has no downloadable file in the app. Use Install / project links (or M-VAVE downloads), then import a .fwsc here."
                 !model.tryEmulatorEnabled ->
                     "SAVE keeps a copy on the phone. FLASH writes a connected SMK-37 keyboard. TRY is not available for SMK firmware in this build."
                 stored == null && !entry.isDownloadable ->

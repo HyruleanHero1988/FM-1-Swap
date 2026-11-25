@@ -76,6 +76,23 @@ object DeviceFamily {
         if (kin.size == 1) return PackagePick(kin.single(), anyModel = true)
         return null
     }
+
+    /**
+     * Catalogue / installer variant key for an SMK identity: `elite`, `mke`, or `pro`
+     * (Starrykey and unknown SMK names take the Pro package).
+     */
+    fun smkVariantKey(identity: FM1Identity?): String {
+        val model = identity?.hardwareModel?.removePrefix("ota-")?.removePrefix("OTA-").orEmpty()
+        return when {
+            model.equals("SMK-37 Elite", ignoreCase = true) -> VARIANT_ELITE
+            model.equals("MKE-P37", ignoreCase = true) -> VARIANT_MKE
+            else -> VARIANT_PRO
+        }
+    }
+
+    const val VARIANT_PRO = "pro"
+    const val VARIANT_ELITE = "elite"
+    const val VARIANT_MKE = "mke"
 }
 
 enum class DeviceFamilyKind { FM1, SMK37, UNKNOWN }

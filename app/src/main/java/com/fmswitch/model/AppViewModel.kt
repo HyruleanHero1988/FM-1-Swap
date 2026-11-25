@@ -227,8 +227,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun catalogueEntries(): List<CatalogueEntry> {
         val platform = effectiveDeviceFamily
-        return catalogue.entries.filter { it.targetsPlatform(platform) }
+        return catalogue.entries
+            .filter { it.targetsPlatform(platform) }
+            .map { it.forDevice(identity) }
     }
+
+    /** Catalogue row with Pro / Elite / MKE package filled for the connected keyboard. */
+    fun catalogueEntry(id: String): CatalogueEntry? =
+        catalogue.entry(id)?.forDevice(identity)
 
     fun setDeviceUiMode(mode: DeviceUiMode) {
         settings.deviceUiMode = mode
@@ -626,7 +632,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         releaseHeld()
         ignorePortChangesUntil = System.currentTimeMillis() + 2_000
         val allowSibling = current.steps.firstNotNullOfOrNull { step ->
-            step.catalogueID?.let { catalogue.entry(it)?.allowSiblingSmkModel }
+            step.catalogueID?.let { catalogueEntry(it)?.allowSiblingSmkModel }
         } == true
         val options = InstallOptions(
             confirmsSwitchingFirmware = current.confirmsSwitchingFirmware,
@@ -901,13 +907,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     suspend fun save(entry: CatalogueEntry): Result<StoredFirmware> = runCatching {
-        downloadingIds = downloadingIds + entry.id
+        val resolved = entry.forDevice(identity)
+        downloadingIds = downloadingIds + resolved.id
         try {
-            val item = library.download(entry)
+            val item = library.download(resolved)
             libraryTick++
             item
         } finally {
-            downloadingIds = downloadingIds - entry.id
+            downloadingIds = downloadingIds - resolved.id
         }
     }
 
@@ -939,7 +946,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         catalogueJob = viewModelScope.launch {
             refreshCatalogueNow()
             if (playingFirmware?.id != entry.id) return@launch
-            val fresh = catalogue.entry(entry.id)
+            val fresh = catalogueEntry(entry.id)
             val still = missingFileAfterRefresh(
                 catalogueListUpdated(catalogue.errorMessage),
                 entry,
@@ -1081,13 +1088,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         emulatorJob?.cancel()
         if (cancelRefresh) catalogueJob?.cancel()
         emulatorBank = bank
-        playingFirmware = entry
+        val resolved = entry.forDevice(identity)
+        playingFirmware = resolved
         emulatorPackage = EmulatorPackage.Preparing
-        val keep = settings.autoSaveTried && entry.isDownloadable
+        val keep = settings.autoSaveTried && resolved.isDownloadable
         emulatorJob = viewModelScope.launch {
-            if (keep) downloadingIds = downloadingIds + entry.id
+            if (keep) downloadingIds = downloadingIds + resolved.id
             val prepared = try {
-                val staged = library.stageForPlay(entry, keep)
+                val staged = library.stageForPlay(resolved, keep)
                 if (staged.savedNow) libraryTick++
                 EmulatorPackage.Ready(staged.file, staged.sha256)
             } catch (cancelled: CancellationException) {
@@ -1098,9 +1106,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     missing = error is MissingPackage && error.code == 404,
                 )
             } finally {
-                if (keep) downloadingIds = downloadingIds - entry.id
+                if (keep) downloadingIds = downloadingIds - resolved.id
             }
-            if (playingFirmware?.id == entry.id) emulatorPackage = prepared
+            if (playingFirmware?.id == resolved.id) emulatorPackage = prepared
         }
     }
 

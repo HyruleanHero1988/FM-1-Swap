@@ -117,7 +117,7 @@ class AppSettings(private val prefs: SharedPreferences) {
     var backgroundEmulator: Boolean
         get() = prefs.getBoolean("backgroundEmulator", false)
         set(value) { prefs.edit().putBoolean("backgroundEmulator", value).apply() }
-    /** On, TRY opens with the panel already full screen (same as tapping FULL). Exit and FULL still work. */
+    /** On, landscape TRY opens with the panel already full screen (same as tapping FULL). Portrait has no full screen. */
     var tryOpensFullScreen: Boolean
         get() = prefs.getBoolean("tryOpensFullScreen", false)
         set(value) { prefs.edit().putBoolean("tryOpensFullScreen", value).apply() }

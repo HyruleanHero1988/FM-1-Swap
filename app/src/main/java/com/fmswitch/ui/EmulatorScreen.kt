@@ -504,7 +504,9 @@ private fun RunningEmulator(
     val current = remember { arrayOfNulls<Fm1Engine>(1) }
     DisposableEffect(Unit) { onDispose { current[0]?.close(); current[0] = null } }
     val bankKey = bank?.let { it.size to it.contentHashCode() }
-    val engine by produceState<Fm1Engine?>(null, prepared.file, prepared.sha256, mhz, playing, runInBackground, bankKey) {
+    val engine by produceState<Fm1Engine?>(
+        null, prepared.file, prepared.sha256, mhz, playing, runInBackground, bankKey, chooseClock,
+    ) {
         value = null
         current[0]?.close()
         current[0] = null
@@ -517,6 +519,8 @@ private fun RunningEmulator(
                 mhz,
                 runInBackground,
                 bank = bank,
+                autoClock = !chooseClock,
+                appContext = context.applicationContext,
             )
         }
         current[0] = next
@@ -610,7 +614,7 @@ private fun RunningEmulator(
                 if (chooseClock) {
                     "If the sound gaps or crackles, raise CLOCK. If the phone struggles to keep up, lower it."
                 } else {
-                    "This runs at the same speed as a real FM-1. If the sound gaps, or the phone struggles, SETUP ▸ CHOOSE EMULATOR CLOCK turns on 100, 160 and 240."
+                    "This starts at the same speed as a real FM-1. If the phone can't keep up, the clock steps down on its own. SETUP ▸ CHOOSE EMULATOR CLOCK locks a fixed 100, 160 or 240 instead."
                 },
                 size = 12,
             )

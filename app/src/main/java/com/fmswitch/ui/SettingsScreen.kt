@@ -183,7 +183,7 @@ fun SettingsScreen(model: AppViewModel) {
                 model.settings.chooseEmulatorClock = it
                 model.bumpTheme()
             }
-            NoteText("Off, TRY runs at the same speed as a real FM-1, and the clock stays off the TRY screen. On, TRY offers 100, 160 and 240, remembered per firmware. Lower it when the sound gaps or the phone struggles.")
+            NoteText("Off, TRY starts at the same speed as a real FM-1 and steps down on its own (240 → 200 → 160 → 120) if the phone can't keep up. On, TRY offers a fixed 100, 160 or 240, remembered per firmware.")
             PixelToggle("RUN EMULATOR IN BACKGROUND", model.settings.backgroundEmulator) {
                 model.settings.backgroundEmulator = it
                 model.bumpTheme()

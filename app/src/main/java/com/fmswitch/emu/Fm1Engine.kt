@@ -1,5 +1,6 @@
 package com.fmswitch.emu
 
+import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
@@ -9,11 +10,13 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * One emulated FM-1 on a thread of its own: it boots the package, then renders audio in
- * small blocks into an [AudioTrack], whose blocking writes pace the machine at real time.
- * The panel's input is queued to that thread; the screen and LEDs come back as [Fm1PanelSource.Frame]s.
- * What the firmware writes to its flash (patches, patterns, settings) is kept in [saveFile]
- * and restored the next time the same package boots.
+ * One emulated FM-1: a machine thread runs ahead into an [AudioRing], and a separate audio
+ * thread drains that ring into an [AudioTrack] (low-latency / AAudio-backed when the device
+ * offers it). The panel's input is queued to the machine thread; the screen and LEDs come back
+ * as [Fm1PanelSource.Frame]s. Flash the firmware wrote is kept in [saveFile].
+ *
+ * With [autoClock], a sustained shortfall of real-time steps the emulated clock down
+ * (240 → 200 → 160 → 120) and reboots from the current flash instead of stuttering.
  */
 class Fm1Engine(
     private val pkg: ByteArray,
@@ -24,18 +27,25 @@ class Fm1Engine(
     private val audible: Boolean = true,
     /** A DX7 32-voice bank written into slots 1–32 after any saved flash is restored. */
     private val bank: ByteArray? = null,
+    /** When true, step the clock down automatically if this phone cannot keep real time. */
+    private val autoClock: Boolean = false,
+    private val appContext: Context? = null,
 ) : Fm1PanelSource, AutoCloseable {
 
     sealed class Status {
         data object Booting : Status()
         /** [live] is set once the firmware has made sound or drawn past its boot frame. */
-        data class Running(val load: Float, val live: Boolean = false) : Status()
+        data class Running(val load: Float, val live: Boolean = false, val mhz: Int = EmulatorClock.DEFAULT) : Status()
         data class Stopped(val message: String) : Status()
     }
 
     @Volatile var status: Status = Status.Booting
         private set
     override val frame = AtomicReference<Fm1PanelSource.Frame?>(null)
+
+    /** The clock this session is actually running at (may be lower than the requested [mhz] after auto steps). */
+    @Volatile var runningMhz: Int = mhz
+        private set
 
     private sealed class Input {
         data class Key(val id: Int, val down: Boolean) : Input()
@@ -45,10 +55,13 @@ class Fm1Engine(
     }
 
     private val inputs = ConcurrentLinkedQueue<Input>()
+    private val ring = AudioRing(RING_FRAMES)
     @Volatile private var running = true
     /** The engine this one replaced: stopped now, waited for before this one boots. */
     @Volatile private var previous: Fm1Engine? = takeOver()
-    private val thread = Thread(::loop, "fm1-emulator").apply { start() }
+    private val hint = appContext?.let { EngineHint(it) }
+    private val machineThread = Thread(::machineLoop, "fm1-emulator").apply { start() }
+    private var audioThread: Thread? = null
 
     override fun key(id: Int, down: Boolean) { inputs += Input.Key(id, down) }
     override fun turn(encoder: Int, clicks: Int) { if (clicks != 0) inputs += Input.Enc(encoder, clicks) }
@@ -60,7 +73,9 @@ class Fm1Engine(
 
     override fun close() {
         running = false
-        thread.join(2_000)
+        machineThread.join(2_000)
+        audioThread?.join(1_000)
+        hint?.close()
     }
 
     private fun takeOver(): Fm1Engine? = synchronized(Companion) {
@@ -70,8 +85,9 @@ class Fm1Engine(
         old
     }
 
-    private fun loop() {
-        previous?.thread?.join()
+    private fun machineLoop() {
+        previous?.machineThread?.join()
+        previous?.audioThread?.join()
         previous = null
         try {
             if (running) boot()
@@ -82,41 +98,72 @@ class Fm1Engine(
 
     private fun boot() {
         Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
+        hint?.attach(Process.myTid(), HINT_TARGET_NANOS)
         if (!Fm1Native.available) {
             status = Status.Stopped("This phone can't run the virtual FM-1.")
             return
         }
-        val saved = saveFile?.takeIf { it.isFile }?.let { runCatching { it.readBytes() }.getOrNull() }
+        var saved = saveFile?.takeIf { it.isFile }?.let { runCatching { it.readBytes() }.getOrNull() }
         val bankBytes = bank?.takeIf { it.isNotEmpty() }
-        var handle = bootNative(saved, bankBytes)
-        if (handle == 0L && saved != null) handle = bootNative(null, bankBytes)
-        if (handle == 0L) {
-            status = Status.Stopped("This firmware couldn't be opened.")
+        var clock = if (autoClock) EmulatorClock.DEFAULT else mhz
+        runningMhz = clock
+        while (running) {
+            ring.clear()
+            var handle = bootNative(saved, bankBytes, clock)
+            if (handle == 0L && saved != null) {
+                saved = null
+                handle = bootNative(null, bankBytes, clock)
+            }
+            if (handle == 0L) {
+                status = Status.Stopped("This firmware couldn't be opened.")
+                return
+            }
+            val track = openTrack()
+            if (!audible) track.setVolume(0f)
+            try {
+                Fm1Native.pot(handle, Fm1Panel.POT_START)
+                track.play()
+                val audio = Thread({ drain(track) }, "fm1-audio").also {
+                    audioThread = it
+                    it.priority = Thread.MAX_PRIORITY
+                    it.start()
+                }
+                val next = runMachine(handle, saved, clock)
+                // close() clears [running]; only reboot for an auto step when the user didn't stop us.
+                val step = next?.takeIf { running }
+                running = false
+                audio.join(1_000)
+                if (step != null) {
+                    saved = step.first
+                    clock = step.second
+                    runningMhz = clock
+                    running = true
+                    continue
+                }
+            } catch (error: Throwable) {
+                status = Status.Stopped(error.message ?: "The virtual FM-1 stopped.")
+            } finally {
+                runCatching { track.stop() }
+                track.release()
+                persist(handle, null)
+                Fm1Native.release(handle)
+                audioThread = null
+            }
             return
         }
-        val track = openTrack()
-        if (!audible) track.setVolume(0f)
-        try {
-            Fm1Native.pot(handle, Fm1Panel.POT_START)
-            track.play()
-            run(handle, track, saved)
-        } catch (error: Throwable) {
-            status = Status.Stopped(error.message ?: "The virtual FM-1 stopped.")
-        } finally {
-            runCatching { track.stop() }
-            track.release()
-            persist(handle, null)
-            Fm1Native.release(handle)
-        }
     }
 
-    private fun bootNative(saved: ByteArray?, bankBytes: ByteArray?): Long = if (bankBytes != null) {
-        Fm1Native.bootWithBank(pkg, saved, bankBytes, mhz, true)
+    private fun bootNative(saved: ByteArray?, bankBytes: ByteArray?, clock: Int): Long = if (bankBytes != null) {
+        Fm1Native.bootWithBank(pkg, saved, bankBytes, clock, true)
     } else {
-        Fm1Native.boot(pkg, saved, mhz, true)
+        Fm1Native.boot(pkg, saved, clock, true)
     }
 
-    private fun run(handle: Long, track: AudioTrack, saved: ByteArray?) {
+    /**
+     * Run until stopped. Returns `(flash, nextMhz)` when the automatic clock should reboot
+     * at a lower rate; null when the session ends for any other reason.
+     */
+    private fun runMachine(handle: Long, saved: ByteArray?, clock: Int): Pair<ByteArray?, Int>? {
         val block = ShortArray(2 * BLOCK_FRAMES)
         val leds = FloatArray(41)
         val scratch = IntArray(240 * 240)
@@ -127,10 +174,13 @@ class Fm1Engine(
         var busyNanos = 0L
         var windowStart = System.nanoTime()
         var windowFrames = 0
-        val budget = mhz * INSNS_PER_MHZ_PER_BLOCK
+        var emulatedNanos = 0L
+        var slowSince = 0L
+        val bootAt = System.nanoTime()
+        val budget = clock * INSNS_PER_MHZ_PER_BLOCK
         var started = false
         val bootRevision = Fm1Native.lcd(handle, scratch, -1)
-        status = Status.Running(0f)
+        status = Status.Running(0f, mhz = clock)
         while (running) {
             while (true) {
                 when (val input = inputs.poll() ?: break) {
@@ -140,23 +190,32 @@ class Fm1Engine(
                     is Input.Midi -> input.bytes.forEach { Fm1Native.midi(handle, it.toInt() and 0xff) }
                 }
             }
+            // Cap lead so a key press is heard soon; keep RING_FRAMES larger only for bursts.
+            if (ring.available() >= RING_TARGET_FRAMES) {
+                Thread.sleep(1)
+                continue
+            }
             val t0 = System.nanoTime()
             val made = Fm1Native.render(handle, block, budget)
-            busyNanos += System.nanoTime() - t0
+            val worked = System.nanoTime() - t0
+            busyNanos += worked
+            hint?.report(worked)
             if (made < 0) {
                 status = Status.Stopped("This firmware stopped. The virtual FM-1 can't run this part of it.")
-                return
+                return null
             }
+            val frames = if (made > 0) made else BLOCK_FRAMES
+            ring.push(block, frames)
+            windowFrames += frames
+            emulatedNanos += frames * 1_000_000_000L / SAMPLE_RATE
             if (!started) {
                 started = made > 0 || lastRevision.let { it != -1 && it != bootRevision }
-                if (started) status = Status.Running(0f, live = true)
+                if (started) status = Status.Running(0f, live = true, mhz = clock)
                 if (!started && Fm1Native.ms(handle) >= NEVER_STARTED_MS) {
                     status = Status.Stopped(NEVER_STARTED)
-                    return
+                    return null
                 }
             }
-            track.write(block, 0, block.size, AudioTrack.WRITE_BLOCKING)
-            windowFrames += BLOCK_FRAMES
             val now = System.nanoTime()
             if (now - lastFrameAt >= FRAME_NANOS) {
                 lastFrameAt = now
@@ -170,8 +229,23 @@ class Fm1Engine(
             }
             if (now - windowStart >= 1_000_000_000L) {
                 val audioNanos = windowFrames * 1_000_000_000L / SAMPLE_RATE
-                status = Status.Running(busyNanos.toFloat() / audioNanos.coerceAtLeast(1), live = started)
+                val load = busyNanos.toFloat() / audioNanos.coerceAtLeast(1)
+                status = Status.Running(load, live = started, mhz = clock)
+                if (autoClock && started && now - bootAt >= EmulatorClock.WARMUP_MS * 1_000_000L) {
+                    val speed = emulatedNanos.toFloat() / busyNanos.coerceAtLeast(1)
+                    if (speed < EmulatorClock.SLOW_SPEED && ring.available() < BLOCK_FRAMES) {
+                        if (slowSince == 0L) slowSince = now
+                        if (now - slowSince >= EmulatorClock.SLOW_MS * 1_000_000L) {
+                            val next = EmulatorClock.nextAuto(clock) ?: return null
+                            val flash = Fm1Native.flashChanges(handle) ?: lastSaved
+                            return flash to next
+                        }
+                    } else {
+                        slowSince = 0L
+                    }
+                }
                 busyNanos = 0
+                emulatedNanos = 0
                 windowFrames = 0
                 windowStart = now
             }
@@ -179,6 +253,22 @@ class Fm1Engine(
                 lastSaveAt = now
                 lastSaved = persist(handle, lastSaved)
             }
+        }
+        return null
+    }
+
+    private fun drain(track: AudioTrack) {
+        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
+        val block = ShortArray(2 * BLOCK_FRAMES)
+        while (running) {
+            val have = ring.pull(block)
+            if (have == 0) {
+                // Stay silent without spinning the CPU while the machine is catching up.
+                Thread.sleep(1)
+                continue
+            }
+            // Write only real frames; pull() zero-pads the rest of [block].
+            track.write(block, 0, have * 2, AudioTrack.WRITE_BLOCKING)
         }
     }
 
@@ -224,11 +314,18 @@ class Fm1Engine(
 
         const val SAMPLE_RATE = 44_100
         private const val BLOCK_FRAMES = 256
-        private const val BUFFER_FRAMES = 2_048
+        /** AudioTrack size floor (~12 ms); device min may be larger. */
+        private const val BUFFER_FRAMES = 512
+        /** Burst capacity (~93 ms). Steady lead is [RING_TARGET_FRAMES], not this. */
+        private const val RING_FRAMES = 4_096
+        /** Steady-state lead (~23 ms). Full RING_FRAMES would delay key→sound by ~90 ms+. */
+        private const val RING_TARGET_FRAMES = 1_024
         /** At most 20 ms of emulated time per block, so a firmware that stalls its audio costs
          *  bounded work instead of the whole CPU. */
         private const val INSNS_PER_MHZ_PER_BLOCK = 20_000
         private const val NEVER_STARTED_MS = 6_000L
+        /** Target ~6 ms of work per ~10 ms of audio for the ADPF hint session. */
+        private const val HINT_TARGET_NANOS = 6_000_000L
         const val NEVER_STARTED =
             "This firmware didn't start here. It made no sound and drew nothing. A real FM-1 may still run it. " +
                 "If the listing has a browser player, that link is on the firmware's page."

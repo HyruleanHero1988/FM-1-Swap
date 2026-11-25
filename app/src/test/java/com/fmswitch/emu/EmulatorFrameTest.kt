@@ -31,6 +31,16 @@ class EmulatorFrameTest {
     }
 
     @Test
+    fun fullScreenUsesTheWidestPanelThatFits() {
+        val normal = EmulatorFrame.fit(1280f, 820f, minChrome = 88f)
+        val full = EmulatorFrame.fit(1280f, 820f, minChrome = 0f)
+        assertTrue(full.panelWidth > normal.panelWidth)
+        assertEquals(Fm1Panel.W / Fm1Panel.H, full.panelWidth / full.panelHeight, 0.001f)
+        assertTrue(normal.side >= 88f)
+        assertTrue(full.side < normal.side)
+    }
+
+    @Test
     fun aNarrowGapGrowsUntilALabelFits() {
         val tight = EmulatorFrame.fit(1280f, 820f, minChrome = 100f)
         assertTrue(tight.side >= 100f)

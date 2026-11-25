@@ -4,6 +4,16 @@ Install that file from this release and nowhere else. If Android refuses the ins
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
+## New in 0.6.5
+
+**TRY full screen.** The TRY screen has a full-screen toggle so the virtual FM-1 panel can use the whole display (especially sideways on a phone). Status and navigation bars hide while you are in full screen. Tap the exit icon or use the system back gesture to leave full screen; back again leaves TRY as before.
+
+**TRY in light mode.** In **LIGHT** appearance, the phosphor-traced emulator panel keeps medium-gray outlines and readable labels on the paper background. Dark mode is unchanged.
+
+**Firmware list.** The catalogue baked into the app is refreshed from The Firmware Hub, fm1-editor.com, and RedtailWorks (November 2026). REFRESH still pulls newer data when you are online.
+
+A phone already on 0.6.4 shows this release under the top bar. **UPDATE** downloads it.
+
 ## New in 0.6.4
 
 **Appearance.** SETUP has **LIGHT**, **DARK**, and **SYSTEM**. Light puts the phosphor colours on paper. Dark is the CRT look. System follows the phone.

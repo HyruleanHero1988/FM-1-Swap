@@ -93,6 +93,7 @@ dependencies {
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.foundation)
     implementation(libs.compose.material3)
+    implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil.compose)
@@ -160,4 +161,4 @@ fun resolvedVersionCode(): Int {
 }
 
 fun resolvedVersionName(): String =
-    System.getenv("VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "0.6.4"
+    System.getenv("VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "0.6.5"

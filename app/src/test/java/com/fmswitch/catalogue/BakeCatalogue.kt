@@ -30,7 +30,15 @@ class BakeCatalogue {
             editor.entries,
             redtail = redtail.entries,
         )
-        val resolved = PackageDiscovery.discoverMissing(merged, emptyList())
+        val previousFile = File(moduleRoot(), "src/main/assets/${MergedCatalogue.ASSET_PATH}")
+        val previous = if (previousFile.isFile) {
+            Json { ignoreUnknownKeys = true }
+                .decodeFromString<MergedCatalogue>(previousFile.readText())
+                .entries
+        } else {
+            emptyList()
+        }
+        val resolved = PackageDiscovery.discoverMissing(merged, previous)
         val photographed = HubShots.fill(RepoShots.fill(resolved, emptyList()))
         val snapshot = MergedCatalogue(
             hubUpdated = hub.first,

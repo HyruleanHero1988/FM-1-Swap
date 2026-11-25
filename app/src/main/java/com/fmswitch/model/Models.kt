@@ -117,6 +117,10 @@ class AppSettings(private val prefs: SharedPreferences) {
     var backgroundEmulator: Boolean
         get() = prefs.getBoolean("backgroundEmulator", false)
         set(value) { prefs.edit().putBoolean("backgroundEmulator", value).apply() }
+    /** On, TRY opens with the panel already full screen (same as tapping FULL). Exit and FULL still work. */
+    var tryOpensFullScreen: Boolean
+        get() = prefs.getBoolean("tryOpensFullScreen", false)
+        set(value) { prefs.edit().putBoolean("tryOpensFullScreen", value).apply() }
     /**
      * On, TRY stretches the chassis to fill the leftover space so keys and buttons grow.
      * Knobs stay round; the LCD keeps square pixels inside its bezel.

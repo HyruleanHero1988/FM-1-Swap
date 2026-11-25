@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
@@ -375,27 +376,30 @@ private fun FullscreenToggleButton(
             .padding(bottom = depth, end = depth)
             .clickable(interactionSource = interaction, indication = null, onClick = onToggle),
     ) {
-        Box(
-            Modifier
-                .matchParentSize()
-                .offset(depth, depth)
-                .background(theme.shadow, PixelBox(2.dp)),
-        )
-        Row(
-            Modifier
-                .offset(if (pressed) depth else 0.dp, if (pressed) depth else 0.dp)
-                .background(theme.surface, PixelBox(2.dp))
-                .border(2.dp, edge, PixelBox(2.dp))
-                .padding(horizontal = if (showLabel) 8.dp else 6.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Icon(imageVector, contentDescription = description, tint = edge, modifier = Modifier.size(22.dp))
-            if (showLabel) {
-                BasicText(
-                    if (fullScreen) "EXIT" else "FULL",
-                    style = pixelText(10.sp, bold = true, color = edge),
-                )
+        // Size shadow to the button face, not any fillMaxWidth() on the outer box (see ‹ BACK).
+        Box(Modifier.wrapContentSize().align(Alignment.CenterStart)) {
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .offset(depth, depth)
+                    .background(theme.shadow, PixelBox(2.dp)),
+            )
+            Row(
+                Modifier
+                    .offset(if (pressed) depth else 0.dp, if (pressed) depth else 0.dp)
+                    .background(theme.surface, PixelBox(2.dp))
+                    .border(2.dp, edge, PixelBox(2.dp))
+                    .padding(horizontal = if (showLabel) 8.dp else 6.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(imageVector, contentDescription = description, tint = edge, modifier = Modifier.size(22.dp))
+                if (showLabel) {
+                    BasicText(
+                        if (fullScreen) "EXIT" else "FULL",
+                        style = pixelText(10.sp, bold = true, color = edge),
+                    )
+                }
             }
         }
     }

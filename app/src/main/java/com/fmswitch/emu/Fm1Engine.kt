@@ -190,7 +190,8 @@ class Fm1Engine(
                     is Input.Midi -> input.bytes.forEach { Fm1Native.midi(handle, it.toInt() and 0xff) }
                 }
             }
-            if (ring.free() < BLOCK_FRAMES) {
+            // Cap lead so a key press is heard soon; keep RING_FRAMES larger only for bursts.
+            if (ring.available() >= RING_TARGET_FRAMES) {
                 Thread.sleep(1)
                 continue
             }
@@ -266,7 +267,8 @@ class Fm1Engine(
                 Thread.sleep(1)
                 continue
             }
-            track.write(block, 0, block.size, AudioTrack.WRITE_BLOCKING)
+            // Write only real frames; pull() zero-pads the rest of [block].
+            track.write(block, 0, have * 2, AudioTrack.WRITE_BLOCKING)
         }
     }
 
@@ -312,9 +314,12 @@ class Fm1Engine(
 
         const val SAMPLE_RATE = 44_100
         private const val BLOCK_FRAMES = 256
-        private const val BUFFER_FRAMES = 2_048
-        /** Lead capacity: about 370 ms of stereo at 44.1 kHz. */
-        private const val RING_FRAMES = 16_384
+        /** AudioTrack size floor (~12 ms); device min may be larger. */
+        private const val BUFFER_FRAMES = 512
+        /** Burst capacity (~93 ms). Steady lead is [RING_TARGET_FRAMES], not this. */
+        private const val RING_FRAMES = 4_096
+        /** Steady-state lead (~23 ms). Full RING_FRAMES would delay key→sound by ~90 ms+. */
+        private const val RING_TARGET_FRAMES = 1_024
         /** At most 20 ms of emulated time per block, so a firmware that stalls its audio costs
          *  bounded work instead of the whole CPU. */
         private const val INSNS_PER_MHZ_PER_BLOCK = 20_000

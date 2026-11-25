@@ -1,8 +1,8 @@
 package com.fmswitch.emu
 
 /**
- * `libfm1emu.so` (native/fm1-jni): fm1-emu's machine. A handle belongs to the one thread
- * that booted it; [Fm1Engine] is that thread.
+ * `libfm1emu.so` (native/fm1-jni): fm1-emu's machine (v0.5.1+). A handle belongs to the
+ * machine thread inside [Fm1Engine]; the audio drain thread only reads the ring.
  */
 object Fm1Native {
     val available: Boolean = runCatching { System.loadLibrary("fm1emu") }.isSuccess

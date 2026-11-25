@@ -53,27 +53,25 @@ impl Machine {
             return Err("saved flash does not fit this firmware".to_owned());
         }
         if !syx.is_empty() {
-            m.load_bank(st.usr, syx)?;
+            m.load_bank(st.usr, st.usr_layout, syx)?;
         }
         Ok(m)
     }
 
     /// Slots 1–32 of the FM-1 user bank. `flash0` stays the image from before this write.
-    fn load_bank(&mut self, usr: Option<usize>, syx: &[u8]) -> Result<(), String> {
+    fn load_bank(&mut self, usr: Option<usize>, layout: fm1_soc::fwsc::UsrLayout, syx: &[u8]) -> Result<(), String> {
         let usr = usr.ok_or_else(|| "this firmware has no user patch bank".to_owned())?;
         let mut image = self.soc.flash.mem.clone();
-        fm1_soc::fwsc::usr_load_syx(&mut image, usr, syx, 0)?;
-        const VOICES: usize = 0x4000;
-        const SETTINGS: usize = 0x10000;
-        const VOICE_BYTES: usize = 32 * 128;
-        const SETTINGS_BYTES: usize = 32 * 59;
-        let voices = usr + VOICES;
-        let settings = usr + SETTINGS;
-        if voices + VOICE_BYTES > image.len() || settings + SETTINGS_BYTES > image.len() {
+        fm1_soc::fwsc::usr_load_syx(&mut image, usr, layout, syx, 0)?;
+        let voice_bytes = 32 * 128;
+        let settings_bytes = 32 * layout.settings_len;
+        let voices = usr + layout.voices;
+        let settings = usr + layout.settings;
+        if voices + voice_bytes > image.len() || settings + settings_bytes > image.len() {
             return Err("USR area past the flash".to_owned());
         }
-        self.replace_flash(voices, &image[voices..voices + VOICE_BYTES]);
-        self.replace_flash(settings, &image[settings..settings + SETTINGS_BYTES]);
+        self.replace_flash(voices, &image[voices..voices + voice_bytes]);
+        self.replace_flash(settings, &image[settings..settings + settings_bytes]);
         Ok(())
     }
 

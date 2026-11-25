@@ -9,11 +9,12 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 REPO="https://github.com/joakimeriksson/fm1-emu.git"
-COMMIT="${FM1_EMU_COMMIT:-7856393bc82f2821a2ac70c0c9a93dd743465dcb}"
+# v0.5.1: Android AArch64 JIT, P33 power regs, and ISA fixes (Melodee / dual-core firmwares).
+COMMIT="${FM1_EMU_COMMIT:-c7e47c4fcbdaafb4beffa40493da1b2b07ffa263}"
 SRC="native/fm1-emu-src"
 ABIS="${ABIS:-arm64-v8a x86_64}"
 API=26
-# Decoder fixes on top of that commit. 386DX, CTL, MC-1 and Kawa stop without them.
+# Optional local patches on top of the pin (none once upstream has the decoder fixes we need).
 shopt -s nullglob
 PATCHES=(native/patches/*.patch)
 shopt -u nullglob
@@ -30,13 +31,11 @@ if [[ ! -f "$SRC/.commit" || "$(cat "$SRC/.commit")" != "$COMMIT" || ! -f "$SRC/
   git -C "$SRC" fetch -q --depth 1 origin "$COMMIT"
   git -C "$SRC" checkout -q FETCH_HEAD
   for p in "${PATCHES[@]}"; do
-    patch -d "$SRC" -p1 --forward --batch < "$p"
+    patch -d "$SRC" -p1 --forward --batch < "$p" || {
+      echo "patch $p failed against $COMMIT" >&2
+      exit 1
+    }
   done
-  # fm1-core's AArch64 JIT is written for Linux; Android is Linux underneath (and if the
-  # system refuses an executable mapping it falls back to the interpreter by itself).
-  find "$SRC/crates/fm1-core/src" -name '*.rs' -print0 | xargs -0 sed -i \
-    -e 's/any(target_os = "macos", target_os = "linux")/any(target_os = "macos", target_os = "linux", target_os = "android")/g' \
-    -e 's/#\[cfg(target_os = "linux")\]/#[cfg(any(target_os = "linux", target_os = "android"))]/g'
   echo "$COMMIT" > "$SRC/.commit"
   echo "$PATCH_ID" > "$SRC/.patches"
 fi

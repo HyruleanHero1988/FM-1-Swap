@@ -145,6 +145,7 @@ fun RootScreen(model: AppViewModel) {
                         phosphorPanel = model.settings.phosphorPanel,
                         chooseClock = model.settings.chooseEmulatorClock,
                         runInBackground = model.settings.backgroundEmulator,
+                        openFullScreen = model.settings.tryOpensFullScreen,
                         canSave = entry.isDownloadable && !kept,
                         saving = entry.id in model.downloadingIds,
                         onSave = { model.save(entry) },

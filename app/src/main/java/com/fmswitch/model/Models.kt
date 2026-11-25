@@ -117,6 +117,10 @@ class AppSettings(private val prefs: SharedPreferences) {
     var backgroundEmulator: Boolean
         get() = prefs.getBoolean("backgroundEmulator", false)
         set(value) { prefs.edit().putBoolean("backgroundEmulator", value).apply() }
+    /** On, TRY opens with the panel already full screen (same as tapping FULL). Exit and FULL still work. */
+    var tryOpensFullScreen: Boolean
+        get() = prefs.getBoolean("tryOpensFullScreen", false)
+        set(value) { prefs.edit().putBoolean("tryOpensFullScreen", value).apply() }
     /** Catalogue ids the user has favorited. First in this list sits highest. */
     var curation: List<String>
         get() = prefs.getString("curation", null).orEmpty().lineSequence().filter { it.isNotBlank() }.toList()

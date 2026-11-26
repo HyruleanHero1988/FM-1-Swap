@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fmswitch.fm1kit.DeviceFamilyKind
 import com.fmswitch.fm1kit.FM1Identity
 import com.fmswitch.model.AppTab
 import com.fmswitch.model.AppViewModel
@@ -42,6 +43,8 @@ import com.fmswitch.theme.lcdText
 fun DeviceScreen(model: AppViewModel) {
     var restoring by remember { mutableStateOf(false) }
     val theme = LocalPhosphor.current
+    val smk = model.effectiveDeviceFamily == DeviceFamilyKind.SMK37
+    val deviceLabel = model.effectiveDeviceFamily.productLabel.let { if (it == "device") "FM-1" else it }
     Column(
         Modifier
             .fillMaxSize()
@@ -49,7 +52,7 @@ fun DeviceScreen(model: AppViewModel) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
-        ScreenHeader(if (model.effectiveDeviceFamily == com.fmswitch.fm1kit.DeviceFamilyKind.SMK37) "DEVICE · SMK" else "DEVICE") {
+        ScreenHeader(if (smk) "DEVICE · SMK" else "DEVICE") {
             PixelButton(if (model.isScanning) "SCANNING" else "SCAN", compact = true, enabled = !model.isScanning) {
                 model.scan(force = true)
             }
@@ -77,14 +80,18 @@ fun DeviceScreen(model: AppViewModel) {
         if (identity == null) {
             PixelPanel(title = "CONNECT") {
                 MonoText(
-                    "Plug the FM-1 into this phone with a USB cable. No extra driver is needed. With the app closed, the phone can ask whether to open it. SIMULATED FM-1 under SETUP is not a synth. It stands in for an FM-1 so you can try a flash. To hear a firmware before you write it, open FIRMWARE and press TRY.",
+                    if (smk) {
+                        "Plug the SMK-37 into this phone with a USB cable. No extra driver is needed. With the app closed, the phone can ask whether to open it. Close other MIDI apps first. Stock M-VAVE V016 is under FIRMWARE (OFFICIAL)."
+                    } else {
+                        "Plug the FM-1 into this phone with a USB cable. No extra driver is needed. With the app closed, the phone can ask whether to open it. SIMULATED FM-1 under SETUP is not a synth. It stands in for an FM-1 so you can try a flash. To hear a firmware before you write it, open FIRMWARE and press TRY."
+                    },
                     size = 14,
                 )
             }
         } else if (identity.isLoader) {
             PixelPanel(title = "UPDATE LOADER") {
                 MonoText(
-                    "The FM-1 is waiting in its update loader after an interrupted flash or USB recovery mode. Open a saved firmware and resume.",
+                    "The $deviceLabel is waiting in its update loader after an interrupted flash or USB recovery mode. Open a saved firmware and resume.",
                     size = 14,
                 )
                 PixelButton("GO TO SAVED") { model.tab = AppTab.LIBRARY }
@@ -97,7 +104,7 @@ fun DeviceScreen(model: AppViewModel) {
                 }
             }
         }
-        if (identity == FM1Identity.OFFICIAL_V15) {
+        if (identity == FM1Identity.OFFICIAL_V15 && !smk) {
             PixelPanel(title = "FACTORY VOICES") {
                 MonoText(
                     "After V15 goes on over another firmware, some voice banks can still hold the old firmware's voices. Restoring writes V15's 128 factory voices over all four banks.",
@@ -109,7 +116,7 @@ fun DeviceScreen(model: AppViewModel) {
         if (identity != null) {
             PixelPanel(title = "MIDI CHECK") {
                 MonoText(
-                    "Sends a short C–E–G–C. If you hear it, notes are getting through. Some firmwares, such as SLOOP, stay quiet on a plain note. The FM-1 answering again afterwards means the cable is fine.",
+                    "Sends a short G–C–G–F–E. If you hear it, notes are getting through. Some firmwares, such as SLOOP, stay quiet on a plain note. The $deviceLabel answering again afterwards means the cable is fine.",
                     size = 14,
                 )
                 PixelButton(
@@ -133,13 +140,13 @@ fun DeviceScreen(model: AppViewModel) {
                     MidiCheck.Idle -> {}
                     is MidiCheck.Played -> {
                         val heard = if (check.simulated) {
-                            "The stand-in heard the notes and still answers as ${check.identity}. It makes no sound. On a real FM-1 you should hear them."
+                            "The stand-in heard the notes and still answers as ${check.identity}. It makes no sound. On a real $deviceLabel you should hear them."
                         } else if (check.loader) {
                             "Notes went out and the update loader still answers. You won't hear anything in this mode."
                         } else if (check.stillAnswering) {
-                            "Notes went out and the FM-1 still answers as ${check.identity}. If you heard them, the cable is fine."
+                            "Notes went out and the $deviceLabel still answers as ${check.identity}. If you heard them, the cable is fine."
                         } else {
-                            "Notes were sent, but the FM-1 didn't answer afterwards. Unplug it and scan again."
+                            "Notes were sent, but the $deviceLabel didn't answer afterwards. Unplug it and scan again."
                         }
                         MonoText(heard, size = 14)
                     }

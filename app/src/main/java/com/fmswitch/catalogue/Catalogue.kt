@@ -82,7 +82,8 @@ data class CatalogueEntry(
         get() = platforms.any { it.equals(DevicePlatform.SMK37, ignoreCase = true) }
 
     /**
-     * Picks the Pro / Elite / MKE package for [identity]. Starrykey and unknown SMK names get Pro.
+     * Picks the Pro / Elite / MKE / Starrykey package for [identity].
+     * Starrykey falls back to Pro when the listing has no Starrykey file; unknown SMK names use Pro.
      * Entries without [smkModels] are unchanged.
      */
     fun forDevice(identity: FM1Identity?): CatalogueEntry {
@@ -97,7 +98,9 @@ data class CatalogueEntry(
             product = variant.product,
             sha256 = variant.sha256,
             size = variant.size,
-            allowSiblingSmkModel = allowSiblingSmkModel || key == DeviceFamily.VARIANT_PRO,
+            allowSiblingSmkModel = allowSiblingSmkModel ||
+                key == DeviceFamily.VARIANT_PRO ||
+                key == DeviceFamily.VARIANT_STARRYKEY,
         )
     }
 }

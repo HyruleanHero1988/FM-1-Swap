@@ -78,14 +78,15 @@ object DeviceFamily {
     }
 
     /**
-     * Catalogue / installer variant key for an SMK identity: `elite`, `mke`, or `pro`
-     * (Starrykey and unknown SMK names take the Pro package).
+     * Catalogue / installer variant key for an SMK identity: `elite`, `mke`, `starrykey`, or `pro`.
+     * Entries without a Starrykey package fall back to Pro in [CatalogueEntry.forDevice].
      */
     fun smkVariantKey(identity: FM1Identity?): String {
         val model = identity?.hardwareModel?.removePrefix("ota-")?.removePrefix("OTA-").orEmpty()
         return when {
             model.equals("SMK-37 Elite", ignoreCase = true) -> VARIANT_ELITE
             model.equals("MKE-P37", ignoreCase = true) -> VARIANT_MKE
+            model.contains("STARRYKEY", ignoreCase = true) -> VARIANT_STARRYKEY
             else -> VARIANT_PRO
         }
     }
@@ -93,8 +94,22 @@ object DeviceFamily {
     const val VARIANT_PRO = "pro"
     const val VARIANT_ELITE = "elite"
     const val VARIANT_MKE = "mke"
+    const val VARIANT_STARRYKEY = "starrykey"
 }
 
-enum class DeviceFamilyKind { FM1, SMK37, UNKNOWN }
+enum class DeviceFamilyKind {
+    FM1,
+    SMK37,
+    UNKNOWN,
+    ;
+
+    /** Short product name for user-facing copy ("FM-1", "SMK-37"). */
+    val productLabel: String
+        get() = when (this) {
+            FM1 -> "FM-1"
+            SMK37 -> "SMK-37"
+            UNKNOWN -> "device"
+        }
+}
 
 data class PackagePick(val product: String, val anyModel: Boolean)

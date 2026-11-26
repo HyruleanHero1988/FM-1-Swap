@@ -282,7 +282,8 @@ class FirmwareLibrary internal constructor(
      */
     suspend fun stageForPlay(entry: CatalogueEntry, keep: Boolean = false): StagedFirmware = withContext(Dispatchers.IO) {
         stored(entry)?.let { return@withContext StagedFirmware(file(it), it.sha256) }
-        if (entry.isOfficial) {
+        // Only the bundled FM-1 V15 short-circuits to the always-kept official file.
+        if (entry.id == "mvave-official" || entry.sha256 == OfficialFirmware.V15.sha256) {
             official?.let { return@withContext StagedFirmware(file(it), it.sha256) }
         }
         val cached = entry.sha256?.let { cachedPackage(it) }
@@ -309,13 +310,15 @@ class FirmwareLibrary internal constructor(
 
     private fun saveFromCatalogue(entry: CatalogueEntry, bytes: ByteArray, package_: FwscPackage): StoredFirmware {
         val url = entry.packageURL ?: error("No downloadable file is known for this firmware.")
+        // Bundled FM-1 V15 alone uses source "official" (see saveBundledOfficial). Catalogue
+        // downloads — including stock FM-1 or SMK rows — stay "catalogue" and removable.
         return save(
             bytes,
             package_,
             name = entry.name,
             version = entry.version ?: package_.product,
             author = entry.author,
-            source = if (entry.isOfficial) "official" else "catalogue",
+            source = "catalogue",
             catalogueID = entry.id,
             packageURL = url,
         )
@@ -372,7 +375,7 @@ class FirmwareLibrary internal constructor(
     }
 
     fun remove(item: StoredFirmware) {
-        if (item.source == "official") return
+        if (item.sha256.equals(OfficialFirmware.V15.sha256, ignoreCase = true)) return
         file(item).delete()
         items = items.filterNot { it.id == item.id }
         persist()

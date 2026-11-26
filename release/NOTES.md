@@ -4,6 +4,24 @@ Install that file from this release and nowhere else. If Android refuses the ins
 
 Not affiliated with M-VAVE. Flashing custom firmware is at your own risk.
 
+## New in 0.7.0
+
+**And now also: SMK-37.** FM-1 Swap is still the FM-1 app — preview, flash, backups, patches, TRY. This release adds the highly requested M-VAVE SMK-37 family as a first-class expansion of that same workflow.
+
+**SMK mode.** **SETUP ▸ KEYBOARD MODE** is AUTO (follows the plugged-in device), FM-1, or SMK-37. Plug in an SMK-37 Pro, Elite, or MKE-P37 (Starrykey 37 Play uses the Pro package) and the catalogue switches with it. Or set SMK-37 by hand when nothing is connected.
+
+**Model-aware packages.** SAVE / FLASH picks the Pro, Elite, or MKE package for the keyboard you have. The SMK list includes genkigenki builds, SLOOP Pro / Clipper Pro, and Baud Girl's SMK-37+VA (Install / project links when there is no public `.fwsc` mirror).
+
+**Official stock in-app.** M-VAVE stock for the SMK family is on FIRMWARE and flashable from the phone: Pro and Elite V016, MKE-P37 V015.
+
+**SAVED stays tidy.** SAVED filters by keyboard family. With no device connected, switch FM-1 / SMK-37 on that screen the same way as in SETUP. FM-1-only chrome (TRY, newer-chip marks, and the rest) stays out of SMK mode so the UI does not read as FM-1 when you are on an SMK.
+
+**PLAY TEST NOTES.** DEVICE still sends a short G–C–G–F–E jingle so you can hear whether notes and the USB-MIDI port are alive.
+
+How it works is on the [guide](https://hyruleanhero1988.github.io/FM-1-Swap/).
+
+A phone already on 0.6.6 shows this release under the top bar. **UPDATE** downloads it.
+
 ## New in 0.6.6
 
 **TRY keeps up better.** The virtual FM-1 runs a little ahead of the audio output, and when the phone cannot keep real time the clock steps down on its own (240 → 200 → 160 → 120) and reboots from the firmware's current flash. **SETUP ▸ CHOOSE EMULATOR CLOCK** still locks a fixed 100, 160 or 240 instead. The emulator core is fm1-emu v0.5.1.

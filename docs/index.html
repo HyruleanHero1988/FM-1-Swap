@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FM-1 Swap — preview and install FM-1 firmware on Android</title>
-  <meta name="description" content="Preview FM-1 firmware on an Android phone before you install it, and swap saved firmwares with no internet. Not affiliated with M-VAVE.">
+  <meta name="description" content="Preview and install FM-1 firmware on an Android phone — and now also flash M-VAVE SMK-37 Pro, Elite, and MKE-P37. Not affiliated with M-VAVE.">
   <link rel="icon" href="images/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -258,10 +258,10 @@
         <li><strong>Backups</strong> A copy is saved on the phone before the write, when the firmware can give one.</li>
         <li><strong>Offline</strong> Swap firmwares saved on the phone, with no connection.</li>
       </ul>
-      <p class="lede">It plugs into an M-VAVE FM-1 with a USB cable. It is not affiliated with M-VAVE. Flashing custom firmware can leave the instrument unable to start.</p>
+      <p class="lede">It plugs into an M-VAVE FM-1 with a USB cable. From 0.7.0 it can also flash M-VAVE SMK-37 Pro, Elite, and MKE-P37 — same app, same USB MIDI path, with a dedicated SMK catalogue when you need it. It is not affiliated with M-VAVE. Flashing custom firmware can leave the instrument unable to start.</p>
       <div class="actions">
-        <a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest/download/FM-1-Swap.apk">Download 0.6.6</a>
-        <a class="ghost" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest">0.6.6 release</a>
+        <a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest/download/FM-1-Swap.apk">Download 0.7.0</a>
+        <a class="ghost" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest">0.7.0 release</a>
       </div>
       <div class="video">
         <iframe
@@ -277,6 +277,7 @@
     <div class="wrap">
       <ul>
         <li><a href="#install">Install</a></li>
+        <li><a href="#smk">SMK-37</a></li>
         <li><a href="#risks">Risks</a></li>
         <li><a href="#newer">Newer FM-1s</a></li>
         <li><a href="#screens">Screens</a></li>
@@ -295,7 +296,7 @@
     <div class="wrap">
       <section id="install">
         <h2>Install</h2>
-        <p>The current release is 0.6.6. Download <span class="mono">FM-1-Swap.apk</span> from this GitHub release and install it on the phone. It replaces an earlier release of FM-1 Swap already there. The phone needs Android 8 or newer. A computer emulator will not see a USB FM-1.</p>
+        <p>The current release is 0.7.0. Download <span class="mono">FM-1-Swap.apk</span> from this GitHub release and install it on the phone. It replaces an earlier release of FM-1 Swap already there. The phone needs Android 8 or newer. A computer emulator will not see a USB FM-1.</p>
         <ol>
           <li>Download the APK on the phone, or copy it across.</li>
           <li>Open it and allow install from the browser or the files app when Android asks.</li>
@@ -303,6 +304,18 @@
         </ol>
         <p>Install that file from this release and nowhere else.</p>
         <p>The first time the app opens, it shows a short notice and waits a few seconds before <span class="mono">OK</span> can be pressed. On a short phone you can scroll that notice so <span class="mono">OK</span> stays on the screen. The same notice stays on the SETUP screen.</p>
+      </section>
+
+      <section id="smk">
+        <h2>And now also: SMK-37</h2>
+        <p>0.7.0 keeps the FM-1 as the star — preview, flash, backups, patches, TRY — and adds the highly requested M-VAVE SMK-37 family as a major expansion of that same app.</p>
+        <ul>
+          <li><span class="mono">SETUP ▸ KEYBOARD MODE</span> is AUTO (follows the plugged-in device), FM-1, or SMK-37. Plug in an SMK-37 Pro, Elite, or MKE-P37 and the catalogue switches with it. Starrykey 37 Play uses the Pro package.</li>
+          <li>In SMK mode, FIRMWARE lists official M-VAVE stock (Pro/Elite V016 and MKE-P37 V015, flashable in-app), genkigenki packages, SLOOP Pro / Clipper Pro, and Baud Girl's SMK-37+VA when a public package link is available.</li>
+          <li>SAVE / FLASH picks the Pro, Elite, or MKE package for the keyboard you have.</li>
+          <li>SAVED filters by family. With no keyboard connected, switch FM-1 / SMK-37 on that screen the same way as in SETUP.</li>
+          <li>FM-1-only chrome (TRY, newer-chip marks, patch restore, and the rest) stays out of SMK mode so the UI does not read as FM-1 when you are on an SMK. TRY remains FM-1 only.</li>
+        </ul>
       </section>
 
       <section id="risks">
@@ -335,7 +348,7 @@
 
       <section id="screens">
         <h2>The four screens</h2>
-        <p>The bar along the bottom is DEVICE, FIRMWARE, SAVED, and SETUP. The top line shows whether a real FM-1 is connected, and the name it reports, such as <span class="mono">FM-1_900</span>.</p>
+        <p>The bar along the bottom is DEVICE, FIRMWARE, SAVED, and SETUP. The top line shows whether a real FM-1 (or SMK-37) is connected, and the name it reports, such as <span class="mono">FM-1_900</span>.</p>
         <div class="shots">
           <figure>
             <img src="https://github.com/HyruleanHero1988/FM-1-Swap/releases/download/v0.5.0/before-you-start.jpg" alt="The first-run notice, titled Before you start, with the risk text and an OK button.">
@@ -349,8 +362,8 @@
         <p>A few lines of helper text in the older photos have been shortened since those pictures were taken. The controls are the same.</p>
 
         <h3>DEVICE</h3>
-        <p>Plug the FM-1 into the phone with a USB cable. No extra driver. Straight into the phone is best; hubs often hide it. Close other MIDI apps first. With the app closed, the phone can ask whether to open it. If it also asks to allow USB, allow it. <span class="mono">SCAN</span> looks again.</p>
-        <p>When the FM-1 answers, the big line is the name it reports. <span class="mono">PLAY TEST NOTES</span> sends a short C–E–G–C. If you hear it, notes are getting through. Some firmwares, such as SLOOP, stay quiet on a plain note. The FM-1 answering again afterwards means the cable is fine. The keys under that send notes while you hold them.</p>
+        <p>Plug the FM-1 into the phone with a USB cable. No extra driver. Straight into the phone is best; hubs often hide it. Close other MIDI apps first. With the app closed, the phone can ask whether to open it. If it also asks to allow USB, allow it. <span class="mono">SCAN</span> looks again. An SMK-37 uses the same USB MIDI path.</p>
+        <p>When the instrument answers, the big line is the name it reports. <span class="mono">PLAY TEST NOTES</span> sends a short G–C–G–F–E. If you hear it, notes are getting through. Some firmwares, such as SLOOP, stay quiet on a plain note. The device answering again afterwards means the cable is fine. The keys under that send notes while you hold them.</p>
         <p>If several firmwares report the same name, the screen says so, because the device itself cannot tell them apart. If the FM-1 is sitting in its update loader after an interrupted write, the screen says that and sends you to SAVED to finish.</p>
         <p>When the device is running official V15, DEVICE can restore V15's 128 factory voices over all four banks. That replaces every voice in them, including ones you made. V15 cannot read the old voices back first.</p>
 
@@ -362,7 +375,7 @@
         <p>The detail page also says what the device will report, how big the file is, and whether that firmware has a USB recovery gesture. Publisher pages, including a browser player when they have one, are listed there too.</p>
 
         <h3>SAVED</h3>
-        <p>Firmwares you save stay on the phone, including for later use with no network. <span class="mono">TRY</span> plays one. <span class="mono">FLASH</span> writes it to a connected FM-1. <span class="mono">IMPORT</span> brings in a firmware file from the phone. <span class="mono">REMOVE</span> deletes one you saved. Official V15 ships with the app and is kept even if you clear the rest.</p>
+        <p>Firmwares you save stay on the phone, including for later use with no network. The list follows the connected keyboard's family (FM-1 or SMK-37). With nothing plugged in, pick a family with <span class="mono">KEYBOARD MODE</span> on this screen or under SETUP. <span class="mono">TRY</span> plays an FM-1 package (hidden in SMK mode). <span class="mono">FLASH</span> writes a connected instrument. <span class="mono">IMPORT</span> brings in a firmware file from the phone. <span class="mono">REMOVE</span> deletes one you saved. Official V15 ships with the app and is kept even if you clear the rest.</p>
         <p>Backups taken before a flash are listed here, with <span class="mono">RESTORE</span> and <span class="mono">REMOVE</span>.</p>
       </section>
 
@@ -453,7 +466,8 @@
           <li><span class="mono">RUN EMULATOR IN BACKGROUND</span> keeps TRY sounding when you leave the app, until you leave the TRY screen.</li>
           <li><span class="mono">OPEN TRY FULL SCREEN</span> starts landscape TRY already filling the display. Portrait has no full-screen mode.</li>
           <li><span class="mono">STRETCH TRY PANEL</span> fills leftover landscape space so keys and buttons get larger. Portrait keeps real proportions. Knobs stay round; the LCD stays square.</li>
-          <li><span class="mono">USB MIDI</span> is a real FM-1. <span class="mono">SIMULATED FM-1</span> is not a synth. It stands in for an FM-1 so you can practice a flash with no instrument connected. The extra switches under it, such as interrupting a pretend flash, apply only to that stand-in.</li>
+          <li><span class="mono">KEYBOARD MODE</span> is AUTO (follows the plugged-in device), FM-1, or SMK-37. Use SMK-37 when you want the SMK catalogue with no keyboard connected.</li>
+          <li><span class="mono">USB MIDI</span> is a real FM-1 or SMK-37. <span class="mono">SIMULATED FM-1</span> is not a synth. It stands in for an FM-1 so you can practice a flash with no instrument connected. The extra switches under it, such as interrupting a pretend flash, apply only to that stand-in.</li>
           <li><span class="mono">ALWAYS VIA OFFICIAL FIRMWARE</span> installs the official firmware on the way to the one you chose, when you are not already installing official firmware.</li>
           <li><span class="mono">SHOW BETA RELEASES</span> includes firmwares marked beta. Ones you have kept stay visible either way.</li>
           <li><span class="mono">SHOW LISTINGS WITHOUT A PACKAGE</span> includes rows that link out but have no file to save or flash.</li>
@@ -472,13 +486,13 @@
       <section id="record">
         <h2>What has been tried on a real FM-1</h2>
         <p>FM-1 Swap has been used to swap firmwares on a real FM-1, including SLOOP, Felucca Rainbow, and Clipper. Those swaps completed. One of them started on SLOOP 2.7.1, which reported <span class="mono">FM-1_900</span>. FM-1 Swap wrote Rainbow Mode 1.1.5-rb, and the FM-1 came back reporting <span class="mono">FM-1_911</span>.</p>
-        <p><a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest/download/FM-1-Swap.apk">Download 0.6.6</a></p>
+        <p><a class="download" href="https://github.com/HyruleanHero1988/FM-1-Swap/releases/latest/download/FM-1-Swap.apk">Download 0.7.0</a></p>
       </section>
 
       <section id="credits">
         <h2>Credits</h2>
-        <p>FM-1 Swap is for the M-VAVE FM-1. Not affiliated with M-VAVE.</p>
-        <p>The firmware list is assembled from <a href="https://thefirmwarehub.com">the FM-1 Firmware Hub</a> by zvenson, <a href="https://fm1-editor.com/firmware/">Benny Sparra's fm1-editor.com</a>, and <a href="https://rustypawz.github.io/fm1-HYP1/">RedtailWorks</a> (HYP-1, LOF-1, ECO-1, and GRAV-1). Each firmware is its author's. A row names them and links their page. Pictures come from that project's own page, from the hub, or from fm1-editor.com. Official V15 is M-VAVE's, Apache-2.0, unmodified from <a href="https://github.com/m-vave/fm1_open">fm1_open</a>.</p>
+        <p>FM-1 Swap is for the M-VAVE FM-1, and from 0.7.0 it also flashes M-VAVE SMK-37 Pro / Elite / MKE-P37 (and Starrykey via the Pro package). Not affiliated with M-VAVE.</p>
+        <p>The FM-1 firmware list is assembled from <a href="https://thefirmwarehub.com">the FM-1 Firmware Hub</a> by zvenson, <a href="https://fm1-editor.com/firmware/">Benny Sparra's fm1-editor.com</a>, and <a href="https://rustypawz.github.io/fm1-HYP1/">RedtailWorks</a> (HYP-1, LOF-1, ECO-1, and GRAV-1). The SMK-37 catalogue draws on genkigenki's install page and M-VAVE's published stock packages. Each firmware is its author's. A row names them and links their page. Pictures come from that project's own page, from the hub, or from fm1-editor.com. Official V15 is M-VAVE's, Apache-2.0, unmodified from <a href="https://github.com/m-vave/fm1_open">fm1_open</a>.</p>
         <p>Patch banks 1–4 are the FM-1's own presets, captured by <a href="https://github.com/KingParamount/fm1-factory-presets">KingParamount</a> and shared as DX7 banks under CC0. The voices come from Yamaha ROM and VRC cartridges and from BlackWinny's Dexed_cart 1.0 collection, as M-VAVE selected and renamed them. <a href="https://github.com/aquanodemusic/aquanode-soundscapes">Aquanode's</a> banks are CC0, from aquanode-soundscapes.</p>
         <p>The idea of swapping FM-1 firmware from a phone started with <a href="https://github.com/ocean/FM-SWITCH">ocean</a>. The protocol follows ocean's <a href="https://github.com/ocean/FM1Kit">FM1Kit</a> (MIT) and the <a href="https://github.com/AL-255/FM-1-RE">FM-1-RE</a> notes (WTFPL). TRY runs <a href="https://github.com/joakimeriksson/fm1-emu">Joakim Eriksson's fm1-emu</a> (MIT).</p>
         <p>The app is set in Silkscreen (the <a href="https://github.com/googlefonts/silkscreen">Silkscreen Project</a>), <a href="https://helenazhang.com">Departure Mono by Helena Zhang</a>, and <a href="https://fonts.google.com/specimen/VT323">VT323 by Peter Hull</a>. All three are under the SIL Open Font License. This page also uses <a href="https://github.com/IBM/plex">IBM Plex Sans and IBM Plex Mono</a>, IBM, under the same licence.</p>

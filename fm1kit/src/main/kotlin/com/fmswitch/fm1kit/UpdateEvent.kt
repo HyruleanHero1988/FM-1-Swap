@@ -95,9 +95,16 @@ data class UpdaterTiming(
 sealed class FM1UpdateError(message: String) : Exception(message) {
     enum class Phase { STAGING, WRITING }
 
-    data object DeviceNotFound : FM1UpdateError("No FM-1 found. Check the cable, and close any other app using it.")
-    data class MultipleDevices(val count: Int) :
-        FM1UpdateError("$count FM-1s answered. Connect only the one to update, and try again.")
+    data class DeviceNotFound(val deviceLabel: String = "FM-1") : FM1UpdateError(
+        "No $deviceLabel found. Check the cable, and close any other app using it.",
+    )
+    data class MultipleDevices(val count: Int, val deviceLabel: String = "FM-1") : FM1UpdateError(
+        if (deviceLabel == "FM-1") {
+            "$count FM-1s answered. Connect only the one to update, and try again."
+        } else {
+            "$count $deviceLabel keyboards answered. Connect only the one to update, and try again."
+        },
+    )
     data class SwitchNotConfirmed(val device: String, val packageProduct: String) : FM1UpdateError(
         "Installing $packageProduct switches the FM-1 from $device to a different firmware, which can erase its projects and samples. Back them up, then confirm the switch.",
     )

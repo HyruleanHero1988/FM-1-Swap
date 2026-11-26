@@ -4,41 +4,66 @@
   "bundled": true,
   "entries": [
     {
-      "id": "mvave-smk-pro-v016",
-      "name": "SMK-37 Pro V016",
+      "id": "mvave-smk-stock-v016",
+      "name": "M-VAVE stock V016",
       "author": "M-VAVE",
       "kinds": [
         "official"
       ],
-      "what": "M-VAVE stock firmware for the SMK-37 Pro. Download the .fwsc from M-VAVE, then import it here or use SAVED after you download it in the app.",
+      "what": "Official M-VAVE stock firmware. Connect your keyboard: SAVE / FLASH downloads and writes the matching package (Pro / Elite / Starrykey V016, or MKE-P37 V015). Also available from m-vave.com/download.",
       "version": "V016",
       "product": "SMK-37 Pro_016",
+      "packageURL": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/SMK-37Pro/SMK-37%20Pro_016.fwsc",
+      "sha256": "2d98ce72530e71d617384963423820536f094501299e2cfec0a8d3c3fb6bcfb0",
+      "size": 705252,
       "platforms": [
         "smk37"
       ],
+      "allowSiblingSmkModel": true,
       "isOfficial": true,
+      "smkModels": {
+        "pro": {
+          "product": "SMK-37 Pro_016",
+          "packageURL": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/SMK-37Pro/SMK-37%20Pro_016.fwsc",
+          "sha256": "2d98ce72530e71d617384963423820536f094501299e2cfec0a8d3c3fb6bcfb0",
+          "size": 705252
+        },
+        "elite": {
+          "product": "SMK-37 Elite_016",
+          "packageURL": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/SMK-37Elite/SMK-37%20Elite_016.fwsc",
+          "sha256": "b2ee38abfef3ae922e4eecdb8a551e14345300ae6f270265feacd33b6ef99cb6",
+          "size": 705236
+        },
+        "mke": {
+          "product": "MKE-P37_015",
+          "packageURL": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/MKE-P37/MKE-P37_015.fwsc",
+          "sha256": "280ee7aae59a17c38bc2e854802c7d08f076e51afff13eb5315ad3748476491f",
+          "size": 701140
+        },
+        "starrykey": {
+          "product": "STARRYKEY-37 PLAY_016",
+          "packageURL": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/STARRYKEY-37PLAY/STARRYKEY-37%20PLAY_016.fwsc",
+          "sha256": "3cd57cdd90ee60501c549b9dde53503ef468122e2f34dc110876eefdaf9be3b3",
+          "size": 705252
+        }
+      },
       "links": [
         {
-          "label": "M-VAVE downloads",
-          "url": "https://www.m-vave.com/download"
-        }
-      ]
-    },
-    {
-      "id": "mvave-smk-elite-v016",
-      "name": "SMK-37 Elite V016",
-      "author": "M-VAVE",
-      "kinds": [
-        "official"
-      ],
-      "what": "M-VAVE stock firmware for the SMK-37 Elite. Download the .fwsc from M-VAVE, then import it here.",
-      "version": "V016",
-      "product": "SMK-37 Elite_016",
-      "platforms": [
-        "smk37"
-      ],
-      "isOfficial": true,
-      "links": [
+          "label": "Pro V016 (.fwsc)",
+          "url": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/SMK-37Pro/SMK-37%20Pro_016.fwsc"
+        },
+        {
+          "label": "Elite V016 (.fwsc)",
+          "url": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/SMK-37Elite/SMK-37%20Elite_016.fwsc"
+        },
+        {
+          "label": "MKE-P37 V015 (.fwsc)",
+          "url": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/MKE-P37/MKE-P37_015.fwsc"
+        },
+        {
+          "label": "Starrykey 37 Play V016 (.fwsc)",
+          "url": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/STARRYKEY-37PLAY/STARRYKEY-37%20PLAY_016.fwsc"
+        },
         {
           "label": "M-VAVE downloads",
           "url": "https://www.m-vave.com/download"

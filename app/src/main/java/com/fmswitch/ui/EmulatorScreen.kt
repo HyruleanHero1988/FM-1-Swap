@@ -90,7 +90,7 @@ fun EmulatorScreen(
     phosphorPanel: Boolean,
     chooseClock: Boolean,
     runInBackground: Boolean,
-    /** When true, TRY opens already in full screen (SETUP ▸ OPEN TRY FULL SCREEN). */
+    /** When true, landscape TRY opens already in full screen (SETUP ▸ OPEN TRY FULL SCREEN). */
     openFullScreen: Boolean = false,
     stretchPanel: Boolean = false,
     canSave: Boolean,
@@ -109,9 +109,10 @@ fun EmulatorScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    // Stretch only sideways — portrait (including FULL) keeps FM-1 proportions.
+    // Stretch and full screen only sideways — portrait keeps the normal TRY chrome.
     val stretchNow = stretchPanel && landscape
     var fullScreen by remember(entry.id, openFullScreen) { mutableStateOf(openFullScreen) }
+    val fullNow = fullScreen && landscape
     var saveError by remember(entry.id) { mutableStateOf<String?>(null) }
     var mhz by remember(entry.id, chooseClock) {
         mutableIntStateOf(EmulatorClock.get(context, entry, chooseClock))
@@ -127,7 +128,7 @@ fun EmulatorScreen(
         }
     }
     BackHandler {
-        if (fullScreen) fullScreen = false else onBack()
+        if (fullNow) fullScreen = false else onBack()
     }
     DisposableEffect(Unit) {
         val activity = context as? Activity
@@ -164,7 +165,7 @@ fun EmulatorScreen(
         RunningSlot(
             prepared = it,
             mhz = mhz,
-            expand = landscape || fullScreen,
+            expand = landscape,
             phosphorPanel = phosphorPanel,
             chooseClock = chooseClock,
             runInBackground = runInBackground,
@@ -178,7 +179,7 @@ fun EmulatorScreen(
         )
     }
 
-    if (landscape || fullScreen) {
+    if (landscape) {
         HideSystemBars()
     }
 
@@ -190,7 +191,7 @@ fun EmulatorScreen(
             val fit = EmulatorFrame.fit(
                 maxWidth.value,
                 maxHeight.value,
-                minChrome = if (fullScreen) 0f else EmulatorScreenLandscapeChrome,
+                minChrome = if (fullNow) 0f else EmulatorScreenLandscapeChrome,
                 stretch = stretchNow,
             )
             val panel = EmulatorFrame.panelRect(maxWidth.value, maxHeight.value, fit)
@@ -218,7 +219,7 @@ fun EmulatorScreen(
                     is EmulatorPackage.Ready -> slot?.let { running(it) }
                 }
             }
-            if (fullScreen) {
+            if (fullNow) {
                 FullscreenToggleButton(
                     fullScreen = true,
                     onToggle = { fullScreen = false },
@@ -266,37 +267,6 @@ fun EmulatorScreen(
                 }
             }
         }
-    } else if (fullScreen) {
-        BoxWithConstraints(Modifier.fillMaxSize().background(theme.background)) {
-            val fit = EmulatorFrame.fit(maxWidth.value, maxHeight.value, stretch = stretchNow)
-            val panel = EmulatorFrame.panelRect(maxWidth.value, maxHeight.value, fit)
-            Box(
-                Modifier
-                    .offset(panel.x.dp, panel.y.dp)
-                    .width(panel.width.dp)
-                    .height(panel.height.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                when (prepared) {
-                    EmulatorPackage.Preparing -> MonoText("GETTING THIS FIRMWARE…", size = 13, dim = true, modifier = Modifier.padding(24.dp))
-                    is EmulatorPackage.Failed -> FirmwareFetchFailed(
-                        prepared,
-                        refreshing = refreshing,
-                        onRetry = onRetry,
-                        onRefresh = onRefresh,
-                    )
-                    is EmulatorPackage.Ready -> slot?.let { running(it) }
-                }
-            }
-            FullscreenToggleButton(
-                fullScreen = true,
-                onToggle = { fullScreen = false },
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.displayCutout))
-                    .padding(8.dp),
-            )
-        }
     } else {
         Column(
             Modifier
@@ -307,7 +277,6 @@ fun EmulatorScreen(
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 PixelButton("◂ BACK", compact = true, onClick = onBack)
-                FullscreenToggleButton(fullScreen = false, onToggle = { fullScreen = true })
                 if (canSave) {
                     PixelButton(if (saving) "SAVING" else "SAVE", compact = true, enabled = !saving, onClick = ::keep)
                 }
@@ -609,7 +578,7 @@ private fun RunningEmulator(
                 size = 13,
             )
             MonoText(
-                "A USB MIDI keyboard plugged into this phone plays here too. Notes are played on channel 2, whichever channel the keyboard sends. Official V15 and Felucca both hear that.",
+                "A USB MIDI keyboard plugged into this phone plays here too. Notes are rewritten to MIDI channel 2 no matter which channel the keyboard is set to, so a keyboard left on 1 still plays. Official V15 and Felucca both listen on channel 2.",
                 size = 12,
             )
             MonoText(

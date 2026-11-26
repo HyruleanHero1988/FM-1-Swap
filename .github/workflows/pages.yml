@@ -18,12 +18,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: Publish the site
+  build:
+    name: Build the site
     runs-on: ubuntu-24.04
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v5
 
@@ -99,6 +96,14 @@ jobs:
         with:
           path: docs
 
+  deploy:
+    name: Publish the site
+    needs: build
+    if: success()
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
-        if: steps.pages.outcome == 'success'
         uses: actions/deploy-pages@v4

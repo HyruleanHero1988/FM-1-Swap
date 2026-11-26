@@ -210,7 +210,7 @@ fun SettingsScreen(model: AppViewModel) {
                 model.settings.tryOpensFullScreen = it
                 model.bumpTheme()
             }
-            NoteText("On, TRY starts with the panel filling the display, as if you had pressed FULL. You can still exit full screen with FULL or system back.")
+            NoteText("On, sideways TRY starts with the panel filling the display, as if you had pressed FULL. Portrait has no full-screen mode. Exit with FULL or system back.")
             PixelToggle("STRETCH TRY PANEL", model.settings.stretchTryPanel) {
                 model.settings.stretchTryPanel = it
                 model.bumpTheme()

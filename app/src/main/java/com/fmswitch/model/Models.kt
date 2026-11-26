@@ -310,19 +310,15 @@ class FirmwareLibrary internal constructor(
 
     private fun saveFromCatalogue(entry: CatalogueEntry, bytes: ByteArray, package_: FwscPackage): StoredFirmware {
         val url = entry.packageURL ?: error("No downloadable file is known for this firmware.")
-        // Bundled FM-1 V15 alone uses source "official" (kept forever). SMK stock and other
-        // catalogue "official" rows download like any package and stay removable.
-        val source = when {
-            OfficialFirmware.matching(package_) == OfficialFirmware.V15 -> "official"
-            else -> "catalogue"
-        }
+        // Bundled FM-1 V15 alone uses source "official" (see saveBundledOfficial). Catalogue
+        // downloads — including stock FM-1 or SMK rows — stay "catalogue" and removable.
         return save(
             bytes,
             package_,
             name = entry.name,
             version = entry.version ?: package_.product,
             author = entry.author,
-            source = source,
+            source = "catalogue",
             catalogueID = entry.id,
             packageURL = url,
         )

@@ -54,6 +54,8 @@ data class InstallOptions(
     val confirmsSwitchingFirmware: Boolean = false,
     val confirmsSameIdentity: Boolean = false,
     val buildID: FM1BuildID? = null,
+    /** Starrykey and generic SMK-37 names may take the SMK-37 Pro package. */
+    val allowSiblingSmkModels: Boolean = false,
 )
 
 data class UpdaterTiming(
@@ -131,7 +133,16 @@ sealed class FM1UpdateError(message: String) : Exception(message) {
         "The FM-1 stopped answering while restoring the factory voices. Some voices may be wrong or silent until a restore finishes: reconnect the FM-1, keep it on V15, and run the restore again.",
     )
     data class ModelMismatch(val device: String, val packageProduct: String) :
-        FM1UpdateError("This FM-1 is $device, and this firmware is for $packageProduct.")
+        FM1UpdateError("This device is $device, and this firmware is for $packageProduct.")
+    data class WrongPackageBoard(val detail: String) : FM1UpdateError(detail)
+    data class ForeignLoader(val loader: String) :
+        FM1UpdateError(
+            "The device is in another firmware's update mode ($loader). Finish or cancel that update on a computer, or install M-VAVE V016 first.",
+        )
+    data class OtherSmkFirmware(val identity: String) :
+        FM1UpdateError(
+            "This keyboard runs $identity, which has its own updater. Nothing was written. Restore M-VAVE stock firmware first.",
+        )
     data class Stalled(val phase: Phase, val requests: Int) : FM1UpdateError(phaseMessage(phase, lost = false))
     data class Disconnected(val phase: Phase, val requests: Int) : FM1UpdateError(phaseMessage(phase, lost = true))
     data object LoaderNotFound :

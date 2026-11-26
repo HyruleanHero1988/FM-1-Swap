@@ -118,7 +118,9 @@ fun LibraryScreen(model: AppViewModel) {
                 }
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    PixelButton("TRY", compact = true, prominent = true) { model.trySaved(item) }
+                    if (model.tryEmulatorEnabled) {
+                        PixelButton("TRY", compact = true, prominent = true) { model.trySaved(item) }
+                    }
                     PixelButton("FLASH", compact = true, prominent = true) { flashing = item }
                     if (item.source != "official") {
                         PixelButton("REMOVE", compact = true) { model.remove(item) }

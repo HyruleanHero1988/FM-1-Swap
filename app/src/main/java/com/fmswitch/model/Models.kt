@@ -3,6 +3,7 @@ package com.fmswitch.model
 import android.content.Context
 import android.content.SharedPreferences
 import com.fmswitch.catalogue.AboutOverlay
+import com.fmswitch.catalogue.DeviceUiMode
 import com.fmswitch.catalogue.CatalogueBuilder
 import com.fmswitch.catalogue.CatalogueEntry
 import com.fmswitch.catalogue.CatalogueRank
@@ -19,6 +20,7 @@ import com.fmswitch.catalogue.PhotoOverlay
 import com.fmswitch.catalogue.RedtailListing
 import com.fmswitch.catalogue.RepoAbout
 import com.fmswitch.catalogue.RepoShots
+import com.fmswitch.catalogue.SmkFeed
 import com.fmswitch.catalogue.fetchBytes
 import com.fmswitch.catalogue.officialCatalogueEntry
 import com.fmswitch.fm1kit.FwscFailure
@@ -103,6 +105,10 @@ class AppSettings(private val prefs: SharedPreferences) {
     var unitGeneration: UnitGeneration
         get() = UnitGeneration.fromId(prefs.getString("unitGeneration", null))
         set(value) { prefs.edit().putString("unitGeneration", value.id).apply() }
+    /** SMK-37 mode for catalogue and flashing. AUTO follows a connected device. */
+    var deviceUiMode: DeviceUiMode
+        get() = DeviceUiMode.fromId(prefs.getString("deviceUiMode", DeviceUiMode.AUTO.id))
+        set(value) { prefs.edit().putString("deviceUiMode", value.id).apply() }
     var showLinksOnly: Boolean
         get() = prefs.getBoolean("showLinksOnly", false)
         set(value) { prefs.edit().putBoolean("showLinksOnly", value).apply() }
@@ -435,8 +441,10 @@ class FirmwareLibrary internal constructor(
 class CatalogueStore(private val context: Context) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val cacheFile = File(context.filesDir, "catalogue.json")
+    private val smkCacheFile = File(context.filesDir, "smk-catalogue.json")
     var catalogue: MergedCatalogue? = null
         private set
+    private var smkEntries: List<CatalogueEntry> = emptyList()
     var isRefreshing: Boolean = false
         private set
     var errorMessage: String? = null
@@ -444,6 +452,7 @@ class CatalogueStore(private val context: Context) {
 
     init {
         loadCached()
+        loadSmkCached()
     }
 
     private val photoOverlayText: String by lazy { assetText(PhotoOverlay.ASSET_PATH) }
@@ -456,12 +465,24 @@ class CatalogueStore(private val context: Context) {
 
     val entries: List<CatalogueEntry>
         get() {
-            val listed = catalogue?.entries.orEmpty()
-            val withOfficial = if (listed.any { it.isOfficial }) listed else listOf(officialCatalogueEntry()) + listed
-            val marked = NewChipOverlay.apply(withOfficial, newChipMarks)
+            val fm1 = catalogue?.entries.orEmpty()
+            val withOfficial = if (fm1.any { it.id == "mvave-official" }) {
+                fm1
+            } else {
+                listOf(officialCatalogueEntry()) + fm1
+            }
+            val merged = withOfficial + smkCatalogueEntries()
+            val marked = NewChipOverlay.apply(merged, newChipMarks)
             val described = AboutOverlay.apply(marked, aboutOverlayText)
             return CatalogueRank.ordered(PhotoOverlay.apply(described, photoOverlayText))
         }
+
+    private fun bundledSmkEntries(): List<CatalogueEntry> = runCatching {
+        val text = context.assets.open(SmkFeed.ASSET_PATH).bufferedReader(Charsets.UTF_8).use { it.readText() }
+        json.decodeFromString<MergedCatalogue>(text).entries
+    }.getOrDefault(emptyList())
+
+    fun smkCatalogueEntries(): List<CatalogueEntry> = smkEntries
 
     fun entry(id: String): CatalogueEntry? = entries.firstOrNull { it.id == id }
 
@@ -479,7 +500,7 @@ class CatalogueStore(private val context: Context) {
         errorMessage = null
         try {
             val previous = catalogue?.entries.orEmpty()
-            val (hubText, editorHtml, redtailHtml) = coroutineScope {
+            val (hubText, editorHtml, redtailHtml, smkHtml) = coroutineScope {
                 val hub = async(Dispatchers.IO) {
                     runCatching { String(fetchBytes(HubFeed.DEFAULT_URL), Charsets.UTF_8) }.getOrNull()
                 }
@@ -489,17 +510,39 @@ class CatalogueStore(private val context: Context) {
                 val redtail = async(Dispatchers.IO) {
                     runCatching { String(fetchBytes(RedtailListing.DEFAULT_URL), Charsets.UTF_8) }.getOrNull()
                 }
-                Triple(hub.await(), editor.await(), redtail.await())
+                val smk = async(Dispatchers.IO) {
+                    runCatching { String(fetchBytes(SmkFeed.DEFAULT_URL), Charsets.UTF_8) }.getOrNull()
+                }
+                listOf(hub.await(), editor.await(), redtail.await(), smk.await())
             }
             val hub = hubText?.let { runCatching { HubFeed.decode(it) }.getOrNull() }
             val editor = editorHtml?.let { runCatching { EditorListing.parse(it) }.getOrNull() }
             val redtail = redtailHtml?.let { runCatching { RedtailListing.parse(it) }.getOrNull() }
+            val smkFresh = smkHtml?.let { runCatching { SmkFeed.parsePage(it) }.getOrNull() }
             val problems = ArrayList<String>()
             if (hub == null) problems += "The firmware hub couldn't be read."
             if (editor == null || editor.entries.isEmpty()) problems += "fm1-editor.com couldn't be read."
             if (redtail == null || redtail.entries.isEmpty()) problems += "The RedtailWorks pack couldn't be read."
+            if (smkFresh == null || smkFresh.isEmpty()) problems += "The SMK-37 install page couldn't be read."
             if (hub == null && (editor == null || editor.entries.isEmpty())) {
                 error("Couldn't reach the firmware hub or fm1-editor.com.")
+            }
+            if (smkFresh != null && smkFresh.isNotEmpty()) {
+                val mergedSmk = SmkFeed.merge(bundledSmkEntries(), smkFresh)
+                smkEntries = mergedSmk
+                withContext(Dispatchers.IO) {
+                    smkCacheFile.writeText(
+                        json.encodeToString(
+                            MergedCatalogue(
+                                hubUpdated = null,
+                                entries = mergedSmk,
+                                problems = emptyList(),
+                                snapshotVersion = MergedCatalogue.BUNDLED_VERSION,
+                                bundled = false,
+                            ),
+                        ),
+                    )
+                }
             }
             val hubEntries = hub?.second.orEmpty().filterNot { it.isOfficial || it.id == "mvave-official" }
             val merged = CatalogueBuilder.merge(
@@ -544,6 +587,21 @@ class CatalogueStore(private val context: Context) {
             bundled != null -> bundled
             cached != null -> cached
             else -> null
+        }
+    }
+
+    private fun loadSmkCached() {
+        val bundled = bundledSmkEntries()
+        val cached = runCatching {
+            if (!smkCacheFile.exists()) return@runCatching null
+            json.decodeFromString<MergedCatalogue>(smkCacheFile.readText())
+        }.getOrNull()
+        smkEntries = when {
+            cached != null &&
+                cached.entries.isNotEmpty() &&
+                cached.snapshotVersion >= MergedCatalogue.BUNDLED_VERSION ->
+                SmkFeed.merge(bundled, cached.entries)
+            else -> bundled
         }
     }
 

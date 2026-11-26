@@ -6,7 +6,9 @@ sealed class FwscFailure(message: String) : Exception(message) {
     data class UnreadableProduct(val text: String) :
         FwscFailure("This file doesn't carry an FM-1 product identity (it reads \"$text\").")
     data class UnexpectedModel(val model: String) :
-        FwscFailure("This package is for a $model, not an FM-1.")
+        FwscFailure("This package is for a $model, which this app does not recognise.")
+    data class UnsupportedFamily(val model: String) :
+        FwscFailure("This package is for a $model. FM-1 Swap does not support that device family yet.")
     data object DamagedHeader :
         FwscFailure("This package's header is damaged, so it can't be installed. Download it again.")
     data class UnexpectedChip(val chip: String) :
@@ -21,6 +23,8 @@ class FwscPackage private constructor(
     val fileBytes: ByteArray,
     val identity: FM1Identity,
     val logicalImage: ByteArray,
+    val interleaveBlocks: Int,
+    val board: FwscLayout.PackageBoard?,
     val sha256: String,
     val loaderSHA256: String,
     internal val container: FirmwareContainer,
@@ -50,7 +54,7 @@ class FwscPackage private constructor(
         const val IMAGE_BYTES_PER_BLOCK = 0x2F
         const val UNUSED_MARKER = 0x7D
         const val MAXIMUM_FILE_LENGTH = 2_097_152
-        const val EXPECTED_MODEL = "FM-1"
+        const val EXPECTED_MODEL = "FM-1" // default family for legacy callers
         const val FACTORY_VOICES_LENGTH = 16_384
         const val VOICE_BANK_LENGTH = 4096
         const val FACTORY_VOICES_SHA256 = "ecad0b8620f9d784d46c8da1e3c5de02c40214649ed8dec218026431046aad25"
@@ -62,42 +66,33 @@ class FwscPackage private constructor(
             if (bytes.size > MAXIMUM_FILE_LENGTH) throw FwscFailure.TooLarge
             val product = decodeProduct(bytes)
             val identity = FM1Identity.parse(product)
-            if (identity == null || product.any { it.code !in 0x21..0x7E }) {
+            if (identity == null || product.any { it.code < 0x20 || it.code > 0x7E }) {
                 throw FwscFailure.UnreadableProduct(product)
             }
-            if (identity.model != EXPECTED_MODEL) throw FwscFailure.UnexpectedModel(identity.model)
-            val image = stripMarkers(bytes)
-            val container = FirmwareContainer(image)
+            if (!supportedModel(identity.model)) throw FwscFailure.UnsupportedFamily(identity.model)
+            val resolved = FwscLayout.resolveLogicalImage(bytes)
+            val container = FirmwareContainer(resolved.image)
             return FwscPackage(
                 fileBytes = bytes,
                 identity = identity,
-                logicalImage = image,
+                logicalImage = resolved.image,
+                interleaveBlocks = resolved.blocks,
+                board = FwscLayout.packageBoard(resolved.image),
                 sha256 = sha256Hex(bytes),
-                loaderSHA256 = sha256Hex(image.copyOfRange(container.loader.range.first, container.loader.range.last + 1)),
+                loaderSHA256 = sha256Hex(
+                    resolved.image.copyOfRange(container.loader.range.first, container.loader.range.last + 1),
+                ),
                 container = container,
             )
         }
 
-        fun decodeProduct(bytes: ByteArray): String {
-            val chars = StringBuilder()
-            for (block in 0 until BLOCK_COUNT) {
-                val marker = bytes[block * BLOCK_SIZE + IMAGE_BYTES_PER_BLOCK].toUInt8()
-                if (marker != UNUSED_MARKER) {
-                    chars.append(((marker - block - 1) and 0xFF).toChar())
-                }
-            }
-            return chars.toString()
-        }
+        fun decodeProduct(bytes: ByteArray): String = FwscLayout.decodeProduct(bytes)
 
-        fun stripMarkers(bytes: ByteArray): ByteArray {
-            val image = ArrayList<Byte>(bytes.size - BLOCK_COUNT)
-            for (block in 0 until BLOCK_COUNT) {
-                val start = block * BLOCK_SIZE
-                image.addAll(bytes.copyOfRange(start, start + IMAGE_BYTES_PER_BLOCK).toList())
-            }
-            image.addAll(bytes.copyOfRange(BLOCK_COUNT * BLOCK_SIZE, bytes.size).toList())
-            return image.toByteArray()
-        }
+        fun stripMarkers(bytes: ByteArray, blocks: Int = BLOCK_COUNT): ByteArray =
+            FwscLayout.stripMarkers(bytes, blocks)
+
+        private fun supportedModel(model: String): Boolean =
+            DeviceFamily.isFm1Model(model) || DeviceFamily.isSmkFamily(model)
 
         fun decipherUserData(image: ByteArray, range: IntRange): ByteArray {
             val plain = ArrayList<Byte>(range.count())

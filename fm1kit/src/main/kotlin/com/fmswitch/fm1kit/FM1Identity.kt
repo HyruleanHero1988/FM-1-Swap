@@ -60,7 +60,7 @@ data class FM1Identity(
                 }
                 return FM1Identity(text, model, 0, digits.lowercase())
             }
-            if (text.any { it.code !in 0x21..0x7E }) return null
+            if (text.any { it.code < 0x20 || it.code > 0x7E }) return null
             if (digits.isEmpty() || !digits.all { it.isDigit() }) return null
             val version = digits.toIntOrNull() ?: return null
             return FM1Identity(text, model, version, null)

@@ -9,8 +9,8 @@ package com.fmswitch.fm1kit
  * port is still up.
  */
 object MidiNotes {
-    /** G4 C5 G4 F4 E4 — short app jingle (same register as the C4 live keys). */
-    val TEST_NOTES = intArrayOf(67, 72, 67, 65, 64)
+    /** G5 C5 G5 F5 E5 — short app jingle (MIDI 79, 72, 79, 77, 76). */
+    val TEST_NOTES = intArrayOf(79, 72, 79, 77, 76)
     val TEST_CHANNELS = intArrayOf(1, 2)
     /** On-length for each of the first four notes (~2× the old 140 ms). */
     const val NOTE_MS = 280L

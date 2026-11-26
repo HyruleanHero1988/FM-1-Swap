@@ -24,9 +24,9 @@ class MidiNotesTest {
         val phrase = MidiNotes.testPhrase()
         val ons = phrase.mapNotNull { MidiNotes.parse(it.bytes)?.takeIf { note -> note.on } }
         assertEquals(MidiNotes.TEST_NOTES.size * MidiNotes.TEST_CHANNELS.size, ons.size)
-        assertTrue(ons.any { it.channel == 1 && it.note == 67 })
-        assertTrue(ons.any { it.channel == 2 && it.note == 64 })
-        assertTrue(MidiNotes.isChannelVoice(MidiNotes.noteOn(1, 67)))
+        assertTrue(ons.any { it.channel == 1 && it.note == 79 })
+        assertTrue(ons.any { it.channel == 2 && it.note == 76 })
+        assertTrue(MidiNotes.isChannelVoice(MidiNotes.noteOn(1, 79)))
         assertEquals(false, MidiNotes.isChannelVoice(FM1Message.HANDSHAKE_QUERY))
 
         val holds = phrase.mapNotNull { event ->
@@ -48,8 +48,8 @@ class ConnectionToneTest {
             assertEquals(FM1Identity.of("FM-1", 900), result.identity)
             val heardOns = device.notesHeard.filter { it.on }
             assertEquals(MidiNotes.TEST_NOTES.size * MidiNotes.TEST_CHANNELS.size, heardOns.size)
-            assertTrue(heardOns.any { it.channel == 1 && it.note == 67 })
-            assertTrue(heardOns.any { it.channel == 2 && it.note == 64 })
+            assertTrue(heardOns.any { it.channel == 1 && it.note == 79 })
+            assertTrue(heardOns.any { it.channel == 2 && it.note == 76 })
         } finally {
             found.connection.close()
             device.shutdown()

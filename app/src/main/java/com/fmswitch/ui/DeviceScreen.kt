@@ -116,7 +116,7 @@ fun DeviceScreen(model: AppViewModel) {
         if (identity != null) {
             PixelPanel(title = "MIDI CHECK") {
                 MonoText(
-                    "Sends a short C–E–G–C. If you hear it, notes are getting through. Some firmwares, such as SLOOP, stay quiet on a plain note. The $deviceLabel answering again afterwards means the cable is fine.",
+                    "Sends a short G–C–G–F–E. If you hear it, notes are getting through. Some firmwares, such as SLOOP, stay quiet on a plain note. The $deviceLabel answering again afterwards means the cable is fine.",
                     size = 14,
                 )
                 PixelButton(

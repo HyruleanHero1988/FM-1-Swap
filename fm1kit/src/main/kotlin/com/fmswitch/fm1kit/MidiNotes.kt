@@ -9,9 +9,13 @@ package com.fmswitch.fm1kit
  * port is still up.
  */
 object MidiNotes {
-    val TEST_NOTES = intArrayOf(60, 64, 67, 72) // C4 E4 G4 C5
+    /** G4 C5 G4 F4 E4 — short app jingle (same register as the C4 live keys). */
+    val TEST_NOTES = intArrayOf(67, 72, 67, 65, 64)
     val TEST_CHANNELS = intArrayOf(1, 2)
-    const val NOTE_MS = 140L
+    /** On-length for each of the first four notes (~2× the old 140 ms). */
+    const val NOTE_MS = 280L
+    /** Final E held for two beats (~2× [NOTE_MS]). */
+    const val FINAL_NOTE_MS = 560L
     const val GAP_MS = 40L
     const val VELOCITY = 100
 
@@ -63,10 +67,11 @@ object MidiNotes {
         channels: IntArray = TEST_CHANNELS,
     ): List<Event> {
         val events = ArrayList<Event>(notes.size * channels.size * 2)
-        for (note in notes) {
+        for ((noteIndex, note) in notes.withIndex()) {
+            val holdMs = if (noteIndex == notes.lastIndex) FINAL_NOTE_MS else NOTE_MS
             for ((index, channel) in channels.withIndex()) {
                 val last = index == channels.lastIndex
-                events += Event(noteOn(channel, note), if (last) NOTE_MS else 0L)
+                events += Event(noteOn(channel, note), if (last) holdMs else 0L)
             }
             for ((index, channel) in channels.withIndex()) {
                 val last = index == channels.lastIndex

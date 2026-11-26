@@ -7,6 +7,8 @@ import kotlin.coroutines.coroutineContext
 class FM1Updater(
     val transport: MidiTransport,
     val timing: UpdaterTiming = UpdaterTiming.Standard,
+    /** Product name in probe / not-found copy ("FM-1" or "SMK-37"). */
+    var deviceLabel: String = "FM-1",
 ) {
     /** Why the last [find] or [findAll] came back empty while ports were listed, for the DEVICE screen. */
     @Volatile
@@ -58,7 +60,7 @@ class FM1Updater(
 
     private fun probeMiss(port: MidiPortDescriptor, identity: FM1Identity?): String =
         if (identity == null) {
-            "${port.name}: opened, but the FM-1 didn't answer."
+            "${port.name}: opened, but the $deviceLabel didn't answer."
         } else {
             "${port.name}: answered as ${identity.text}, which isn't what this step needs."
         }
@@ -67,10 +69,12 @@ class FM1Updater(
         val found = findAll(filter, deep)
         if (found.size > 1) {
             found.forEach { it.connection.close() }
-            throw FM1UpdateError.MultipleDevices(found.size)
+            throw FM1UpdateError.MultipleDevices(found.size, deviceLabel)
         }
         return found.firstOrNull()
     }
+
+    private fun notFound(): Nothing = throw FM1UpdateError.DeviceNotFound(deviceLabel)
 
     suspend fun identify(): FM1Identity? {
         val device = find() ?: return null
@@ -79,7 +83,7 @@ class FM1Updater(
     }
 
     suspend fun check(package_: FwscPackage, buildID: FM1BuildID? = null): InstallCheck {
-        val device = findOnly({ identity -> !identity.isLoader }) ?: throw FM1UpdateError.DeviceNotFound
+        val device = findOnly({ identity -> !identity.isLoader }) ?: notFound()
         return try {
             check(package_, device, buildID ?: knownBuildID(package_), InstallOptions())
         } finally {
@@ -114,7 +118,7 @@ class FM1Updater(
         options: InstallOptions = InstallOptions(),
         events: (UpdateEvent) -> Unit = {},
     ): FM1Identity {
-        val device = findOnly({ identity -> !identity.isLoader }) ?: throw FM1UpdateError.DeviceNotFound
+        val device = findOnly({ identity -> !identity.isLoader }) ?: notFound()
         val buildID = options.buildID ?: knownBuildID(package_)
         val staging: ServeOutcome
         try {
@@ -385,7 +389,7 @@ class FM1Updater(
     }
 
     private suspend fun restoreVoices(voices: ByteArray, progress: (Double) -> Unit) {
-        val device = findOnly({ true }) ?: throw FM1UpdateError.DeviceNotFound
+        val device = findOnly({ true }) ?: notFound()
         try {
             if (device.identity != FM1Identity.OFFICIAL_V15) {
                 throw FM1UpdateError.VoiceRestoreNeedsV15(device.identity.text)

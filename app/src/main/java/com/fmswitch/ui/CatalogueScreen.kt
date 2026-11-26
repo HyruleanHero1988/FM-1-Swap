@@ -43,6 +43,7 @@ import com.fmswitch.catalogue.FirmwareKind
 import com.fmswitch.catalogue.FirmwareSort
 import com.fmswitch.catalogue.NewChipSupport
 import com.fmswitch.catalogue.RescueMode
+import com.fmswitch.fm1kit.DeviceFamilyKind
 import com.fmswitch.model.AppViewModel
 import com.fmswitch.model.CurationSeed
 import com.fmswitch.model.StoredFirmware
@@ -73,6 +74,7 @@ fun CatalogueScreen(model: AppViewModel) {
     model.historyTick
     val curation = model.settings.curation
     val curatedIds = curation.toSet()
+    val smk = model.effectiveDeviceFamily == DeviceFamilyKind.SMK37
     val matching = model.catalogueEntries().filter { entry ->
         (model.settings.showBeta || !entry.beta || entry.id in curatedIds) &&
             (model.settings.showLinksOnly || entry.isDownloadable || entry.isSmkListing ||
@@ -80,7 +82,10 @@ fun CatalogueScreen(model: AppViewModel) {
             (!model.settings.curatedOnly || entry.id in curatedIds) &&
             CatalogueSearch.matches(entry, search)
     }
-    val kind = model.settings.firmwareKind
+    val kind = when {
+        smk && model.settings.firmwareKind == FirmwareKind.NEW_CHIP -> FirmwareKind.ALL
+        else -> model.settings.firmwareKind
+    }
     val kindCounts = FirmwareKind.entries.associateWith { group -> matching.count { group.matches(it) } }
     val visible = CatalogueOrder.apply(
         matching.filter { kind.matches(it) },
@@ -125,7 +130,8 @@ fun CatalogueScreen(model: AppViewModel) {
         Spacer(Modifier.height(8.dp))
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             val chips = FirmwareKind.entries.filter { group ->
-                group == FirmwareKind.ALL || group == kind || (kindCounts[group] ?: 0) > 0
+                if (smk && group == FirmwareKind.NEW_CHIP) false
+                else group == FirmwareKind.ALL || group == kind || (kindCounts[group] ?: 0) > 0
             }
             items(chips, key = { it.id }) { group ->
                 PixelButton(
@@ -166,6 +172,8 @@ fun CatalogueScreen(model: AppViewModel) {
                         "No firmware in this list is confirmed to save on a newer FM-1 yet. Press REFRESH for the hub's latest data, or press ALL."
                     kind != FirmwareKind.ALL ->
                         "No firmwares in this group. Press ALL, or clear the search."
+                    smk ->
+                        "No SMK-37 firmwares match. Refresh the list, or IMPORT a .fwsc under SAVED."
                     else ->
                         "No firmwares match. Refresh the list, or under SETUP turn on SHOW LISTINGS WITHOUT A PACKAGE."
                 },
@@ -198,8 +206,10 @@ fun CatalogueScreen(model: AppViewModel) {
                         model.history.lastFor(entry)?.let { installed ->
                             MonoText(lastInstalledMarker(installed, entry.version), size = 13)
                         }
-                        Spacer(Modifier.height(4.dp))
-                        NewChipTag(entry.newChip, model.settings.unitGeneration)
+                        if (!smk) {
+                            Spacer(Modifier.height(4.dp))
+                            NewChipTag(entry.newChip, model.settings.unitGeneration)
+                        }
                         val rankBits = buildList {
                             entry.stars?.takeIf { it > 0 }?.let { add("★ $it") }
                         }
@@ -224,6 +234,8 @@ fun CatalogueScreen(model: AppViewModel) {
         }
         val shipped = model.catalogue.catalogue
         when {
+            smk ->
+                NoteText("Stock M-VAVE V016 and community SMK builds. REFRESH pulls genkigenki's install page.")
             shipped?.bundled == true && kind == FirmwareKind.NEW_CHIP ->
                 NoteText("This list came with the app, from before most newer-FM-1 results were in. REFRESH gets the hub's latest.")
             shipped?.bundled == true ->
@@ -247,6 +259,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
     var preparingFlash by remember { mutableStateOf(false) }
     val stored = model.library.stored(entry)
     val downloading = entry.id in model.downloadingIds
+    val smk = model.effectiveDeviceFamily == DeviceFamilyKind.SMK37
     @Suppress("UNUSED_EXPRESSION")
     model.libraryTick
     @Suppress("UNUSED_EXPRESSION")
@@ -279,7 +292,7 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
             placeholder = "NO SCREENSHOT YET",
         )
         entry.what?.let { MonoText(it, size = 15) }
-        NewChipBanner(entry.name, entry.newChip, model.settings.unitGeneration)
+        if (!smk) NewChipBanner(entry.name, entry.newChip, model.settings.unitGeneration)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (model.tryEmulatorEnabled) {
                 PixelButton("TRY", prominent = true, wrap = true, modifier = Modifier.weight(1f)) {
@@ -367,14 +380,16 @@ fun FirmwareDetail(model: AppViewModel, entry: CatalogueEntry, onBack: () -> Uni
         }
         PixelPanel(title = "DETAILS") {
             MonoText("Reports  ${entry.product ?: "unknown"}", size = 14)
-            MonoText(
-                "Newer FM-1s  " + when (entry.newChip) {
-                    NewChipSupport.WORKS -> "saves (confirmed)"
-                    NewChipSupport.BRICKS -> "fails"
-                    NewChipSupport.UNKNOWN -> "untested"
-                },
-                size = 14,
-            )
+            if (!smk) {
+                MonoText(
+                    "Newer FM-1s  " + when (entry.newChip) {
+                        NewChipSupport.WORKS -> "saves (confirmed)"
+                        NewChipSupport.BRICKS -> "fails"
+                        NewChipSupport.UNKNOWN -> "untested"
+                    },
+                    size = 14,
+                )
+            }
             MonoText("Size  ${entry.size?.let { formattedBytes(it) } ?: "unknown"}", size = 14)
             entry.sha256?.let { MonoText("Checksum  ${it.take(16)}…", size = 14) }
             if (entry.requiresOfficialFirmware) MonoText("Needs official firmware running first.", size = 14)

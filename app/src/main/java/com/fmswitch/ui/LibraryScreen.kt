@@ -30,6 +30,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.fmswitch.catalogue.DeviceUiMode
+import com.fmswitch.fm1kit.DeviceFamilyKind
 import com.fmswitch.fm1kit.mightHaveEditorBackup
 import com.fmswitch.fm1kit.supportsBaudGirlBackup
 import com.fmswitch.model.BackupOffer
@@ -67,6 +69,8 @@ fun LibraryScreen(model: AppViewModel) {
     model.backupTick
     @Suppress("UNUSED_EXPRESSION")
     model.historyTick
+    @Suppress("UNUSED_EXPRESSION")
+    model.listTick
     BackHandler(enabled = confirmingClear) { confirmingClear = false }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
@@ -83,6 +87,9 @@ fun LibraryScreen(model: AppViewModel) {
             onFailure = { message = it.message },
         )
     }
+    val smk = model.savedFilterFamily == DeviceFamilyKind.SMK37
+    val saved = model.savedItemsForCurrentFamily()
+    val connected = model.identity != null
     Column(
         Modifier
             .fillMaxSize()
@@ -90,14 +97,53 @@ fun LibraryScreen(model: AppViewModel) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        ScreenHeader("SAVED") {
+        ScreenHeader(if (smk) "SAVED · SMK" else "SAVED") {
             PixelButton("IMPORT", compact = true) {
                 picker.launch(arrayOf("*/*"))
             }
         }
-        NoteText("TRY plays one on the virtual FM-1. FLASH writes it to a connected FM-1. These stay on the phone. Clearing them keeps the bundled V15.")
+        if (!connected) {
+            PixelPanel(title = "KEYBOARD MODE") {
+                NoteText("No keyboard connected. Pick FM-1 or SMK-37 to browse that family's saved packages (same as SETUP).")
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    DeviceUiMode.entries.forEach { mode ->
+                        PixelButton(
+                            mode.label,
+                            compact = true,
+                            prominent = model.settings.deviceUiMode == mode,
+                        ) { model.setDeviceUiMode(mode) }
+                    }
+                }
+            }
+        } else {
+            NoteText(
+                "Showing packages for the connected ${model.savedFilterFamily.productLabel}.",
+            )
+        }
+        NoteText(
+            when {
+                smk ->
+                    "FLASH writes a connected SMK-37. These stay on the phone. Import a .fwsc or SAVE one from FIRMWARE."
+                model.tryEmulatorEnabled ->
+                    "TRY plays one on the virtual FM-1. FLASH writes it to a connected FM-1. These stay on the phone. Clearing them keeps the bundled V15."
+                else ->
+                    "FLASH writes it to a connected FM-1. These stay on the phone. Clearing them keeps the bundled V15."
+            },
+        )
         message?.let { MonoText(it, size = 14) }
-        model.library.sortedItems.forEach { item ->
+        if (saved.isEmpty()) {
+            MonoText(
+                if (smk) {
+                    "No SMK-37 packages saved yet. Open FIRMWARE for stock V016 / community builds, or IMPORT a .fwsc."
+                } else {
+                    "No FM-1 packages in this list. Switch KEYBOARD MODE, or IMPORT a .fwsc."
+                },
+                size = 14,
+                dim = true,
+            )
+        }
+        saved.forEach { item ->
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -155,10 +201,16 @@ fun LibraryScreen(model: AppViewModel) {
             }
         }
         PixelPanel(title = "ON THIS PHONE") {
-            MonoText("${model.library.items.size} firmwares  ·  ${formattedBytes(model.library.items.sumOf { it.size })}", size = 14)
+            MonoText(
+                "${saved.size} shown  ·  ${model.library.items.size} total  ·  ${formattedBytes(model.library.items.sumOf { it.size })}",
+                size = 14,
+            )
             PixelButton("CLEAR SAVED FIRMWARES") { confirmingClear = true }
             if (confirmingClear) {
-                NoteText("This keeps bundled V15 and deletes the rest.")
+                NoteText(
+                    if (smk) "This deletes saved packages on this phone (bundled FM-1 V15 is kept)."
+                    else "This keeps bundled V15 and deletes the rest.",
+                )
                 PixelButton("CONFIRM CLEAR", prominent = true) {
                     model.clearLibrary()
                     confirmingClear = false
@@ -243,18 +295,25 @@ fun FlashConfirmSheet(
             steps.forEachIndexed { index, step ->
                 MonoText("${index + 1}. ${step.name} ${step.version}", size = 17)
             }
-            NewChipFlashNotice(newChipGate, newChipUnderstood) { newChipUnderstood = it }
+            if (!model.isSmkMode) {
+                NewChipFlashNotice(newChipGate, newChipUnderstood) { newChipUnderstood = it }
+            }
             if (missingOfficial) {
                 MonoText("This needs the official firmware first, and none is saved. Add it under SAVED.", size = 14)
             }
             if (model.identity?.isLoader == true) {
-                NoteText("The FM-1 is in its update loader, so this finishes that update.")
+                val label = if (model.isSmkMode) "SMK-37" else "FM-1"
+                NoteText("The $label is in its update loader, so this finishes that update.")
             }
             checkError?.let { MonoText(it, size = 14) }
             val autoBackup = model.identity?.supportsBaudGirlBackup == true || model.backupOffer.auto
             when {
                 model.backupOffer is BackupOffer.Checking || backupPending -> MonoText(
-                    "Seeing whether this firmware can be backed up from the FM-1…",
+                    if (model.isSmkMode) {
+                        "Seeing whether this firmware can be backed up from the SMK-37…"
+                    } else {
+                        "Seeing whether this firmware can be backed up from the FM-1…"
+                    },
                     size = 15,
                 )
                 model.identity?.supportsBaudGirlBackup == true -> NoteText(

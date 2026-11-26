@@ -30,6 +30,23 @@ class SmkFeedTest {
         assertTrue(baud.links.any { it.url.contains("baudgirl.com/work/SMK-37+VA") })
         assertTrue(baud.links.any { it.label.equals("Install", ignoreCase = true) })
 
+        val proStock = snapshot.entries.single { it.id == "mvave-smk-pro-v016" }
+        assertTrue(proStock.isOfficial)
+        assertTrue(proStock.isDownloadable)
+        assertEquals("SMK-37 Pro_016", proStock.product)
+        assertEquals("2d98ce72530e71d617384963423820536f094501299e2cfec0a8d3c3fb6bcfb0", proStock.sha256)
+        assertTrue(proStock.links.any { it.label.contains("Download V016", ignoreCase = true) })
+        assertTrue(proStock.packageURL!!.contains("SMK-37Pro"))
+
+        val eliteStock = snapshot.entries.single { it.id == "mvave-smk-elite-v016" }
+        assertTrue(eliteStock.isDownloadable)
+        assertEquals("b2ee38abfef3ae922e4eecdb8a551e14345300ae6f270265feacd33b6ef99cb6", eliteStock.sha256)
+
+        val otherStock = snapshot.entries.single { it.id == "mvave-smk-other-stock" }
+        assertTrue(otherStock.isOfficial)
+        assertFalse(otherStock.isDownloadable)
+        assertTrue(otherStock.links.any { it.url.contains("m-vave.com/download") })
+
         val makkuro = snapshot.entries.single { it.id == "makkuro37" }
         assertEquals(3, makkuro.smkModels.size)
         assertNotNull(makkuro.smkModels["pro"]?.packageURL)

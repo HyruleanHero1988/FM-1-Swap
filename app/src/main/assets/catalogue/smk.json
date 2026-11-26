@@ -5,43 +5,89 @@
   "entries": [
     {
       "id": "mvave-smk-pro-v016",
-      "name": "SMK-37 Pro V016",
+      "name": "SMK-37 Pro V016 (stock)",
       "author": "M-VAVE",
       "kinds": [
         "official"
       ],
-      "what": "M-VAVE stock firmware for the SMK-37 Pro. Download the .fwsc from M-VAVE, then import it here or use SAVED after you download it in the app.",
+      "what": "M-VAVE official stock firmware for the SMK-37 Pro. Starrykey 37 Play uses this Pro package. SAVE / FLASH downloads M-VAVE's .fwsc from their CDN; LINKS also open the product page and the full downloads list (MKE and other models).",
       "version": "V016",
       "product": "SMK-37 Pro_016",
+      "packageURL": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/SMK-37Pro/SMK-37%20Pro_016.fwsc",
+      "sha256": "2d98ce72530e71d617384963423820536f094501299e2cfec0a8d3c3fb6bcfb0",
+      "size": 705252,
       "platforms": [
         "smk37"
       ],
+      "allowSiblingSmkModel": true,
       "isOfficial": true,
       "links": [
         {
-          "label": "M-VAVE downloads",
+          "label": "Download V016 (.fwsc)",
+          "url": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/SMK-37Pro/SMK-37%20Pro_016.fwsc"
+        },
+        {
+          "label": "SMK-37 Pro product page",
+          "url": "https://www.m-vave.com/product?id=smk-37-pro"
+        },
+        {
+          "label": "M-VAVE downloads (all models)",
           "url": "https://www.m-vave.com/download"
         }
       ]
     },
     {
       "id": "mvave-smk-elite-v016",
-      "name": "SMK-37 Elite V016",
+      "name": "SMK-37 Elite V016 (stock)",
       "author": "M-VAVE",
       "kinds": [
         "official"
       ],
-      "what": "M-VAVE stock firmware for the SMK-37 Elite. Download the .fwsc from M-VAVE, then import it here.",
+      "what": "M-VAVE official stock firmware for the SMK-37 Elite. SAVE / FLASH downloads M-VAVE's .fwsc from their CDN. For MKE-P37 or other rebrands, use M-VAVE downloads.",
       "version": "V016",
       "product": "SMK-37 Elite_016",
+      "packageURL": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/SMK-37Elite/SMK-37%20Elite_016.fwsc",
+      "sha256": "b2ee38abfef3ae922e4eecdb8a551e14345300ae6f270265feacd33b6ef99cb6",
+      "size": 705236,
       "platforms": [
         "smk37"
       ],
       "isOfficial": true,
       "links": [
         {
-          "label": "M-VAVE downloads",
+          "label": "Download V016 (.fwsc)",
+          "url": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/SMK-37Elite/SMK-37%20Elite_016.fwsc"
+        },
+        {
+          "label": "SMK-37 Elite product page",
+          "url": "https://www.m-vave.com/product?id=smk-37-elite"
+        },
+        {
+          "label": "M-VAVE downloads (all models)",
           "url": "https://www.m-vave.com/download"
+        }
+      ]
+    },
+    {
+      "id": "mvave-smk-other-stock",
+      "name": "MKE-P37 / Starrykey stock",
+      "author": "M-VAVE",
+      "kinds": [
+        "official"
+      ],
+      "what": "Starrykey 37 Play flashes with SMK-37 Pro V016 (stock) above. MKE-P37 stock builds are on M-VAVE's downloads page (PC Firmware). Download the .fwsc for your model, then IMPORT under SAVED, or open the Pro stock card if you have a Starrykey.",
+      "platforms": [
+        "smk37"
+      ],
+      "isOfficial": true,
+      "links": [
+        {
+          "label": "M-VAVE downloads (MKE / Starrykey)",
+          "url": "https://www.m-vave.com/download"
+        },
+        {
+          "label": "SMK-37 Pro V016 (.fwsc) for Starrykey",
+          "url": "https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/SMK-37Pro/SMK-37%20Pro_016.fwsc"
         }
       ]
     },

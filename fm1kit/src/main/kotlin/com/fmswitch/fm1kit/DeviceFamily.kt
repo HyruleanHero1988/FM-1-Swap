@@ -95,6 +95,19 @@ object DeviceFamily {
     const val VARIANT_MKE = "mke"
 }
 
-enum class DeviceFamilyKind { FM1, SMK37, UNKNOWN }
+enum class DeviceFamilyKind {
+    FM1,
+    SMK37,
+    UNKNOWN,
+    ;
+
+    /** Short product name for user-facing copy ("FM-1", "SMK-37"). */
+    val productLabel: String
+        get() = when (this) {
+            FM1 -> "FM-1"
+            SMK37 -> "SMK-37"
+            UNKNOWN -> "device"
+        }
+}
 
 data class PackagePick(val product: String, val anyModel: Boolean)

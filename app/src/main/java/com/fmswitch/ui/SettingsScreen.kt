@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.fmswitch.BuildConfig
 import com.fmswitch.catalogue.DeviceUiMode
 import com.fmswitch.catalogue.SafetyNotice
+import com.fmswitch.fm1kit.DeviceFamilyKind
 import com.fmswitch.model.Appearance
 import com.fmswitch.model.AppIcon
 import com.fmswitch.model.AppViewModel
@@ -51,8 +52,11 @@ import com.fmswitch.theme.pixelText
 fun SettingsScreen(model: AppViewModel) {
     val theme = LocalPhosphor.current
     val context = LocalContext.current
+    val smk = model.effectiveDeviceFamily == DeviceFamilyKind.SMK37
     @Suppress("UNUSED_EXPRESSION")
     model.themeTick
+    @Suppress("UNUSED_EXPRESSION")
+    model.listTick
     Column(
         Modifier
             .fillMaxSize()
@@ -64,11 +68,18 @@ fun SettingsScreen(model: AppViewModel) {
         PixelPanel(title = "SAFETY + RECOVERY") {
             MonoText(SafetyNotice.TEXT, size = 14)
             Spacer(Modifier.height(8.dp))
-            MonoText(SafetyNotice.RECOVERY, size = 14)
+            MonoText(
+                if (smk) {
+                    "If the SMK-37 won't start after a flash, reconnect it and resume from SAVED, or install M-VAVE stock V016 from FIRMWARE (OFFICIAL). Some recoveries need a computer and M-UPGRADE from m-vave.com/download."
+                } else {
+                    SafetyNotice.RECOVERY
+                },
+                size = 14,
+            )
         }
         PixelPanel(title = "KEYBOARD MODE") {
             MonoText(
-                "AUTO follows a connected device. Otherwise the firmware list and flashing target FM-1 or SMK-37 only.",
+                "AUTO follows a connected device. Otherwise the firmware list, SAVED list, and flashing target FM-1 or SMK-37 only.",
                 size = 14,
             )
             Spacer(Modifier.height(8.dp))
@@ -82,38 +93,38 @@ fun SettingsScreen(model: AppViewModel) {
                 }
             }
         }
-        PixelPanel(title = "WHICH FM-1 DO YOU HAVE?") {
-            @Suppress("UNUSED_EXPRESSION")
-            model.listTick
-            UnitGenerationHelp()
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                UnitGeneration.entries.forEach { unit ->
-                    PixelButton(
-                        unit.label,
-                        compact = true,
-                        prominent = model.settings.unitGeneration == unit,
-                    ) { model.setUnitGeneration(unit) }
+        if (!smk) {
+            PixelPanel(title = "WHICH FM-1 DO YOU HAVE?") {
+                UnitGenerationHelp()
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    UnitGeneration.entries.forEach { unit ->
+                        PixelButton(
+                            unit.label,
+                            compact = true,
+                            prominent = model.settings.unitGeneration == unit,
+                        ) { model.setUnitGeneration(unit) }
+                    }
                 }
-            }
-            NoteText(
-                when (model.settings.unitGeneration) {
-                    UnitGeneration.UNSURE -> "Not sure is treated like newer: firmwares known to fail, or not tested, on newer FM-1s show a warning."
-                    UnitGeneration.NEWER -> "FIRMWARE opens on SAVES ON NEWER FM-1S, and a firmware known to fail can't be flashed until you accept the risk."
-                    UnitGeneration.OLDER -> "The newer-FM-1 warnings are hidden. Only pick this if you know your FM-1 has the first units' chip."
-                },
-            )
-        }
-        PixelPanel(title = "IF IT WON'T START AT ALL") {
-            MonoText(SafetyNotice.ROM_RECOVERY, size = 14)
-            SafetyNotice.ROM_LINKS.forEach { link ->
-                BasicText(
-                    "▸ ${link.label.uppercase()}",
-                    style = pixelText(11.sp, bold = true, color = theme.bright),
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .clickable { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link.url))) },
+                NoteText(
+                    when (model.settings.unitGeneration) {
+                        UnitGeneration.UNSURE -> "Not sure is treated like newer: firmwares known to fail, or not tested, on newer FM-1s show a warning."
+                        UnitGeneration.NEWER -> "FIRMWARE opens on SAVES ON NEWER FM-1S, and a firmware known to fail can't be flashed until you accept the risk."
+                        UnitGeneration.OLDER -> "The newer-FM-1 warnings are hidden. Only pick this if you know your FM-1 has the first units' chip."
+                    },
                 )
+            }
+            PixelPanel(title = "IF IT WON'T START AT ALL") {
+                MonoText(SafetyNotice.ROM_RECOVERY, size = 14)
+                SafetyNotice.ROM_LINKS.forEach { link ->
+                    BasicText(
+                        "▸ ${link.label.uppercase()}",
+                        style = pixelText(11.sp, bold = true, color = theme.bright),
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .clickable { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link.url))) },
+                    )
+                }
             }
         }
         PixelPanel(title = "COLOUR + SCREEN") {
@@ -191,31 +202,33 @@ fun SettingsScreen(model: AppViewModel) {
                 model.settings.flicker = it
                 model.bumpTheme()
             }
-            PixelToggle("PHOSPHOR EMULATOR PANEL", model.settings.phosphorPanel) {
-                model.settings.phosphorPanel = it
-                model.bumpTheme()
+            if (!smk) {
+                PixelToggle("PHOSPHOR EMULATOR PANEL", model.settings.phosphorPanel) {
+                    model.settings.phosphorPanel = it
+                    model.bumpTheme()
+                }
+                NoteText("TRY draws the virtual FM-1 as glowing vector lines in this colour, like a scope's electron beam. Off shows the realistic panel. The firmware's own screen is never changed either way.")
+                PixelToggle("CHOOSE EMULATOR CLOCK", model.settings.chooseEmulatorClock) {
+                    model.settings.chooseEmulatorClock = it
+                    model.bumpTheme()
+                }
+                NoteText("Off, TRY starts at the same speed as a real FM-1 and steps down on its own (240 → 200 → 160 → 120) if the phone can't keep up. On, TRY offers a fixed 100, 160 or 240, remembered per firmware.")
+                PixelToggle("RUN EMULATOR IN BACKGROUND", model.settings.backgroundEmulator) {
+                    model.settings.backgroundEmulator = it
+                    model.bumpTheme()
+                }
+                NoteText("Off, TRY stops when you switch away or the screen turns off. On, it keeps sounding until you leave TRY. Leaving TRY always stops it. Turning the phone does not: the panel changes shape and the firmware keeps running.")
+                PixelToggle("OPEN TRY FULL SCREEN", model.settings.tryOpensFullScreen) {
+                    model.settings.tryOpensFullScreen = it
+                    model.bumpTheme()
+                }
+                NoteText("On, TRY starts with the panel filling the display, as if you had pressed FULL. You can still exit full screen with FULL or system back.")
+                PixelToggle("STRETCH TRY PANEL", model.settings.stretchTryPanel) {
+                    model.settings.stretchTryPanel = it
+                    model.bumpTheme()
+                }
+                NoteText("On, sideways TRY fills leftover space so keys and buttons get larger. Portrait keeps the FM-1's real proportions. Knobs stay round, and the firmware's screen keeps its square pixels inside the bezel.")
             }
-            NoteText("TRY draws the virtual FM-1 as glowing vector lines in this colour, like a scope's electron beam. Off shows the realistic panel. The firmware's own screen is never changed either way.")
-            PixelToggle("CHOOSE EMULATOR CLOCK", model.settings.chooseEmulatorClock) {
-                model.settings.chooseEmulatorClock = it
-                model.bumpTheme()
-            }
-            NoteText("Off, TRY starts at the same speed as a real FM-1 and steps down on its own (240 → 200 → 160 → 120) if the phone can't keep up. On, TRY offers a fixed 100, 160 or 240, remembered per firmware.")
-            PixelToggle("RUN EMULATOR IN BACKGROUND", model.settings.backgroundEmulator) {
-                model.settings.backgroundEmulator = it
-                model.bumpTheme()
-            }
-            NoteText("Off, TRY stops when you switch away or the screen turns off. On, it keeps sounding until you leave TRY. Leaving TRY always stops it. Turning the phone does not: the panel changes shape and the firmware keeps running.")
-            PixelToggle("OPEN TRY FULL SCREEN", model.settings.tryOpensFullScreen) {
-                model.settings.tryOpensFullScreen = it
-                model.bumpTheme()
-            }
-            NoteText("On, TRY starts with the panel filling the display, as if you had pressed FULL. You can still exit full screen with FULL or system back.")
-            PixelToggle("STRETCH TRY PANEL", model.settings.stretchTryPanel) {
-                model.settings.stretchTryPanel = it
-                model.bumpTheme()
-            }
-            NoteText("On, sideways TRY fills leftover space so keys and buttons get larger. Portrait keeps the FM-1's real proportions. Knobs stay round, and the firmware's screen keeps its square pixels inside the bezel.")
         }
         PixelPanel(title = "CONNECTION") {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -231,7 +244,13 @@ fun SettingsScreen(model: AppViewModel) {
                     }
                 }
             }
-            NoteText("Plug the FM-1 straight into the phone if you can. Hubs often hide it. Close other MIDI apps first. Once it answers, leave this app open so the connection doesn't blink on and off. SIMULATED FM-1 is not a synth. It stands in for an FM-1 so you can try a flash. To hear a firmware, open it on FIRMWARE and press TRY.")
+            NoteText(
+                if (smk) {
+                    "Plug the SMK-37 straight into the phone if you can. Hubs often hide it. Close other MIDI apps first. Once it answers, leave this app open so the connection doesn't blink on and off."
+                } else {
+                    "Plug the FM-1 straight into the phone if you can. Hubs often hide it. Close other MIDI apps first. Once it answers, leave this app open so the connection doesn't blink on and off. SIMULATED FM-1 is not a synth. It stands in for an FM-1 so you can try a flash. To hear a firmware, open it on FIRMWARE and press TRY."
+                },
+            )
             if (model.settings.transportKind == TransportKind.SIMULATED) {
                 PixelToggle("START IN USB RECOVERY MODE", model.settings.simulatedRecoveryMode) {
                     model.settings.simulatedRecoveryMode = it
@@ -269,11 +288,13 @@ fun SettingsScreen(model: AppViewModel) {
                 model.settings.showLinksOnly = it
                 model.bumpTheme()
             }
-            PixelToggle("SAVE WHAT YOU TRY", model.settings.autoSaveTried) {
-                model.settings.autoSaveTried = it
-                model.bumpTheme()
+            if (!smk) {
+                PixelToggle("SAVE WHAT YOU TRY", model.settings.autoSaveTried) {
+                    model.settings.autoSaveTried = it
+                    model.bumpTheme()
+                }
+                NoteText("On, TRY keeps the firmware under SAVED. Off, it does not keep it. A firmware already on the phone is not downloaded again.")
             }
-            NoteText("On, TRY keeps the firmware under SAVED. Off, it does not keep it. A firmware already on the phone is not downloaded again.")
         }
         PixelPanel(title = "BUILD") {
             MonoText("FM-1 SWAP  ${BuildConfig.VERSION_NAME}", size = 14)

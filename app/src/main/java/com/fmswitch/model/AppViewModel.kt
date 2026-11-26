@@ -24,6 +24,7 @@ import com.fmswitch.catalogue.FirmwareSort
 import com.fmswitch.catalogue.SafetyNotice
 import com.fmswitch.catalogue.DevicePlatform
 import com.fmswitch.catalogue.DeviceUiMode
+import com.fmswitch.catalogue.matchesFamily
 import com.fmswitch.catalogue.officialCatalogueEntry
 import com.fmswitch.catalogue.targetsPlatform
 import com.fmswitch.fm1kit.DeviceFamily
@@ -225,11 +226,34 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val tryEmulatorEnabled: Boolean
         get() = effectiveDeviceFamily != DeviceFamilyKind.SMK37
 
+    /** True when the firmware list / flash UI is in SMK-37 keyboard mode. */
+    val isSmkMode: Boolean
+        get() = effectiveDeviceFamily == DeviceFamilyKind.SMK37
+
+    /**
+     * Family used to filter SAVED. A connected keyboard wins; otherwise SETUP KEYBOARD MODE
+     * (AUTO defaults to FM-1).
+     */
+    val savedFilterFamily: DeviceFamilyKind
+        get() {
+            val connected = identity?.let { DeviceFamily.deviceFamilyFor(it) }
+            if (connected == DeviceFamilyKind.FM1 || connected == DeviceFamilyKind.SMK37) return connected
+            return effectiveDeviceFamily
+        }
+
     fun catalogueEntries(): List<CatalogueEntry> {
         val platform = effectiveDeviceFamily
         return catalogue.entries
             .filter { it.targetsPlatform(platform) }
             .map { it.forDevice(identity) }
+    }
+
+    /** Saved packages for the current keyboard family (connected device, or KEYBOARD MODE). */
+    fun savedItemsForCurrentFamily(): List<StoredFirmware> {
+        val family = savedFilterFamily
+        return library.sortedItems.filter { item ->
+            item.matchesFamily(family, item.catalogueID?.let { catalogue.entry(it) })
+        }
     }
 
     /** Catalogue row with Pro / Elite / MKE package filled for the connected keyboard. */
@@ -238,8 +262,21 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setDeviceUiMode(mode: DeviceUiMode) {
         settings.deviceUiMode = mode
+        if (isSmkMode && settings.firmwareKind == FirmwareKind.NEW_CHIP) {
+            settings.firmwareKind = FirmwareKind.ALL
+        }
+        syncUpdaterDeviceLabel()
         listTick++
     }
+
+    private fun syncUpdaterDeviceLabel() {
+        updater.deviceLabel = effectiveDeviceFamily.productLabel.let { label ->
+            if (label == "device") "FM-1" else label
+        }
+    }
+
+    private fun deviceNotFound(): Nothing =
+        throw FM1UpdateError.DeviceNotFound(updater.deviceLabel)
 
     var isScanning by mutableStateOf(false)
         private set
@@ -372,6 +409,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
         transportName = settings.transportKind.label
         updater = FM1Updater(transport)
+        syncUpdaterDeviceLabel()
         identity = null
         ports = emptyList()
         watch = transport.changes {
@@ -417,9 +455,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 if (found != null) {
                     identity = found.identity
                     held = found
+                    syncUpdaterDeviceLabel()
                     ignorePortChangesUntil = System.currentTimeMillis() + 2_000
                 } else if (force || ports.isEmpty()) {
                     identity = null
+                    syncUpdaterDeviceLabel()
                 }
             } finally {
                 if (generation == scanGeneration) isScanning = false
@@ -564,11 +604,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun newChipSupport(item: StoredFirmware): NewChipSupport = catalogue.newChipFor(item.sha256)
 
     fun newChipGateFor(steps: List<StoredFirmware>): NewChipGate =
-        newChipGate(steps.map { it.name to newChipSupport(it) }, settings.unitGeneration)
+        if (isSmkMode) {
+            NewChipGate()
+        } else {
+            newChipGate(steps.map { it.name to newChipSupport(it) }, settings.unitGeneration)
+        }
 
     fun setUnitGeneration(unit: UnitGeneration) {
         settings.unitGeneration = unit
-        if (unit == UnitGeneration.NEWER) settings.firmwareKind = FirmwareKind.NEW_CHIP
+        if (unit == UnitGeneration.NEWER && !isSmkMode) settings.firmwareKind = FirmwareKind.NEW_CHIP
         listTick++
     }
 
@@ -723,7 +767,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun dumpBaudGirl(current: FM1Identity): BaudGirlSnapshot {
-        val found = held ?: updater.find()?.also { held = it } ?: throw FM1UpdateError.DeviceNotFound
+        val found = held ?: updater.find()?.also { held = it } ?: deviceNotFound()
         return withContext(Dispatchers.Default) {
             BaudGirlLibrarian().dump(found.connection, current) { done, total -> postBackupProgress(done, total) }
         }
@@ -731,7 +775,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private suspend fun dumpEditor(identityText: String): EditorArchive? {
         appendLog("Looking for a Felucca or SLOOP backup on $identityText.")
-        val found = held ?: updater.find()?.also { held = it } ?: throw FM1UpdateError.DeviceNotFound
+        val found = held ?: updater.find()?.also { held = it } ?: deviceNotFound()
         val archive = withContext(Dispatchers.Default) {
             EditorLibrarian().capture(found.connection, identityText) { done, total -> postBackupProgress(done, total) }
         }
@@ -826,7 +870,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 val snapshot = withContext(Dispatchers.IO) { backups.loadPresets(backup) }
                     ?: throw FM1UpdateError.BackupFailed("the backup files are missing")
                 val found = withContext(Dispatchers.Default) { updater.find() }
-                    ?: throw FM1UpdateError.DeviceNotFound
+                    ?: deviceNotFound()
                 try {
                     if (!found.identity.supportsBaudGirlBackup) {
                         throw FM1UpdateError.BackupUnavailable(found.identity.text)
@@ -868,7 +912,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 val archive = withContext(Dispatchers.IO) { backups.loadArchive(backup) }
                     ?: throw FM1UpdateError.BackupFailed("the backup file is missing")
                 val found = withContext(Dispatchers.Default) { updater.find() }
-                    ?: throw FM1UpdateError.DeviceNotFound
+                    ?: deviceNotFound()
                 try {
                     withContext(Dispatchers.Default) {
                         EditorLibrarian().restore(found.connection, archive) { done, total ->
@@ -1011,7 +1055,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 val found = held ?: updater.find()?.also { held = it }
-                    ?: throw FM1UpdateError.DeviceNotFound
+                    ?: deviceNotFound()
                 identity = found.identity
                 val result = withContext(Dispatchers.Default) {
                     ConnectionTone.play(found.connection) { updater.handshake(it) }
@@ -1050,7 +1094,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 if (found == null) {
                     held?.connection?.let { runCatching { it.close() } }
                     held = null
-                    found = updater.find()?.also { held = it } ?: throw FM1UpdateError.DeviceNotFound
+                    found = updater.find()?.also { held = it } ?: deviceNotFound()
                 }
                 identity = found.identity
                 when (val plan = planFor(found.identity)) {
